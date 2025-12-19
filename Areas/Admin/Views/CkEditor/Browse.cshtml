@@ -1,0 +1,544 @@
+﻿@{
+    Layout = null;
+
+    // Get CKEditor callback function number safely
+    var funcNum = Context.Request.Query["CKEditorFuncNum"].FirstOrDefault() ?? "0";
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <title>📁 استعراض الملفات</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- ✅ Bootstrap RTL -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        /* Sticky Upload Bar */
+        #uploadForm {
+            position: sticky;
+            top: 0;
+            background: #fff;
+            z-index: 100;
+            padding: 10px;
+            border-bottom: 1px solid #dee2e6;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        /* File Cards */
+        .file-card {
+            background-color: #fff;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin: 8px;
+            text-align: center;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+            .file-card:hover {
+                transform: scale(1.04);
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            }
+
+        /* ✅ Unified image and PDF preview sizing */
+        .file-preview {
+            width: 100%;
+            height: 150px;
+            border-radius: 6px;
+            object-fit: cover; /* keeps full image visible */
+            background-color: #f0f0f0;
+        }
+
+        /* For PDF or non-image thumbnails */
+        .file-thumb {
+            width: 100%;
+            height: 150px;
+            background-size: cover;
+            background-position: center;
+            border-radius: 6px;
+            background-color: #fafafa;
+        }
+
+        .file-name {
+            display: block;
+            font-size: 0.85rem;
+            word-break: break-word;
+            color: #333;
+            margin-top: 6px;
+        }
+
+        /* Filter Buttons */
+        .btn-check:checked + .btn {
+            background-color: #0d6efd;
+            color: #fff;
+        }
+
+        .delete-btn {
+            border: none;
+            background: none;
+            color: #dc3545;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .Download-btn {
+            border: none;
+            background: none;
+            color: blue;
+            cursor: pointer;
+            font-size: 1rem;
+            
+        }
+
+            .Download-btn a {
+            text-decoration: none;
+        }
+        delete-btn
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+
+    </style>
+
+</head>
+
+<body>
+    <div class="container py-4">
+
+        <!-- 🔼 Sticky Upload Section -->
+        <form id="uploadForm" enctype="multipart/form-data" class="mb-3 rounded shadow-sm">
+            <div class="row align-items-center">
+                <div class="col-md-4 col-sm-12 text-center text-md-start">
+                    <h5 class="text-primary m-0"><i class="fas fa-folder-open"></i> إدارة الملفات</h5>
+                </div>
+                <div class="col-md-4 col-sm-12 text-center my-2 my-md-0">
+                @*<input type="file" id="uploadInput" name="upload" class="form-control" accept="image/*,.pdf,.doc,.docx,.zip" />
+                  for one file only*@    
+                @* Update your file to allow selecting multiple files:
+                 *@
+                <input type="file" id="uploadInput" name="upload" class="form-control" accept="image/*,.pdf,.doc,.docx,.zip" multiple />
+
+                    <!-- ✅ Progress bar -->
+                    <div class="progress mt-2" style="height: 6px; display:none;">
+                        <div id="uploadProgressBar" class="progress-bar bg-success" role="progressbar" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-12 text-center text-md-end">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="fas fa-upload"></i> رفع الملفات 📄
+                    </button>
+                </div>
+            </div>
+            <div id="uploadMsg" class="mt-2 text-success fw-bold text-center"></div>
+        </form>
+
+        <!-- 🔘 Filter Options -->
+        <div class="d-flex justify-content-center align-items-center mb-3 gap-2">
+            <div class="btn-group" role="group" aria-label="File filter">
+                <input type="radio" class="btn-check" name="fileFilter" id="filter-all" value="all" checked>
+                <label class="btn btn-outline-primary" for="filter-all">الكل</label>
+
+                <input type="radio" class="btn-check" name="fileFilter" id="filter-images" value="images">
+                <label class="btn btn-outline-success" for="filter-images">📷 الصور</label>
+
+                <input type="radio" class="btn-check" name="fileFilter" id="filter-files" value="files">
+                <label class="btn btn-outline-info" for="filter-files">📄 الملفات</label>
+            </div>
+
+            <!-- ✅ Manual refresh button -->
+            <button id="refreshBtn" class="btn btn-outline-secondary ms-2">
+                🔄 تحديث
+            </button>
+        </div>
+
+
+        <!-- 🖼️ File Grid -->
+        <div id="browseFile" class="row justify-content-center">
+            @if (ViewBag.fileInfos != null)
+            {
+
+                @foreach (var fileInfo in ViewBag.fileInfos)
+                {
+                    var fileName = System.IO.Path.GetFileName(fileInfo.Name);
+                    var fileExtension = System.IO.Path.GetExtension(fileName).ToLowerInvariant();
+
+                    if ((new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" }).Contains((string)fileExtension))
+                    {
+                        <div class="col-6 col-sm-4 col-md-3 col-lg-2 file-card is-image">
+                            <img class="file-preview" src="~/uploads/ckeditor/@fileInfo.Name" title="@fileInfo.Name" alt="@fileInfo.Name" />
+                            <span class="file-name">@fileInfo.Name</span>
+                            <button class="delete-btn" data-file="@fileInfo.Name"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    }
+                    else
+                    {
+                        string iconPath = fileExtension switch
+                        {
+                            ".pdf" => Url.Content("~/uploads/ckeditor/icons/pdf.png"),
+                            ".doc" or ".docx" => Url.Content("~/uploads/ckeditor/icons/word.png"),
+                            ".xls" or ".xlsx" => Url.Content("~/uploads/ckeditor/icons/excel.png"),
+                            ".zip" or ".rar" => Url.Content("~/uploads/ckeditor/icons/zip.png"),
+                            ".txt" => Url.Content("~/uploads/ckeditor/icons/txt.png"),
+                            _ => Url.Content("~/uploads/ckeditor/icons/file.png")
+                        };
+
+                        <div class="col-6 col-sm-4 col-md-3 col-lg-2 file-card is-file">
+                            <img class="file-preview" src="@iconPath" title="@fileInfo.Name" alt="@fileInfo.Name" />
+                            <span class="file-name">@fileInfo.Name</span>
+                            <button class="delete-btn" data-file="@fileInfo.Name"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    }
+                }
+
+            }
+            else
+            {
+                <div class="alert alert-info text-center">
+                    لا توجد ملفات حالياً في المجلد <strong>uploads</strong>.
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- ✅ Scripts -->
+    <script src="~/lib/ckeditor/ckeditor.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
+
+    <script>
+        $(function () {
+            const funcNum = '@funcNum';
+
+            // =========================
+            // 🔁 Refresh file grid (AJAX)
+            // =========================
+  
+        function refreshFileGrid(selectedFilter = 'all') {
+            $.getJSON('/CkEditor/ListFiles', function (files) {
+                const $grid = $('#browseFile');
+                $grid.empty();  // Clear the grid first
+
+                if (!files || files.length === 0) {
+                    $grid.html('<div class="alert alert-info text-center">لا توجد ملفات حالياً في المجلد <strong>uploads</strong>.</div>');
+                    return;
+                }
+
+                files.reverse(); // show newest files first
+
+                // Loop through files and append them to the grid
+                for (const file of files) {
+                    const fileName = file.name;
+                    const ext = fileName.split('.').pop().toLowerCase();
+                    let cardHtml = '';
+
+                    const isImage = ['jpg','jpeg','png','gif','webp'].includes(ext);
+
+                    // Apply filter logic
+                    if ((selectedFilter === 'images' && !isImage) ||
+                        (selectedFilter === 'files' && isImage)) continue;
+
+                    // Add the file card to the grid
+                    if (isImage) {
+                        cardHtml = `
+                            <div class="col-6 col-sm-4 col-md-3 col-lg-2 file-card is-image">
+                                <img class="file-preview" src="${file.url}" title="${fileName}" alt="${fileName}" />
+                                <span class="file-name">${fileName}</span>
+                                <hr>
+                                <button class="delete-btn" data-file="${fileName}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>`;
+                    } else {
+                        let iconPath;
+                        switch (ext) {
+                            case 'pdf': iconPath = '/uploads/icons/pdf.png'; break;
+                            case 'doc': case 'docx': iconPath = '/uploads/icons/word.png'; break;
+                            case 'xls': case 'xlsx': iconPath = '/uploads/icons/excel.png'; break;
+                            case 'zip': case 'rar': iconPath = '/uploads/icons/zip.png'; break;
+                            case 'txt': iconPath = '/uploads/icons/txt.png'; break;
+                            default: iconPath = '/uploads/icons/file.png'; break;
+                        }
+
+                        cardHtml = `
+                            <div class="col-6 col-sm-4 col-md-3 col-lg-2 file-card is-file">
+                                <img class="file-preview" src="${iconPath}" title="${fileName}" alt="${fileName}" />
+                                <span class="file-name">${fileName}</span>
+                                      <hr>
+                                <a href="${file.url}" download class="Download-btn text-decoration-none" target="_blank">
+                                    <i class="fas fa-download"></i> 
+                                </a>|
+                                <button class="delete-btn" data-file="${fileName}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>`;
+                    }
+
+      
+                    $grid.append(cardHtml);  // Append the file card to the grid
+                }
+            });
+        }
+
+
+
+            // =========================
+            // 🏁 Initial load
+            // =========================
+            refreshFileGrid('all');
+
+            // =========================
+            // 🖱️ Insert file into CKEditor
+            // =========================
+                 // 🖱️ Insert file into CKEditor (using event delegation)
+        $('#browseFile').on('click', '.file-card img, .file-card .file-thumb', function () {
+            const fileUrl = '/uploads/ckeditor/' + $(this).attr('title');
+            if (window.opener && window.opener.CKEDITOR) {
+                window.opener.CKEDITOR.tools.callFunction(funcNum, fileUrl);
+                window.close();
+            }
+        });
+
+
+            // =========================
+            // 📤 Upload file (AJAX) one file only
+            // =========================
+                  // 📤 Upload file (AJAX)
+        // $('#uploadForm').on('submit', function (e) {
+        //     e.preventDefault();
+        //     const formData = new FormData(this);
+
+        //     const $progress = $('.progress');
+        //     const $bar = $('#uploadProgressBar');
+        //     $progress.show();
+        //     $bar.css('width', '0%');
+
+        //     $.ajax({
+        //         url: '/CkEditor/Upload',
+        //         type: 'POST',
+        //         data: formData,
+        //         processData: false,
+        //         contentType: false,
+        //         xhr: function () {
+        //             const xhr = new window.XMLHttpRequest();
+        //             // ✅ track upload progress
+        //             xhr.upload.addEventListener('progress', function (evt) {
+        //                 if (evt.lengthComputable) {
+        //                     const percent = Math.round((evt.loaded / evt.total) * 100);
+        //                     $bar.css('width', percent + '%');
+        //                 }
+        //             }, false);
+        //             return xhr;
+        //         },
+        //         success: function (res) {
+        //             $bar.css('width', '100%');
+        //             setTimeout(() => $progress.fadeOut(), 500);
+
+        //             if (res.uploaded === 1 || res.success) {
+        //                 $('#uploadMsg')
+        //                     .text(res.message || 'تم تحميل الملف بنجاح')
+        //                     .removeClass('text-danger')
+        //                     .addClass('text-success');
+
+        //                 // ✅ Refresh grid after upload using current filter
+        //                 const currentFilter = $('input[name="fileFilter"]:checked').val();
+        //                 refreshFileGrid(currentFilter);
+        //                 $('#uploadInput').val('');
+        //             } else {
+        //                 $('#uploadMsg')
+        //                     .text(res.error?.message || res.message || 'فشل التحميل')
+        //                     .removeClass('text-success')
+        //                     .addClass('text-danger');
+        //             }
+        //         },
+        //         error: function () {
+        //             $progress.hide();
+        //             $('#uploadMsg').text('⚠️ حدث خطأ أثناء تحميل الملف.').addClass('text-danger');
+        //         }
+        //     });
+        // });
+
+
+             // =========================
+            // 📤 📤 Upload multiple files (AJAX)
+            // =========================
+                //
+                        // 📤 Upload multiple files (AJAX)
+        $('#uploadForm').on('submit', function (e) {
+            e.preventDefault();
+            const files = $('#uploadInput')[0].files;
+
+            if (!files.length) return alert('يرجى اختيار الملفات أولاً.');
+
+            // Show progress bar and reset it for each file upload
+            const $progress = $('.progress');
+            const $bar = $('#uploadProgressBar');
+            $progress.show();
+            $bar.css('width', '0%');
+
+            let filesUploaded = 0;  // Counter to track uploaded files
+
+            // Loop through each selected file and upload them individually
+            for (let i = 0; i < files.length; i++) {
+                const formData = new FormData();
+                formData.append('upload', files[i]);
+
+                $.ajax({
+                    url: '/CkEditor/Upload',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    xhr: function () {
+                        const xhr = new window.XMLHttpRequest();
+                        // Track progress for each file
+                        xhr.upload.addEventListener('progress', function (evt) {
+                            if (evt.lengthComputable) {
+                                const percent = Math.round((evt.loaded / evt.total) * 100);
+                                $bar.css('width', percent + '%');
+                            }
+                        }, false);
+                        return xhr;
+                    },
+                    success: function (res) {
+                        filesUploaded++;  // Increment counter for each successful upload
+                        $bar.css('width', '100%');
+                        setTimeout(() => $progress.fadeOut(), 500);
+
+                        if (res.uploaded === 1 || res.success) {
+                            $('#uploadMsg')
+                                .text(`${files[i].name} تم تحميله بنجاح`)
+                                .removeClass('text-danger')
+                                .addClass('text-success');
+
+                            // Append new file card dynamically
+                            appendFileCard(res.url, res.fileName);
+                        } else {
+                            $('#uploadMsg')
+                                .text(`${files[i].name} فشل التحميل`)
+                                .removeClass('text-success')
+                                .addClass('text-danger');
+                        }
+
+                        // If all files are uploaded, refresh the grid
+                        if (filesUploaded === files.length) {
+                            const currentFilter = $('input[name="fileFilter"]:checked').val();
+                            refreshFileGrid(currentFilter);  // Refresh the file grid
+                        }
+                    },
+                    error: function () {
+                        $('#uploadMsg').text('⚠️ حدث خطأ أثناء تحميل الملف.').addClass('text-danger');
+                    }
+                });
+            }
+
+            // Reset input field after upload
+            $('#uploadInput').val('');
+        });
+
+
+                          function appendFileCard(url, fileName) {
+            const fileExtension = fileName.split('.').pop().toLowerCase();  // Get the file extension
+            const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension);
+            let cardHtml = '';
+
+            if (isImage) {
+                // For Image Files
+                cardHtml = `
+                    <div class="col-6 col-sm-4 col-md-3 col-lg-2 file-card is-image">
+
+                        <img class="file-preview" src="${url}" title="${fileName}" alt="${fileName}" />
+                        <span class="file-name">${fileName}</span>
+                        <hr>
+                        <button class="delete-btn" data-file="${fileName}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>`;
+            } else {
+                // For Non-Image Files (PDF, DOCX, ZIP, etc.)
+                let iconPath;
+                let downloadLink = `/uploads/${fileName}`;  // The download path for the file
+
+                // Choose the icon for the file based on extension
+                switch (fileExtension) {
+                    case 'pdf': iconPath = '/uploads/icons/pdf.png'; break;
+                    case 'doc': case 'docx': iconPath = '/uploads/icons/word.png'; break;
+                    case 'xls': case 'xlsx': iconPath = '/uploads/icons/excel.png'; break;
+                    case 'zip': case 'rar': iconPath = '/uploads/icons/zip.png'; break;
+                    case 'txt': iconPath = '/uploads/icons/txt.png'; break;
+                    default: iconPath = '/uploads/icons/file.png'; break;  // Default icon for unknown file types
+                }
+
+                // File card for non-image types with a download button
+                cardHtml = `
+                        <div class="col-6 col-sm-4 col-md-3 col-lg-2 file-card is-file">
+                        <img class="file-preview" src="${iconPath}" title="${fileName}" alt="${fileName}" />
+                        <span class="file-name">${fileName}</span>
+                        <hr>
+                        <a href="${downloadLink}" download class="Download-btn text-decoration-none" target="_blank">
+                            <i class="fas fa-download"></i> 
+                        </a>
+                        |
+                        <button class="delete-btn" data-file="${fileName}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>`;
+            }
+
+            // Prepend the new file card to the grid for immediate display
+            $('#browseFile').prepend(cardHtml);
+        }
+
+
+
+            // =========================
+            // 🧩 Filter buttons
+            // =========================
+            $('input[name="fileFilter"]').on('change', function () {
+                const filter = $(this).val();
+                refreshFileGrid(filter); // reload from server dynamically
+            });
+                    // 🔁 Manual refresh button
+        $('#refreshBtn').on('click', function () {
+            const filter = $('input[name="fileFilter"]:checked').val();
+            refreshFileGrid(filter);
+        });
+
+            // =========================
+            // 🗑️ Delete file
+            // =========================
+            $(document).on('click', '.delete-btn', function () {
+                const fileName = $(this).data('file');
+                if (confirm('هل أنت متأكد أنك تريد حذف "' + fileName + '"؟')) {
+                    $.ajax({
+                        url: '/CkEditor/Delete',
+                        type: 'POST', // using POST for reliability
+                        data: { fileName: fileName },
+                        success: function (res) {
+                            if (res.success) {
+                                const currentFilter = $('input[name="fileFilter"]:checked').val();
+                                refreshFileGrid(currentFilter); // ✅ refresh after delete
+                            } else {
+                                alert(res.message);
+                            }
+                        },
+                        error: function () {
+                            alert('حدث خطأ أثناء حذف الملف.');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,103 @@
+﻿@model AnnouncmentHub.ViewModels.CategoryViewModel
+
+@{
+    ViewData["Title"] = "➕ إنشاء تصنيف جديد";
+}
+
+<div class="container my-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">@ViewData["Title"]</h3>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post" class="needs-validation" novalidate>
+                <div class="row">
+                    <div class="col-md mb-4">
+                        <label asp-for="CatName" class="form-label fs-5">📛 @Html.DisplayNameFor(m => m.CatName)</label>
+                        <input asp-for="CatName" class="form-control form-control-lg" placeholder="أدخل اسم التصنيف" />
+                        <span asp-validation-for="CatName" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-2 ">
+                        <label asp-for="IsParent" class="form-check-label fs-5">👑 تصنيف رئيسي؟</label>
+                    </div>
+                    <div class="col form-check form-switch d-flex justify-content-start">
+                        <input asp-for="IsParent" class="form-check-input" type="checkbox" id="IsParentCheckbox" />
+
+                    </div>
+                </div>
+             
+                <div class="row">
+                    <div id="parentCategoriesDiv" class="col-md mb-4 border rounded p-3">
+                        <label class="form-label fs-5 fw-semibold">👑 تصنيفات رئيسية مرتبطة</label>
+                        <div class="row">
+                            @foreach (var parent in Model.ParentCategories)
+                            {
+                                <div class="col-md-3 col-sm-6 mb-3">
+                                    <div class="">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               name="ParentCategoryIds"
+                                               value="@parent.Value"
+                                               id="parentCheck_@parent.Value"
+                                        @(Model.ParentCategoryIds.Contains(int.Parse(parent.Value)) ? "checked" : "") />
+                                        <label class="form-check-label" for="parentCheck_@parent.Value">
+                                            📁 @parent.Text
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <span asp-validation-for="ParentCategoryIds" class="text-danger"></span>
+                    </div>
+
+                </div>
+                
+                <div class="row">
+                    <div class="col-2">
+                        <label asp-for="IsActive" class="form-check-label fs-5">
+                            
+                            ✅ 
+                            مفعل ؟</label>
+                    </div>
+                    <div class="col form-check form-switch d-flex justify-content-start">
+                        <input asp-for="IsActive" class="form-check-input" type="checkbox" id="IsActiveCheckbox" checked />
+
+                    </div>
+                </div>
+
+               <hr />
+               <div class="row">
+
+                    <div class="col-md d-flex justify-content-center gap-3">
+                        <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                            ↩️ رجوع
+                        </a>
+                        <button type="submit" class="btn btn-success btn-lg">
+                            💾 حفظ
+                        </button>
+                    </div>
+               </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        function toggleParentCategories() {
+            var isParentChecked = document.getElementById('IsParentCheckbox').checked;
+            var parentDiv = document.getElementById('parentCategoriesDiv');
+            parentDiv.style.display = isParentChecked ? 'none' : 'block';
+        }
+
+        document.getElementById('IsParentCheckbox').addEventListener('change', toggleParentCategories);
+
+        // Initialize on page load
+        toggleParentCategories();
+    </script>
+}

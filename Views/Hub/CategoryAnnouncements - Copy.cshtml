@@ -1,0 +1,111 @@
+﻿@model CategoryAnnouncementsViewModel
+
+@{
+    ViewBag.Title = $"إعلانات {Model.CategoryName}";
+    int totalPages = Model.TotalPages;
+    int page = Model.PageNumber;
+    int pageSize = Model.PageSize;
+}
+
+<div class="container">
+    <div class="row g-1">
+        <div class="col-md-10">
+            <!-- 🔹 Announcements -->
+            <div class="row g-1">
+                @if (Model.Announcements.Any())
+                {
+                    @foreach (var item in Model.Announcements)
+                    {
+                        <div class="col-md-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="row g-0">
+                                    <!-- Thumbnail -->
+                                    <div class="col-4 d-flex align-items-center justify-content-center bg-light">
+                                        @{
+                                            var filePath = item.FilePath;
+                                            var extension = System.IO.Path.GetExtension(filePath ?? "").ToLower();
+                                            string displayPath = extension switch
+                                            {
+                                                ".jpg" or ".jpeg" or ".png" or ".gif" or ".webp" or ".bmp" => filePath,
+                                                ".pdf" => Url.Content("~/images/file-icons/pdf-icon.png"),
+                                                ".doc" or ".docx" => Url.Content("~/images/file-icons/word-icon.png"),
+                                                ".xls" or ".xlsx" => Url.Content("~/images/file-icons/excel-icon.png"),
+                                                _ when string.IsNullOrEmpty(filePath) => Url.Content("~/images/file-icons/no-image.jpg"),
+                                                _ => Url.Content("~/images/file-icons/file-icon.png")
+                                            };
+                                        }
+                                    <div class="ratio ratio-1x1 bg-white border rounded shadow-sm overflow-hidden m-2">
+                                        <img src="@displayPath" alt="Thumbnail" class="w-100 h-100" style="object-fit: cover;" />
+                                    </div>
+                                </div>
+
+                                <!-- Content -->
+                                <div class="col-8">
+                                    <div class="card-body">
+                                        <h6 class="card-title fw-bold">
+                                            <a asp-controller="Hub" asp-action="Details" asp-route-id="@item.Id"
+                                               class="text-decoration-none text-primary">
+                                                @item.Title
+                                            </a>
+                                        </h6>
+                                        <p class="text-muted small">
+                                            @(string.IsNullOrEmpty(item.Description)
+                                                                                    ? "لا يوجد وصف"
+                                                                                    : item.Description.Length > 80
+                                                                                    ? item.Description.Substring(0, 80) + "..."
+                                                                                    : item.Description)
+                                    </p>
+                                    <span class="text-muted small">🗓️ @item.AddedDate?.ToString("yyyy-MM-dd")</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                                }
+                }
+                else
+                {
+                    <div class="alert alert-info text-center shadow-sm">لا توجد إعلانات في هذا التصنيف حالياً.</div>
+                }
+            </div>
+        </div>
+        <div class="col-md-2 border bg-light">
+            <!-- 🔹 Related Categories
+            if (Model.RelatedCategories.Any())
+            {
+                <div class="mt-3 px-2">
+                    <h6 class="fw-bold text-secondary">تصنيفات ذات صلة:</h6>
+                    <hr />
+                    foreach (var rc in Model.RelatedCategories)
+                    {
+                        <a asp-controller="Hub" asp-action="CategoryAnnouncements" asp-route-id="rc.Id"
+                           class="btn btn-outline-secondary btn-sm text-start mb-2 fw-bold w-100">
+                            rc.Name
+                        </a>
+                    }
+                </div>
+            }
+ -->
+        </div>
+    </div>
+
+
+</div>
+<!-- 🔹 Pagination -->
+@if (totalPages > 1)
+{
+    <nav aria-label="صفحات">
+        <ul class="pagination justify-content-center mt-4">
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                <li class="page-item @(i == page ? "active" : "")">
+                    <a class="page-link"
+                       asp-action="CategoryAnnouncements"
+                       asp-route-id="@Model.CategoryId"
+                       asp-route-page="@i"
+                       asp-route-pageSize="@pageSize">@i</a>
+                </li>
+            }
+        </ul>
+    </nav>
+}

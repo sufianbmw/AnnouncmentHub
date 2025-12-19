@@ -1,0 +1,168 @@
+﻿@model ClientAnnouncementsViewModel
+@using Newtonsoft.Json
+@using AnnouncmentHub.Helpers
+
+@{
+    var client = Model.Client;
+    var page = Model.PageNumber;
+    var pageSize = Model.PageSize;
+    var totalPages = Model.TotalPages;
+    ViewBag.Title = client.ClientName;
+}
+
+@section FullWidthHeader {
+    <!-- 🔹 Cover -->
+    <div class="position-relative mb-4">
+        <img src="@(string.IsNullOrEmpty(client.CoverImageUrl)
+                                     ? Url.Content("~/images/file-icons/no-cover.jpg")
+                                     : client.CoverImageUrl)"
+         alt="Cover - @client.ClientName"
+         class="img-fluid w-100 shadow-lg"
+         style="max-height:370px; object-fit:cover;" />
+
+        <!-- 🔹 Overlay aligned to right -->
+        <div class="position-absolute bottom-0 end-0 w-100 p-4"
+             style="background: linear-gradient(to top, rgba(0,0,0,0.6) 40%, transparent 100%);">
+            <div class="d-flex justify-content-start align-items-center text-white">
+                <img src="@(string.IsNullOrEmpty(client.LogoUrl)
+                                                                  ? Url.Content("~/images/file-icons/no-image.jpg")
+                                                                  : client.LogoUrl)"
+                 alt="@client.ClientName"
+                 class="rounded-circle border border-4 border-white shadow"
+                 style="width:140px; height:140px; object-fit:contain;" />
+                <div class="text-start ms-3">
+                    <h3 class="mb-2 fw-bold">@client.ClientName</h3>
+                    <span class="badge bg-primary fs-6 shadow">
+                        إجمالي الإعلانات: @Model.TotalCount
+                    </span>
+                </div>
+           
+        </div>
+    </div>
+</div>
+}
+
+
+<!-- 🔹 Announcements -->
+<div class="container">
+    @if (Model.Announcements.Any())
+    {
+        <div class="row g-3">
+            @foreach (var item in Model.Announcements)
+            {
+                var categories = JsonConvert.DeserializeObject<List<CategoryJsonLink>>(item.CategoriesJson ?? "[]");
+
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="row g-0">
+                            <!-- Thumbnail -->
+                            <div class="col-4 text-center d-flex align-items-center justify-content-center bg-light">
+                                @{
+                                    var filePath = item.FilePath;
+                                    var extension = System.IO.Path.GetExtension(filePath ?? "").ToLower();
+                                    string displayPath;
+
+                                    if (string.IsNullOrEmpty(filePath))
+                                    {
+                                        displayPath = Url.Content("~/images/file-icons/no-image.jpg");
+                                    }
+                                    else if (new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp" }.Contains(extension))
+                                    {
+                                        displayPath = filePath;
+                                    }
+                                    else if (extension == ".pdf")
+                                    {
+                                        displayPath = Url.Content("~/images/file-icons/pdf-icon.png");
+                                    }
+                                    else if (extension == ".doc" || extension == ".docx")
+                                    {
+                                        displayPath = Url.Content("~/images/file-icons/word-icon.png");
+                                    }
+                                    else if (extension == ".xls" || extension == ".xlsx")
+                                    {
+                                        displayPath = Url.Content("~/images/file-icons/excel-icon.png");
+                                    }
+                                    else
+                                    {
+                                        displayPath = Url.Content("~/images/file-icons/file-icon.png");
+                                    }
+                                }
+
+                                <div class="col-md-4 p-2" style="width:90%;height:100%">
+                                    <div class="ratio ratio-1x1 bg-white border rounded shadow-sm overflow-hidden">
+                                        <img src="@displayPath"
+                                             alt="Thumbnail"
+                                             class="w-100 h-100"
+                                             style="object-fit: cover;" />
+                                    </div>
+                                </div>
+
+
+                             </div>
+
+                            <!-- Content -->
+                            <div class="col-8">
+                                <div class="card-body">
+                                    <h6 class="card-title fw-bold">
+                                        <a asp-controller="Hub" asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none text-primary">
+                                            @item.Title
+                                        </a>
+                                    </h6>
+                                    @if (item.AddedDate.HasValue)
+                                    {
+                                        <small class="text-muted">🗓️ @DateTimeHelper.FormatDateTime(item.AddedDate)</small>
+                                    }
+                                    <p class="card-text small mt-2 text-muted">
+                                        @(string.IsNullOrEmpty(item.Description) ? "لا يوجد وصف" : item.Description.Length > 80 ? item.Description[..item.Description.LastIndexOf(" ", 80)] + "..." : item.Description)
+                                    </p>
+                            <div>
+                                @foreach (var cat in categories)
+                                        {
+                                        @*     <a asp-controller="Categories" asp-action="Details" asp-route-id="@cat.CategoryId"
+                                               class="badge bg-secondary me-1 text-white small">
+                                                @cat.CategoryName
+                                            </a> *@
+                                             <span class="badge bg-secondary me-1">
+                                            <a asp-controller="Hub" class="text-decoration-none text-white small" asp-action="CategoryAnnouncements" asp-route-id="@cat.CategoryId">
+                                                @cat.CategoryName
+                                            </a>
+                                            </span>
+                                        }
+                                    </div>
+                                    <div class="mt-2">
+                                        @if (!string.IsNullOrEmpty(item.FilePath))
+                                        {
+                                            <a href="@item.FilePath" target="_blank" class="btn btn-sm btn-outline-info">
+                                                📂 فتح الملف
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- 🔹 Pagination -->
+        <nav aria-label="صفحات الإعلانات">
+            <ul class="pagination justify-content-center mt-4">
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == page ? "active" : "")">
+                        <a class="page-link"
+                           asp-action="ClientProfile"
+                           asp-route-id="@client.Id"
+                           asp-route-page="@i"
+                           asp-route-pageSize="@pageSize">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+    else
+    {
+        <div class="alert alert-info text-center shadow-sm">لا توجد إعلانات لهذا العميل حالياً.</div>
+    }
+</div>

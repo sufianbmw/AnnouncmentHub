@@ -1,0 +1,32 @@
+﻿@model AnnouncmentHub.ViewModels.CategoryViewModel
+
+@{
+    ViewData["Title"] = "🗑️ تأكيد حذف تصنيف";
+}
+
+<div class="container my-5">
+    <div class="card shadow-sm border-danger">
+        <div class="card-header bg-danger text-white">
+            <h3 class="mb-0">@ViewData["Title"]</h3>
+        </div>
+        <div class="card-body">
+            <h4>هل أنت متأكد من حذف التصنيف التالي؟</h4>
+            <dl class="row">
+                <dt class="col-sm-3">📛 الاسم:</dt>
+                <dd class="col-sm-9">@Model.CatName</dd>
+
+                <dt class="col-sm-3">👑 تصنيف رئيسي:</dt>
+                <dd class="col-sm-9">@(Model.IsParent ? "نعم" : "لا")</dd>
+
+                <dt class="col-sm-3">التصنيفات الرئيسية المرتبطة:</dt>
+                <dd class="col-sm-9">@Model.ParentCategoryNames</dd>
+            </dl>
+
+            <form asp-action="Delete" method="post">
+                <input type="hidden" asp-for="Id" />
+                <button type="submit" class="btn btn-danger btn-lg me-2">🗑️ حذف نهائي</button>
+                <a asp-action="Index" class="btn btn-secondary btn-lg">↩️ إلغاء</a>
+            </form>
+        </div>
+    </div>
+</div>

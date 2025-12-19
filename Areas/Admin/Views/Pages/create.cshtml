@@ -1,0 +1,105 @@
+﻿
+
+@model PageViewModel
+
+@{
+    ViewData["Title"] = "إضافة صفحة جديدة";
+}
+
+<form method="post" class="card shadow-sm rounded border border-primary p-4 bg-light">
+    <h4 class="text-center">
+        🆕 إضافة صفحة جديدة
+    </h4>
+
+    <!-- Validation Summary -->
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <!-- Page Title -->
+    <div class="form-group mb-3">
+        <label asp-for="PageTitle" class="control-label">عنوان الصفحة 📑</label>
+        <input asp-for="PageTitle" class="form-control" />
+        <span asp-validation-for="PageTitle" class="text-danger"></span>
+    </div>
+
+    <!-- Page Details (with CKEditor) -->
+    <div class="form-group mb-3">
+        <label asp-for="PageDetails" class="control-label">تفاصيل الصفحة ✍️</label>
+        @Html.TextAreaFor(Model => Model.PageDetails, new { @class = "ckeditor", @id = "editor" })
+        <span asp-validation-for="PageDetails" class="text-danger"></span>
+    </div>
+
+    <!-- Ordering -->
+    <div class="form-group mb-3">
+        <label asp-for="Ordring" class="control-label">ترتيب الصفحة 🔢</label>
+        <input asp-for="Ordring" class="form-control w-25" type="number" value="0" step="1" min="0" style="text-align: right;" />
+        <span asp-validation-for="Ordring" class="text-danger"></span>
+    </div>
+
+    <!-- Page Categories Dropdown -->
+    <div class="form-group mb-3">
+        <label asp-for="PageCategoriesId" class="control-label">تصنيف الصفحة 📂</label>
+        <select asp-for="PageCategoriesId" class="form-control" asp-items="ViewBag.CategoriesId"></select>
+    </div>
+
+    <!-- Active Checkbox -->
+    <div class="form-group form-check mb-3">
+        <label class="form-check-label">
+            <input class="form-check-input" asp-for="Active" /> @Html.DisplayNameFor(model => model.Active) ✅
+        </label>
+    </div>
+
+    <!-- Submit and Cancel Buttons -->
+    <div class="form-group col-md-12 p-2 text-center" style="background-color: #e9ecef">
+        <button type="submit" class="btn btn-success w-25">
+            <i class="bi bi-check-circle-fill"></i> حفظ ✅
+        </button>
+        <a asp-action="Index" class="btn btn-secondary w-25">
+            <i class="bi bi-x-circle-fill"></i> إلغاء ❌
+        </a>
+    </div>
+</form>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Initialize CKEditor 4 with endpoints managed by CkEditorController
+        // CKEDITOR.replace('editor', {
+        //     filebrowserImageBrowseUrl: '/CkEditor/Browse',   // ✅ open file browser
+        //     filebrowserImageUploadUrl: '/CkEditor/Upload',   // ✅ upload images
+        //     filebrowserBrowseUrl: '/CkEditor/Browse'         // ✅ general file browse
+        // });
+         CKEDITOR.replace('editor', {
+            filebrowserImageBrowseUrl: '/CkEditor/Browse',
+            filebrowserImageUploadUrl: '/CkEditor/Upload',
+            filebrowserBrowseUrl: '/CkEditor/Browse',
+
+            extraPlugins: 'justify,colorbutton,font,bidi', // ✅ add "bidi"
+
+            toolbar: [
+                { name: 'clipboard', items: ['Cut', 'Copy', 'Paste', 'Undo', 'Redo'] },
+                { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
+                { name: 'colors', items: ['TextColor', 'BGColor'] },
+                { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat'] },
+                { name: 'paragraph', items: [
+                    'NumberedList', 'BulletedList', '-',
+                    'Outdent', 'Indent', '-',
+                    'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock', '-',
+                    'BidiLtr', 'BidiRtl' // ✅ new direction buttons
+                ]},
+                { name: 'insert', items: ['Image', 'Table', 'HorizontalRule', 'SpecialChar'] },
+                { name: 'links', items: ['Link', 'Unlink'] },
+                { name: 'document', items: ['Source', 'Maximize'] }
+            ],
+
+            height: 300
+        });
+
+
+        function updateValue(id, value) {
+            // (optional) used by popup for manual value update
+            document.getElementById(id).value = value;
+        }
+    </script>
+}
+

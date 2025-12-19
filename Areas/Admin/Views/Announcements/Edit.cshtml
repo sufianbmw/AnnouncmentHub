@@ -1,0 +1,273 @@
+﻿@model AnnouncmentHub.ViewModels.AnnouncementViewModel
+
+@{
+    ViewData["Title"] = "✏️ تعديل الإعلان";
+}
+
+<div class="card shadow-sm rounded border border-primary p-4 bg-light">
+    <h5 class="mb-4 text-primary text-center">@ViewData["Title"]</h5>
+    <hr />
+<form asp-action="Edit" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+    <input type="hidden" asp-for="Id" />
+        <div class="row">
+            <div class="col mb-3">
+                <label asp-for="Title" class="form-label">📛 @Html.DisplayNameFor(m => m.Title)</label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+ 
+        </div>
+        <div class="row">
+            <div class="col mb-3">
+                <label asp-for="Description" class="form-label">📝 @Html.DisplayNameFor(m => m.Description)</label>
+                @*                 <textarea asp-for="Description" class="form-control" rows="2"></textarea>
+ *@                <textarea asp-for="Description" class="form-control" id="editor"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col mb-3">
+                <label asp-for="File" class="form-label">📎 @Html.DisplayNameFor(m => m.File)</label>
+                <input asp-for="File" type="file" class="form-control" />
+                <span asp-validation-for="File" class="text-danger"></span>
+
+                @if (!string.IsNullOrEmpty(Model.FilePath))
+                {
+                    <p class="mt-2">ملف مرفق حالي: <a href="@Model.FilePath" target="_blank">فتح الملف</a></p>
+                }
+            </div>
+            <!-- Client Dropdown -->
+            <div class="col mb-3">
+                <label asp-for="ClientId" class="form-label">👥 @Html.DisplayNameFor(m => m.ClientId)</label>
+                <select asp-for="ClientId" class="form-control">
+                    <option value="" disabled selected>-- اختر العميل --</option>
+                    @if (ViewBag.Clients != null && ((IEnumerable<SelectListItem>)ViewBag.Clients).Any())
+                    {
+                        foreach (var client in (IEnumerable<SelectListItem>)ViewBag.Clients)
+                        {
+                            <option value="@client.Value">@client.Text</option>
+                        }
+                    }
+                    else
+                    {
+                        <option>No clients available</option>
+                    }
+                </select>
+                <span asp-validation-for="ClientId" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="row">
+            <!-- Date From (Start Date) -->
+            <div class="col mb-3">
+                <label asp-for="DateFrom" class="form-label">🗓️ @Html.DisplayNameFor(m => m.DateFrom)</label>
+                <input asp-for="DateFrom" type="date" class="form-control" />
+                <span asp-validation-for="DateFrom" class="text-danger"></span>
+            </div>
+
+            <!-- Date To (End Date) -->
+            <div class="col mb-3">
+                <label asp-for="DateTo" class="form-label">🗓️ @Html.DisplayNameFor(m => m.DateTo)</label>
+                <input asp-for="DateTo" type="date" class="form-control" />
+                <span asp-validation-for="DateTo" class="text-danger"></span>
+            </div>
+        </div>
+    <div class="container mt-2">
+        <div class="card shadow p-4 mb-4 rounded border border-primary bg-light">
+            <h5 class="card-title">📂 التصنيفات الفرعية</h5>
+            <div class="row p-2">
+                @foreach (var subcategoryItem in ViewBag.SubCategoriesWithParents)
+                {
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check d-flex justify-content-start border rounded p-2">
+                                <input class="form-check-input mx-1 fs-6" type="checkbox" value="@subcategoryItem.SubCategoryId" id="subcategory@(subcategoryItem.SubCategoryId)" name="SelectedSubCategories[]"
+                                       @(Model.SelectedSubCategories.Contains(subcategoryItem.SubCategoryId) ? "checked" : "") />  
+                                       <label class="form-check-label" for="subcategory@(subcategoryItem.SubCategoryId)">
+                                @subcategoryItem.SubCategoryName
+                                <span class="text-muted">(@string.Join(", ", subcategoryItem.ParentCategories))</span>
+                            </label>
+                         
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+
+    <div class="form-check form-switch mb-4">
+        <input asp-for="IsActive" class="form-check-input" type="checkbox" id="IsActiveCheckbox" />
+        <label asp-for="IsActive" class="form-check-label">✅ مفعل</label>
+    </div>
+        <div class="col d-flex justify-content-center">
+            <button type="submit" class="btn btn-success me-2 w-25">💾 حفظ التعديلات</button>
+            <a asp-action="Index" class="btn btn-secondary w-25">↩️ إلغاء</a>
+
+        </div>
+</form>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Initialize CKEditor 4 with endpoints managed by CkEditorController
+        // CKEDITOR.replace('editor', {
+        //     filebrowserImageBrowseUrl: '/CkEditor/Browse',   // ✅ open file browser
+        //     filebrowserImageUploadUrl: '/CkEditor/Upload',   // ✅ upload images
+        //     filebrowserBrowseUrl: '/CkEditor/Browse'         // ✅ general file browse
+        // });
+         CKEDITOR.replace('editor', {
+            filebrowserImageBrowseUrl: '/CkEditor/Browse',
+            filebrowserImageUploadUrl: '/CkEditor/Upload',
+            filebrowserBrowseUrl: '/CkEditor/Browse',
+
+            extraPlugins: 'justify,colorbutton,font,bidi', // ✅ add "bidi"
+
+            toolbar: [
+                { name: 'clipboard', items: ['Cut', 'Copy', 'Paste', 'Undo', 'Redo'] },
+                { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
+                { name: 'colors', items: ['TextColor', 'BGColor'] },
+                { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat'] },
+                { name: 'paragraph', items: [
+                    'NumberedList', 'BulletedList', '-',
+                    'Outdent', 'Indent', '-',
+                    'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock', '-',
+                    'BidiLtr', 'BidiRtl' // ✅ new direction buttons
+                ]},
+                { name: 'insert', items: ['Image', 'Table', 'HorizontalRule', 'SpecialChar'] },
+                { name: 'links', items: ['Link', 'Unlink'] },
+                { name: 'document', items: ['Source', 'Maximize'] }
+            ],
+
+            height: 300
+        });
+
+
+        function updateValue(id, value) {
+            // (optional) used by popup for manual value update
+            document.getElementById(id).value = value;
+        }
+    </script>
+}
+
+@* @model AnnouncementViewModel
+
+@{
+    ViewData["Title"] = "تعديل الإعلان";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4 text-center">✏ تعديل الإعلان</h2>
+
+    <div class="card shadow">
+        <div class="card-body">
+            <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                <input type="hidden" asp-for="Id" />
+
+                <div class="row">
+                    <!-- 🔹 Title -->
+                    <div class="col-md-12 mb-3">
+                        <label asp-for="Title" class="form-label"></label>
+                        <input asp-for="Title" class="form-control" />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+
+                    <!-- 🔹 Description -->
+                    <div class="col-md-12 mb-3">
+                        <label asp-for="Description" class="form-label"></label>
+                        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                    </div>
+
+                    <!-- 🔹 Parent Category -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">التصنيف الرئيسي</label>
+                        <select id="ParentCategory" name="ParentCategoryId" asp-items="ViewBag.ParentCategories" class="form-select"></select>
+                    </div>
+
+                    <!-- 🔹 Subcategory -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">التصنيف الفرعي</label>
+                        <select id="SubCategory" name="CategoryId" asp-items="ViewBag.SubCategories" class="form-select"></select>
+                    </div>
+
+                    <!-- 🔹 Existing File -->
+                    <div class="col-md-12 mb-3">
+                        <label>الملف المرفق الحالي:</label>
+                        @if (!string.IsNullOrEmpty(Model.FilePath))
+                        {
+                            <a href="@Model.FilePath" target="_blank" class="btn btn-info btn-sm">📂 عرض الملف</a>
+                        }
+                    </div>
+
+                    <!-- 🔹 New File Upload -->
+                    <div class="col-md-12 mb-3">
+                        <label asp-for="File" class="form-label"></label>
+                        <input type="file" asp-for="File" class="form-control" accept=".jpg,.jpeg,.png,.pdf" />
+                        <span asp-validation-for="File" class="text-danger"></span>
+                        <small class="form-text text-muted">📂 يسمح برفع ملفات JPG, PNG, PDF فقط (بحد أقصى 5MB)</small>
+                    </div>
+
+                    <!-- 🔹 Is Active Checkbox -->
+                    <div class="col-md-12 mb-3 form-check">
+                        <input type="checkbox" asp-for="IsActive" class="form-check-input" />
+                        <label class="form-check-label" asp-for="IsActive"></label>
+                    </div>
+
+                    <!-- 🔹 Form Actions -->
+                    <div class="col-md-12 d-flex justify-content-between">
+                        <button type="submit" class="btn btn-success">💾 حفظ التعديلات</button>
+                        <a asp-action="Index" class="btn btn-secondary">🔙 العودة</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ Enable Client-Side Validation -->
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(document).ready(function () {
+            // Load subcategories based on selected parent category
+            $('#ParentCategory').on('change', function () {
+                var parentId = $(this).val();
+                var subCategoryDropdown = $('#SubCategory');
+
+                subCategoryDropdown.empty(); // ✅ Clear existing options
+
+                if (parentId && parentId !== "-1") {
+                    $.ajax({
+                        url: '/Announcements/GetSubcategories',
+                        type: 'GET',
+                        data: { parentId: parentId },
+                        dataType: 'json',
+                        success: function (subcategories) {
+                            $.each(subcategories, function (i, category) {
+                                subCategoryDropdown.append(
+                                    $('<option></option>').attr('value', category.id).text(category.catName)
+                                );
+                            });
+
+                            // ✅ Preserve previously selected subcategory
+                            var selectedSubCategoryId = '@Model.CategoryId';
+                            if (selectedSubCategoryId) {
+                                subCategoryDropdown.val(selectedSubCategoryId);
+                            }
+                        },
+                        error: function () {
+                            alert('⚠️ حدث خطأ أثناء تحميل التصنيفات الفرعية!');
+                        }
+                    });
+                }
+            });
+
+            // ✅ Preserve parent category selection
+            var selectedParentCategoryId = '@ViewBag.ParentCategoryId';
+            if (selectedParentCategoryId) {
+                $('#ParentCategory').val(selectedParentCategoryId).trigger('change');
+            }
+        });
+    </script>
+}
+ *@

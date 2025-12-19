@@ -1,0 +1,32 @@
+﻿@font-face {
+    font-family: 'Noto Kufi Arabic';
+    src: url('/fonts/NotoKufiArabic-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+body {
+    /* font-family: 'Amiri', serif;*/
+    font-family: 'Noto Kufi Arabic', sans-serif;
+}
+
+/* Navbar brand spacing */
+.navbar-brand img {
+    vertical-align: middle;
+}
+
+/* Card hover */
+.card {
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+/* Sticky footer support via flex in body (layout already uses d-flex flex-column min-vh-100) */
+footer {
+    border-top: 3px solid #e74c3c;
+    font-size: 0.9rem;
+}

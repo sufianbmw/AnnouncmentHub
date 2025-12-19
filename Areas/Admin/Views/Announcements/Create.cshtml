@@ -1,0 +1,189 @@
+﻿
+
+ @model AnnouncmentHub.ViewModels.AnnouncementViewModel
+
+@{
+    ViewData["Title"] = "➕ إنشاء إعلان جديد";
+}
+
+
+<div class="card shadow-sm rounded border border-primary p-4 bg-light">
+    <h5 class="mb-4 text-primary text-center">@ViewData["Title"]</h5>
+    <hr />
+
+    <form asp-action="Create" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+        <div class="row">
+            <div class="col mb-3">
+                <label asp-for="Title" class="form-label">📛 @Html.DisplayNameFor(m => m.Title)</label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+           
+        </div>
+        <div class="row">
+            <div class="col mb-3">
+                <label asp-for="Description" class="form-label">📝 @Html.DisplayNameFor(m => m.Description)</label>
+                @*                 <textarea asp-for="Description" class="form-control" rows="2"></textarea>
+ *@                <textarea asp-for="Description" class="form-control" id="editor"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+        </div>
+ 
+
+        <div class="row">
+            <div class="col mb-3">
+                <label asp-for="File" class="form-label">📎 @Html.DisplayNameFor(m => m.File)</label>
+                <input asp-for="File" type="file" class="form-control" />
+                <span asp-validation-for="File" class="text-danger"></span>
+            </div>
+            <!-- Client Dropdown -->
+            <div class="col mb-3">
+                <label asp-for="ClientId" class="form-label">👥 @Html.DisplayNameFor(m => m.ClientId)</label>
+                <select asp-for="ClientId" class="form-control">
+                    <option value="" disabled selected>-- اختر العميل --</option>
+                    @if (ViewBag.Clients != null && ((IEnumerable<SelectListItem>)ViewBag.Clients).Any())
+                    {
+                        foreach (var client in (IEnumerable<SelectListItem>)ViewBag.Clients)
+                        {
+                            <option value="@client.Value">@client.Text</option>
+                        }
+                    }
+                    else
+                    {
+                        <option>No clients available</option>
+                    }
+                </select>
+                <span asp-validation-for="ClientId" class="text-danger"></span>
+            </div>
+        </div>
+    
+
+       
+        <div class="row">
+            <!-- Date From (Start Date) -->
+            <div class="col mb-3">
+                <label asp-for="DateFrom" class="form-label">🗓️ @Html.DisplayNameFor(m => m.DateFrom)</label>
+                <input asp-for="DateFrom" type="date" class="form-control" />
+                <span asp-validation-for="DateFrom" class="text-danger"></span>
+            </div>
+
+            <!-- Date To (End Date) -->
+            <div class="col mb-3">
+                <label asp-for="DateTo" class="form-label">🗓️ @Html.DisplayNameFor(m => m.DateTo)</label>
+                <input asp-for="DateTo" type="date" class="form-control" />
+                <span asp-validation-for="DateTo" class="text-danger"></span>
+            </div>
+        </div>
+    
+        <!-- Subcategories list with connected Parent Categories -->
+        <div class="container mt-2">
+            <!-- Subcategories with Parent Categories -->
+            <div class="container mt-2">
+                <div class="card shadow p-4 mb-4 rounded border border-primary bg-light">
+                    <h5 class="card-title">📂 التصنيفات الفرعية</h5>
+                    <div class="row p-2">
+                        @foreach (var subcategoryItem in ViewBag.SubCategoriesWithParents)
+                        {
+                            <div class="col-md-4 mb-2">
+                                <div class="form-check d-flex justify-content-start border rounded p-2">
+                                    <!-- Check if the subcategory is selected by checking against Model.SelectedSubCategories -->
+                                    <input class="form-check-input mx-1"
+                                           type="checkbox"
+                                           value="@subcategoryItem.SubCategoryId"
+                                           id="subcategory@(subcategoryItem.SubCategoryId)"
+                                           name="SelectedSubCategories[]"
+                                           @if (Model.SelectedSubCategories != null && Model.SelectedSubCategories.Contains(subcategoryItem.SubCategoryId))
+                                           {
+                                        <text>checked</text>
+                                    }
+                                    />
+                                    <label class="form-check-label fs-6" for="subcategory@(subcategoryItem.SubCategoryId)">
+                                        @subcategoryItem.SubCategoryName
+                                        <span class="text-muted">(@string.Join(", ", subcategoryItem.ParentCategories))</span>
+                                    </label>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+        @*     <div class="card shadow p-4 mb-4 rounded border border-primary bg-light">
+
+
+                <h5 class="card-title">📂 التصنيفات الفرعية</h5>
+                <div class="row p-2">
+                    @foreach (var subcategoryItem in ViewBag.SubCategoriesWithParents)
+                    {
+                        <div class="col-md-4 mb-2">
+                            <div class="form-check d-flex justify-content-start border rounded p-2">
+
+                                <input class="form-check-input mx-1" type="checkbox" value="@subcategoryItem.SubCategoryId" id="subcategory@(subcategoryItem.SubCategoryId)" name="SelectedSubCategories[]" />
+                                <label class="form-check-label fs-6" for="subcategory@(subcategoryItem.SubCategoryId)">
+                                    @subcategoryItem.SubCategoryName
+                                    <span class="text-muted">(@string.Join(", ", subcategoryItem.ParentCategories))</span>
+                                </label>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div> *@
+        </div>
+        <div class="form-check form-switch mb-4">
+            <input asp-for="IsActive" class="form-check-input" type="checkbox" id="IsActiveCheckbox" checked />
+            <label for="IsActiveCheckbox" class="form-check-label">✅ مفعل</label>
+        </div>
+
+        <hr />
+
+        <div class="col d-flex justify-content-center">
+            <button type="submit" class="btn btn-success me-2 w-25">💾 حفظ</button>
+            <a asp-action="Index" class="btn btn-secondary w-25">↩️ إلغاء</a>
+
+        </div>
+    </form>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Initialize CKEditor 4 with endpoints managed by CkEditorController
+        // CKEDITOR.replace('editor', {
+        //     filebrowserImageBrowseUrl: '/CkEditor/Browse',   // ✅ open file browser
+        //     filebrowserImageUploadUrl: '/CkEditor/Upload',   // ✅ upload images
+        //     filebrowserBrowseUrl: '/CkEditor/Browse'         // ✅ general file browse
+        // });
+         CKEDITOR.replace('editor', {
+            filebrowserImageBrowseUrl: '/CkEditor/Browse',
+            filebrowserImageUploadUrl: '/CkEditor/Upload',
+            filebrowserBrowseUrl: '/CkEditor/Browse',
+
+            extraPlugins: 'justify,colorbutton,font,bidi', // ✅ add "bidi"
+
+            toolbar: [
+                { name: 'clipboard', items: ['Cut', 'Copy', 'Paste', 'Undo', 'Redo'] },
+                { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
+                { name: 'colors', items: ['TextColor', 'BGColor'] },
+                { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat'] },
+                { name: 'paragraph', items: [
+                    'NumberedList', 'BulletedList', '-',
+                    'Outdent', 'Indent', '-',
+                    'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock', '-',
+                    'BidiLtr', 'BidiRtl' // ✅ new direction buttons
+                ]},
+                { name: 'insert', items: ['Image', 'Table', 'HorizontalRule', 'SpecialChar'] },
+                { name: 'links', items: ['Link', 'Unlink'] },
+                { name: 'document', items: ['Source', 'Maximize'] }
+            ],
+
+            height: 300
+        });
+
+
+        function updateValue(id, value) {
+            // (optional) used by popup for manual value update
+            document.getElementById(id).value = value;
+        }
+    </script>
+}
+ 

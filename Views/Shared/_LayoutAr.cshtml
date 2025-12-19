@@ -1,0 +1,120 @@
+﻿@using AnnouncmentHub.ViewModels
+@using AnnouncmentHub.Models
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@addTagHelper *, AnnouncmentHub
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - AnnouncmentHub</title>
+
+    <!-- 🔹 CSS -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/arcss/bootstrap.rtl.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/AnnouncmentHub.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/photoswipe/photoswipe.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" />
+    <link rel="stylesheet" href="~/css/main.css" asp-append-version="true" />
+
+</head>
+
+<body>
+
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom box-shadow py-0">
+            <div class="container-fluid navbar-back">
+                <!-- Logo -->
+                <a class="navbar-brand d-flex align-items-center logo" href="/">
+                    <img src="~/images/joofferslogo.png" alt="Logo" class="me-2" />
+                </a>
+
+                <!-- Hamburger Menu (Mobile) -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+                        aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Main Navigation -->
+                <div class="collapse navbar-collapse justify-content-between" id="mainNavbar">
+                    <ul class="navbar-nav ms-auto">
+                        <!-- Category Tabs ViewComponent -->
+                        <li class="nav-item">
+                            <vc:category-tabs></vc:category-tabs>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    @RenderSection("FullWidthHeader", required: false)
+
+    <div class="container mt-3">
+        @if (ViewBag.Breadcrumb != null)
+        {
+            @await Html.PartialAsync("_Breadcrumb", ViewBag.Breadcrumb as List<BreadcrumbItem>)
+        }
+
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    @await Html.PartialAsync("_FooterAr")
+
+  
+
+    <!-- ✅ JS -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="~/js/site.js" asp-append-version="true" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js" defer></script>
+    <script src="https://unpkg.com/photoswipe@5/dist/photoswipe.umd.min.js" defer></script>
+    <script src="https://unpkg.com/photoswipe@5/dist/photoswipe-lightbox.umd.min.js" defer></script>
+
+    <!-- ✅ سكريبت تحميل الفئات الفرعية عبر AJAX -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const tabsContainer = document.querySelector("#mainCategoryTabs");
+            if (!tabsContainer) return;
+
+            const tabs = tabsContainer.querySelectorAll(".nav-link");
+            const container = document.getElementById("subcategories-content");
+
+            tabs.forEach(tab => {
+                tab.addEventListener("click", function () {
+                    const catId = this.dataset.categoryId;
+                    tabs.forEach(t => t.classList.remove("active"));
+                    this.classList.add("active");
+
+                    if (!container) return;
+                    container.innerHTML = '<span class="text-muted">جاري التحميل...</span>';
+
+                    fetch(`/Hub/GetSubcategories?parentId=${catId}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.length === 0) {
+                                container.innerHTML = '<span class="text-muted">لا توجد فئات فرعية</span>';
+                            } else {
+                                container.innerHTML = "";
+                                data.forEach(sub => {
+                                    const link = document.createElement("a");
+                                    link.href = `/Hub/CategoryAnnouncements/${sub.id}`;
+                                    link.className = "badge bg-secondary-subtle text-dark border mx-1 p-2 rounded-pill flex-shrink-0 text-decoration-none";
+                                    link.textContent = sub.catName;
+                                    container.appendChild(link);
+                                });
+                            }
+                        })
+                        .catch(() => {
+                            container.innerHTML = '<span class="text-danger">حدث خطأ أثناء تحميل الفئات الفرعية</span>';
+                        });
+                });
+            });
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

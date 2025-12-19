@@ -1,0 +1,355 @@
+﻿@{
+    var parentCategories = ViewBag.ParentCategories as List<Category>;
+}
+
+<!-- Modal for displaying PDF -->
+<div id="pdfModal" class="modal">
+    <div class="modal-content">
+        <div id="pdfShareButtons" class="pdf-share" style="display: none;">
+            <a id="share-facebook" target="_blank" rel="noopener noreferrer" title="مشاركة على فيسبوك" class="social-btn fb"><i class="fab fa-facebook-f"></i></a>
+            <a id="share-twitter" target="_blank" rel="noopener noreferrer" title="مشاركة على تويتر" class="social-btn tw"><i class="fab fa-twitter"></i></a>
+            <a id="share-whatsapp" target="_blank" rel="noopener noreferrer" title="مشاركة على واتساب" class="social-btn wa"><i class="fab fa-whatsapp"></i></a>
+            <a id="Download" target="_blank" rel="noopener noreferrer" title="تحميل" class="social-btn Dow"><i class="fa-solid fa-download"></i></a>
+        </div>
+        <span id="closePdfModal" class="close">&times;</span>
+        <div id="pdfCanvas"></div>
+        <div class="pdf-navigation">
+            <button id="prevPageBtn">السابق</button>
+            <button id="nextPageBtn">التالي</button>
+        </div>
+    </div>
+</div>
+
+<div>
+    <div class="info-box rounded border p-4 mb-2 category-wrapper">
+        <div class="main-menu">
+            @foreach (var category in parentCategories)
+            {
+                <div class="category-container">
+                    <button class="category-btn" data-category-id="@category.Id">@category.CatName</button>
+                </div>
+            }
+        </div>
+        <div class="subcategories-container" id="subcategories-container"></div>
+    </div>
+
+    <div id="announcementArea">
+        <div id="announcementList" class="row d-flex justify-content-start">
+            <p class="d-flex justify-content-center">
+                <i class="fas fa-info-circle" style="color:#3498db; margin-left: 6px;"></i>
+                اضغط على أحد التصنيفات الفرعية لعرض الإعلانات.
+            </p>
+        </div>
+    </div>
+</div>
+@* <p class="d-flex justify-content-center p-2 m-2 rounded fs-5 text-black-50 border border-info">الاعلانات التجارية</p>
+ *@
+
+@* <div class="pswp-gallery" id="imageGallery">
+    soos xp
+</div>
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true"></div> *@
+<!-- PhotoSwipe gallery root -->
+<div class="pswp-gallery" id="imageGallery">
+    <!-- dynamically inserted images go here -->
+</div>
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true"></div>
+
+<!-- ✅ Image Share Buttons -->
+<div id="imageShareButtons" class="pdf-share" style="display: none;">
+    <a id="image-share-facebook" target="_blank" rel="noopener noreferrer" title="مشاركة على فيسبوك" class="social-btn fb"><i class="fab fa-facebook-f"></i></a>
+    <a id="image-share-twitter" target="_blank" rel="noopener noreferrer" title="مشاركة على تويتر" class="social-btn tw"><i class="fab fa-twitter"></i></a>
+    <a id="image-share-whatsapp" target="_blank" rel="noopener noreferrer" title="مشاركة على واتساب" class="social-btn wa"><i class="fab fa-whatsapp"></i></a>
+    <a id="image-share-download" target="_blank" rel="noopener noreferrer" title="تحميل" class="social-btn Dow"><i class="fa-solid fa-download"></i></a>
+</div>
+
+
+@section Scripts {
+    <script src="~/js/photoswipe/photoswipe.umd.min.js"></script>
+    <script src="~/js/photoswipe/photoswipe-lightbox.umd.min.js"></script>
+    <link href="~/css/landing.css" rel="stylesheet" />
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+     function updateShareLinks(prefix, url) {
+            const full = url.startsWith('http') ? url : window.location.origin + url;
+            const enc = encodeURIComponent(full);
+
+            console.log(`🔗 Share Links for: ${full}`);
+
+            const fb = document.getElementById(`${prefix}-facebook`);
+            const tw = document.getElementById(`${prefix}-twitter`);
+            const wa = document.getElementById(`${prefix}-whatsapp`);
+            const dw = document.getElementById(`${prefix}-download`);
+
+            if (fb && tw && wa && dw) {
+                fb.href = `https://www.facebook.com/sharer/sharer.php?u=${enc}`;
+                tw.href = `https://twitter.com/intent/tweet?url=${enc}`;
+                wa.href = `https://wa.me/?text=${enc}`;
+                dw.href = full;
+
+                // 🔍 Debug log each link
+                // console.log("✅ Facebook:", fb.href);
+                // console.log("✅ Twitter:", tw.href);
+                // console.log("✅ WhatsApp:", wa.href);
+                // console.log("✅ Download:", dw.href);
+            } else {
+                console.warn("❌ One or more buttons not found for prefix:", prefix);
+            }
+        }
+
+    // Load subcategories globally
+    window.loadSubcategories = function (parentId) {
+        fetch(`/Hub/GetSubcategories?parentId=${parentId}`)
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById('subcategories-container');
+                container.innerHTML = '';
+
+                if (data.length === 0) {
+                    container.innerHTML = '<p class="text-center">لا توجد تصنيفات فرعية حالياً</p>';
+                    return;
+                }
+
+                const list = document.createElement('div');
+                list.classList.add('subcategories-list');
+
+                data.forEach(sub => {
+                    const item = document.createElement('div');
+                    item.innerHTML = `<button class="subcategory-btn" data-subcategory-id="${sub.id}">${sub.catName}</button>`;
+                    list.appendChild(item);
+                });
+
+                container.appendChild(list);
+
+                list.querySelectorAll('.subcategory-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('.subcategory-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        loadAnnouncementsBySubcategory(btn.dataset.subcategoryId);
+                    });
+                });
+            });
+    };
+
+    // Load announcements
+    function loadAnnouncementsBySubcategory(id) {
+        fetch(`/Hub/GetAnnouncementsBySubcategory?subCategoryId=${id}`)
+            .then(res => res.json())
+            .then(data => {
+                const list = document.getElementById('announcementList');
+                list.innerHTML = '';
+
+                if (!data.length) {
+                    list.innerHTML = '<p class="text-center">لا توجد إعلانات حالياً</p>';
+                    return;
+                }
+
+                data.forEach(item => {
+                    const div = document.createElement('div');
+                            div.className = 'col-lg-2 col-md-3 col-sm-4 col-6 ms-2 announcement';
+                    div.innerHTML = `
+                        <img src="${item.thumbnailPath}" class="img-fluid"/>
+                        <h3>${item.title}</h3>
+                        <p>${item.description}</p>
+                        <a href="#" class="viewFileBtn" data-file-path="${item.filePath}">مشاهدة الإعلان</a>
+                    `;
+                    list.appendChild(div);
+                });
+
+                list.querySelectorAll('.viewFileBtn').forEach(button => {
+                    button.addEventListener('click', e => {
+                        e.preventDefault();
+                        const path = button.getAttribute('data-file-path');
+                        const ext = path.split('.').pop().toLowerCase();
+                        const isImage = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(ext);
+
+                        if (isImage) {
+                            openImageViewer([{ url: path }]);
+                        } else {
+                            openPdfModal(path);
+                        }
+                    });
+                });
+            });
+    }
+
+    // PDF viewer
+    const modal = document.getElementById('pdfModal');
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    let pdfDoc = null, currentPage = 1, totalPages = 0;
+
+    document.getElementById('prevPageBtn').onclick = () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderPage(currentPage);
+        }
+    };
+
+    document.getElementById('nextPageBtn').onclick = () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderPage(currentPage);
+        }
+    };
+
+    function openPdfModal(pdfPath) {
+        const fullUrl = window.location.origin + pdfPath;
+        updateShareLinks('share', pdfPath);
+        document.getElementById('pdfShareButtons').style.display = 'inline-flex';
+
+        modal.style.display = 'flex';
+        document.querySelector('.pdf-navigation').style.display = 'block';
+
+        const pdfCanvasContainer = document.getElementById('pdfCanvas');
+        pdfCanvasContainer.innerHTML = '';
+        pdfCanvasContainer.appendChild(canvas);
+
+        pdfjsLib.getDocument(pdfPath).promise.then(function (doc) {
+            pdfDoc = doc;
+            totalPages = doc.numPages;
+            currentPage = 1;
+            renderPage(currentPage);
+        });
+    }
+
+    function renderPage(num) {
+        pdfDoc.getPage(num).then(page => {
+            const scale = 1.5;
+            const viewport = page.getViewport({ scale });
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            page.render({ canvasContext: ctx, viewport });
+        });
+    }
+
+    document.getElementById("closePdfModal").onclick = function () {
+        modal.style.display = "none";
+        document.querySelector('.pdf-navigation').style.display = 'none';
+        document.getElementById('pdfShareButtons').style.display = 'none';
+        document.getElementById('pdfCanvas').innerHTML = '';
+    };
+
+    window.onclick = function (e) {
+        if (e.target === modal) {
+            modal.style.display = "none";
+            document.querySelector('.pdf-navigation').style.display = 'none';
+            document.getElementById('pdfShareButtons').style.display = 'none';
+            document.getElementById('pdfCanvas').innerHTML = '';
+        }
+    };
+
+    // Image viewer with share bar
+    async function getImageSize(url) {
+        return new Promise(res => {
+            const img = new Image();
+            img.onload = () => res({ width: img.naturalWidth, height: img.naturalHeight });
+            img.onerror = () => res({ width: 800, height: 600 });
+            img.src = url;
+        });
+    }
+
+    // async function openImageViewer(imageList) {
+    //     const galleryEl = document.getElementById('imageGallery');
+    //     galleryEl.innerHTML = '';
+
+    //     for (const img of imageList) {
+    //         if (!img.url) continue;
+    //         const size = await getImageSize(img.url);
+    //         const anchor = document.createElement('a');
+    //         anchor.href = img.url;
+    //         anchor.setAttribute('data-pswp-width', size.width);
+    //         anchor.setAttribute('data-pswp-height', size.height);
+    //         anchor.setAttribute('data-caption', img.caption || '');
+    //         anchor.innerHTML = `<img src="${img.url}" style="display:none" />`;
+    //         galleryEl.appendChild(anchor);
+    //     }
+
+    //     const lightbox = new PhotoSwipeLightbox({
+    //         gallery: '#imageGallery',
+    //         children: 'a',
+    //         pswpModule: PhotoSwipe,
+    //         captionAttribute: 'data-caption'
+    //     });
+
+    //        lightbox.on('change', () => {
+    //         const src = lightbox.pswp.currSlide.data.src;
+    //         document.getElementById('imageShareButtons').style.display = 'inline-flex';
+    //         updateShareLinks('image-share', src); // prefix must match your button IDs
+    //     });
+
+    //     lightbox.on('close', () => {
+    //         document.getElementById('imageShareButtons').style.display = 'none';
+    //     });
+
+
+    //     lightbox.init();
+    //     galleryEl.querySelector('a')?.click();
+    // }
+            async function openImageViewer(imageList) {
+            const galleryEl = document.getElementById('imageGallery');
+            galleryEl.innerHTML = '';
+
+            for (const img of imageList) {
+                if (!img.url) continue;
+                const size = await getImageSize(img.url);
+                const anchor = document.createElement('a');
+                anchor.href = img.url;
+                anchor.setAttribute('data-pswp-width', size.width);
+                anchor.setAttribute('data-pswp-height', size.height);
+                anchor.setAttribute('data-caption', img.caption || '');
+                anchor.innerHTML = `<img src="${img.url}" style="display:none" />`;
+                galleryEl.appendChild(anchor);
+            }
+
+            const lightbox = new PhotoSwipeLightbox({
+                gallery: '#imageGallery',
+                children: 'a',
+                pswpModule: PhotoSwipe,
+                captionAttribute: 'data-caption'
+            });
+
+            lightbox.on('change', () => {
+                const current = lightbox.pswp.currSlide;
+                if (!current || !current.data || !current.data.src) {
+                    console.warn('⚠️ No current slide or missing src');
+                    return;
+                }
+
+                const src = current.data.src;
+                console.log("📷 Current image:", src);
+
+                // Show buttons and update links
+                const shareBar = document.getElementById('imageShareButtons');
+                if (shareBar) {
+                    shareBar.style.display = 'inline-flex';
+                    updateShareLinks('image-share', src);
+                } else {
+                    console.warn("❌ imageShareButtons not found in DOM");
+                }
+            });
+
+            lightbox.on('close', () => {
+                const shareBar = document.getElementById('imageShareButtons');
+                if (shareBar) {
+                    shareBar.style.display = 'none';
+                }
+            });
+
+            lightbox.init();
+            galleryEl.querySelector('a')?.click();
+        }
+
+    // Menu buttons (moved inside DOMContentLoaded)
+    document.querySelectorAll('.category-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            button.classList.add('active');
+            window.loadSubcategories(button.getAttribute('data-category-id'));
+        });
+    });
+
+});
+</script>
+}

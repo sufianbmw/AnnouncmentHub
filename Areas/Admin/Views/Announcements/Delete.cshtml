@@ -1,0 +1,41 @@
+﻿@* @model AnnouncementViewModel
+
+@{
+    ViewData["Title"] = "حذف الإعلان";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4 text-center text-danger">🗑 تأكيد حذف الإعلان</h2>
+
+    <div class="card shadow border-danger">
+        <div class="card-body">
+            <p class="text-center fw-bold text-danger">⚠️ هل أنت متأكد أنك تريد حذف هذا الإعلان؟ لا يمكن التراجع عن هذا الإجراء.</p>
+
+            <!-- 🔹 Announcement Details -->
+            <ul class="list-group mb-3">
+                <li class="list-group-item"><strong>📌 العنوان:</strong> @Model.Title</li>
+                <li class="list-group-item"><strong>🗂 التصنيف:</strong> @Model.ParentCatName</li>
+                <li class="list-group-item"><strong>📅 تاريخ الإضافة:</strong> @Model.AddedDate.ToString("yyyy-MM-dd")</li>
+            </ul>
+
+            <!-- 🔹 Display Existing File -->
+            @if (!string.IsNullOrEmpty(Model.FilePath))
+            {
+                <div class="text-center mb-3">
+                    <a href="@Model.FilePath" target="_blank" class="btn btn-info btn-sm">📂 عرض الملف المرفق</a>
+                </div>
+            }
+
+            <!-- 🔹 Confirm Delete Form -->
+            <form asp-action="Delete" method="post">
+                <input type="hidden" asp-for="Id" />
+                <div class="d-flex justify-content-between">
+                    <button type="submit" class="btn btn-danger">🗑 نعم، احذف الإعلان</button>
+                    <a asp-action="Index" class="btn btn-secondary">🔙 إلغاء</a>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+ *@

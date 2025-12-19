@@ -1,0 +1,66 @@
+﻿@using AnnouncmentHub.Helpers
+@model AnnouncmentHub.ViewModels.CategoryAnnouncementsViewModel
+
+<div class="row g-1">
+    @if (Model.Announcements.Any())
+    {
+        @foreach (var item in Model.Announcements)
+        {
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="row g-0">
+                        <!-- Thumbnail -->
+                        <div class="col-4 d-flex align-items-center justify-content-center bg-light">
+                            @{
+                                var filePath = item.FilePath;
+                                var extension = System.IO.Path.GetExtension(filePath ?? "").ToLower();
+                                string displayPath = extension switch
+                                {
+                                    ".jpg" or ".jpeg" or ".png" or ".gif" or ".webp" or ".bmp" => filePath,
+                                    ".pdf" => Url.Content("~/images/file-icons/pdf-icon.png"),
+                                    ".doc" or ".docx" => Url.Content("~/images/file-icons/word-icon.png"),
+                                    ".xls" or ".xlsx" => Url.Content("~/images/file-icons/excel-icon.png"),
+                                    _ when string.IsNullOrEmpty(filePath) => Url.Content("~/images/file-icons/no-image.jpg"),
+                                    _ => Url.Content("~/images/file-icons/file-icon.png")
+                                };
+                            }
+                        <div class="ratio ratio-1x1 bg-white border rounded shadow-sm overflow-hidden m-2">
+                            <img src="@displayPath" alt="Thumbnail" class="w-100 h-100" style="object-fit: cover;" />
+                        </div>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="col-8">
+                        <div class="card-body">
+                            <h6 class="card-title fw-bold">
+                                <a asp-controller="Hub" asp-action="Details" asp-route-id="@item.Id"
+                                   class="text-decoration-none text-primary">
+                                    @item.Title
+                                </a>
+                            </h6>
+                       @*      <p class="text-muted small">
+                                @(string.IsNullOrEmpty(item.Description)
+                                                            ? "لا يوجد وصف"
+                                                            : item.Description.Length > 80
+                                                            ? item.Description.Substring(0, 80) + "..."
+                                                            : item.Description)
+
+                        </p> *@
+                                <p class="text-muted small">
+                                    @Html.Raw(HtmlTruncator.TruncateHtml(item.Description, 80))
+                                </p>
+                        <span class="text-muted small">🗓️ @item.AddedDate?.ToString("yyyy-MM-dd")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+        }
+    }
+    else
+    {
+        <div class="alert alert-info text-center shadow-sm mt-3">
+            لا توجد إعلانات مطابقة للفلتر.
+        </div>
+    }
+</div>

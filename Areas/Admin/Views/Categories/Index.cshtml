@@ -1,0 +1,159 @@
+﻿@model X.PagedList.IPagedList<AnnouncmentHub.Models.Category>
+@using Microsoft.AspNetCore.Mvc.Rendering
+@using X.PagedList.Mvc.Core
+
+@{
+    ViewData["Title"] = "📋 قائمة التصنيفات";
+
+    var categoryName = Context.Request.Query["categoryName"].ToString();
+    var parentId = Context.Request.Query["parentId"].ToString();
+    var onlyParents = Context.Request.Query["onlyParents"].ToString();
+
+    var parentCategories = ViewBag.ParentCategories as List<SelectListItem> ?? new List<SelectListItem>();
+}
+
+<div class="container my-4">
+    <!-- 🔍 Filter Card -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header text-white fw-bold" style="background-color:#1abc9c;">
+            🔍 البحث و التصفية
+        </div>
+
+        <div class="card-body bg-light">
+            <form method="get" asp-action="Index" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="categoryName" class="form-label fw-semibold">📛 الاسم</label>
+                    <input type="text" name="categoryName" id="categoryName" class="form-control" placeholder="بحث بالاسم..." value="@categoryName" />
+                </div>
+
+                <div class="col-md-4">
+                    <label for="parentId" class="form-label fw-semibold">📂 التصنيف الرئيسي</label>
+                    <select name="parentId" id="parentId" class="form-select">
+                        <option value="-1">-- جميع التصنيفات --</option>
+                        @foreach (var parent in parentCategories)
+                        {
+                            @:<option value="@parent.Value" @(parent.Value == parentId ? "selected" : "")>@parent.Text</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-4 d-flex align-items-center">
+                    <input type="checkbox" name="onlyParents" value="true" class="form-check-input me-2" id="onlyParentsCheckbox" @(onlyParents == "true" ? "checked" : "") />
+                    <label for="onlyParentsCheckbox" class="form-check-label">⭐ عرض التصنيفات الرئيسية فقط</label>
+                </div>
+
+                <div class="col-12 text-center mt-3">
+                    <button type="submit" class="btn btn-primary px-4">🔎 بحث</button>
+                    <a href="@Url.Action("Index")" class="btn btn-secondary px-4 ms-2">♻️ إعادة تعيين</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 🔹 Add Button -->
+    <div class="mb-3 text-end">
+        <a asp-action="Create" class="btn btn-success px-4">➕ إنشاء تصنيف جديد</a>
+    </div>
+
+    <!-- 🔹 Alert Messages -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>❌ خطأ!</strong> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>✅ نجاح!</strong> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- 🔹 Categories Table -->
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+
+
+<table class="table table-bordered table-hover align-middle mb-0">
+    <thead class="table-light text-center">
+        <tr>
+            <th style="width:70px;">#</th> <!-- 🔹 new index column -->
+            <th>🖼️ الأيقونة</th>
+            <th>📛 اسم التصنيف</th>
+            <th>👑 رئيسي؟</th>
+            <th>📂 التصنيفات التابعة (الأب)</th>
+            <th style="width: 150px;">⚙️ الإجراءات</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Any())
+        {
+            <tr><td colspan="6" class="text-center text-muted py-4">🚫 لا توجد بيانات</td></tr>
+        }
+        else
+        {
+            var startIndex = (Model.PageNumber - 1) * Model.PageSize; // 🔹 offset for current page
+            var i = 1;
+
+            foreach (var cat in Model)
+            {
+                <tr>
+                    <!-- 🔹 serial number -->
+                    <td class="text-center fw-bold">@((startIndex + i++).ToString())</td>
+
+                    <td class="text-center">
+                        <div style="display:inline-block; background-color:#cecece; border-radius:8px; padding:4px;">
+                            <img src="@(string.IsNullOrEmpty(cat.IconUrl) ? "/images/no-icon.png" : cat.IconUrl)"
+                                 alt="icon"
+                                 class="rounded"
+                                 style="width:60px;height:60px;object-fit:contain; background-color:#000000;" />
+                        </div>
+                    </td>
+                    <td class="fw-semibold">@cat.CatName</td>
+                    <td class="text-center">@((cat.IsParent ? "👑 نعم" : "❌ لا"))</td>
+                    <td>
+                        @if (cat.ParentMappings != null && cat.ParentMappings.Any())
+                        {
+                            @string.Join(", ", cat.ParentMappings.Select(pm => pm.ParentCategory?.CatName))
+                        }
+                        else
+                        {
+                            <span class="text-muted fst-italic">— لا يوجد —</span>
+                        }
+                    </td>
+                    <td class="text-center">
+                        <a asp-action="Edit" asp-route-id="@cat.Id" class="btn btn-sm btn-warning" title="تعديل">✏️</a>
+                        <a asp-action="Delete" asp-route-id="@cat.Id" class="btn btn-sm btn-danger ms-1" title="حذف"
+                           onclick="return confirm('هل أنت متأكد من حذف هذا التصنيف؟');">🗑️</a>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+
+        </div>
+    </div>
+
+    <!-- 🔹 Pagination -->
+    <div class="mt-4 d-flex justify-content-center">
+        @Html.PagedListPager(Model, page => Url.Action("Index", new
+        {
+            page,
+            categoryName,
+            parentId,
+            onlyParents
+        }),
+        new PagedListRenderOptions
+        {
+            UlElementClasses = new[] { "pagination" },
+            LiElementClasses = new[] { "page-item" },
+            PageClasses = new[] { "page-link" },
+            MaximumPageNumbersToDisplay = 5
+        })
+    </div>
+</div>

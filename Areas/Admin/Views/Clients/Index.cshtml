@@ -1,0 +1,164 @@
+﻿@using AnnouncmentHub.ViewModels
+
+@model IEnumerable<ClientViewModel>
+
+@{
+    ViewData["Title"] = "العملاء";
+}
+<h4 class="text-center">👥
+    ادارة
+    العملاء
+
+    </h4>
+<div class="card m-3 p-3">
+
+    @if (TempData["Error"] != null)
+    {
+        
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>❌ خطأ!</strong> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>✅ نجاح!</strong> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+<p class="d-flex justify-content-end">
+    <a href="@Url.Action("Create")" class="btn btn-outline-success">
+            إضافة عميل جديد 👥
+            <i class="bi bi-person-plus-fill"></i>
+    </a>
+</p>
+
+<!-- Table with enhanced color scheme -->
+<table class="table table-bordered table-striped table-hover table-sm">
+    <thead class="table-dark">
+        <tr>
+            <th>#</th>
+            <th>@Html.DisplayNameFor(model => model.ClientName)</th>
+            <th>@Html.DisplayNameFor(model => model.LogoUrl)</th>
+            <th>@Html.DisplayNameFor(model => model.IsActive)</th>
+            <th>الإجراءات ⚙️</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var client in Model.Select((value, index) => new { value, index }))
+        {
+            <tr class="align-middle">
+                <td>
+                    <div class="w-100 d-flex justify-content-center">
+                        <span>
+                                @(client.index + 1)
+                        </span>
+
+                    </div>
+                  
+                    </td>
+                <td>
+                        <div class="w-100 d-flex justify-content-center">
+                            <span>
+                                @client.value.ClientName
+                            </span>
+
+                        </div>
+                </td>
+                <td>
+                        <div class="w-100 d-flex justify-content-center">
+                            <span>
+                                @if (!string.IsNullOrEmpty(client.value.LogoUrl))
+                                {
+                                    <img src="@client.value.LogoUrl" alt="Logo" style="max-width: 75px;" class="img-thumbnail" />
+                                }
+                                else
+                                {
+                                    <span>لا يوجد شعار</span>
+                                }
+
+                            </span>
+
+                        </div>
+                  
+                </td>
+                <td>
+                        <div class="w-100 d-flex justify-content-center">
+                            <span>
+                                @if (client.value.IsActive)
+                                {
+                                    <span class="badge bg-success">مفعل ✅</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">غير مفعل ❌</span>
+                                }
+                            </span>
+                        </div>
+              
+                </td>
+                <td>
+                        <div class="w-100 d-flex justify-content-center">
+                            <span>
+                                <a href="@Url.Action("Details", new { id = client.value.Id })" class="btn btn-info btn-sm">
+                                    <i class="bi bi-eye-fill"></i> تفاصيل 👀
+                                </a>
+                                <a href="@Url.Action("Edit", new { id = client.value.Id })" class="btn btn-warning btn-sm">
+                                    <i class="bi bi-pencil-fill"></i> تعديل ✏️
+                                </a>
+
+                                <!-- Delete button that triggers the modal -->
+                                <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="@client.value.Id">
+                                    <i class="bi bi-trash-fill"></i> حذف 🗑️
+                                </button>
+                            </span>
+                        </div>
+          
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+</div>
+<!-- Modal for confirmation -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger" id="deleteModalLabel"> 🔔 تأكيد الحذف</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                ⚠️
+                هل أنت متأكد أنك تريد حذف هذا العميل؟ هذه العملية لا يمكن التراجع عنها.
+                ❗
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <form id="deleteForm" method="post" action="@Url.Action("DeleteConfirmed", "Clients")" style="display:inline;">
+                    @Html.AntiForgeryToken()  <!-- Include the anti-forgery token -->
+                    <input type="hidden" name="id" id="deleteClientId" value="1">  <!-- The value should dynamically be set by JavaScript -->
+                    <button type="submit" class="btn btn-danger">حذف</button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Get the modal's delete button and set the id for the hidden input field
+            var deleteButtons = document.querySelectorAll('[data-bs-toggle="modal"]');
+            deleteButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+            var clientId = this.getAttribute('data-id');  // Get the client Id from the button's data-id attribute
+            document.getElementById('deleteClientId').value = clientId; // Set the client Id in the hidden input field
+            });
+        });
+    </script>
+
+
+    }

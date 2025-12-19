@@ -1,0 +1,135 @@
+﻿@model IEnumerable<Category>
+
+<div class="category-menu-wrapper">
+
+    <div class="category-tabs-container">
+
+        <ul class="nav nav-tabs justify-content-center">
+
+            @foreach (var main in Model)
+            {
+                <li class="nav-item main-item" data-cat="@main.Id">
+
+                    <!-- Main Category Link -->
+                    <a href="/Hub/CategoryAnnouncements/@main.Id"
+                       class="category-link">
+                        <i class="fa fa-folder"></i> @main.CatName
+                    </a>
+
+                    <!-- Toggle Subcategories Button -->
+                    <button class="toggle-subcats-btn" data-cat="@main.Id">
+                        <i class="fa fa-angle-down"></i>
+                    </button>
+
+                    <!-- Hidden Subcategory Source -->
+                    <ul class="subcategories-source" id="sub-@main.Id">
+                        @foreach (var sub in main.SubCategoryMappings.Select(m => m.SubCategory))
+                        {
+                            <li>
+                                <a class="dropdown-item" href="/Hub/SubCategoryAnnouncements/@sub.Id">
+                                    <i class="fa fa-tag"></i> @sub.CatName
+                                </a>
+                            </li>
+                        }
+                    </ul>
+
+                </li>
+            }
+
+        </ul>
+
+        <!-- ⭐ Indicator Under Categories -->
+        <div id="menu-indicator" class="menu-indicator d-none"></div>
+
+    </div>
+
+    <!-- Subcategories Pills Bar -->
+    <div id="subcategories-bar" class="subcategories-bar d-none"></div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const bar = document.getElementById("subcategories-bar");
+        const indicator = document.getElementById("menu-indicator");
+        let activeId = null;
+
+        function moveIndicator(element) {
+            if (window.innerWidth <= 768) return; // disable indicator on mobile
+
+            const rect = element.getBoundingClientRect();
+            const parentRect = element.closest(".nav-tabs").getBoundingClientRect();
+
+            indicator.style.width = element.offsetWidth + "px";
+            indicator.style.left = (rect.left - parentRect.left) + "px";
+            indicator.classList.remove("d-none");
+        }
+
+        document.querySelectorAll(".toggle-subcats-btn").forEach(btn => {
+
+            btn.addEventListener("click", function (e) {
+                e.stopPropagation();
+
+                const catId = this.dataset.cat;
+                const source = document.getElementById("sub-" + catId);
+                const link = this.closest(".main-item").querySelector(".category-link");
+
+                // Close same category
+                if (activeId === catId) {
+                    bar.classList.add("d-none");
+                    bar.innerHTML = "";
+                    indicator.classList.add("d-none");
+                    activeId = null;
+
+                    document.querySelectorAll(".category-link").forEach(l => l.classList.remove("active-category"));
+                    document.querySelectorAll(".toggle-subcats-btn").forEach(b => b.classList.remove("rotated"));
+                    return;
+                }
+
+                // Set active
+                activeId = catId;
+                bar.innerHTML = "";
+                bar.classList.remove("d-none");
+
+                // Reset states
+                document.querySelectorAll(".category-link").forEach(l => l.classList.remove("active-category"));
+                document.querySelectorAll(".toggle-subcats-btn").forEach(b => b.classList.remove("rotated"));
+
+                // Highlight selected
+                link.classList.add("active-category");
+                this.classList.add("rotated");
+
+                // Move indicator
+                moveIndicator(link);
+
+                // Add subcategories
+                const items = source.querySelectorAll("a.dropdown-item");
+                items.forEach((a, index) => {
+                    const pill = document.createElement("a");
+                    pill.href = a.href;
+                    pill.className = "subcategory-pill";
+                    pill.innerHTML = a.innerHTML;
+                    pill.style.animationDelay = (index * 0.07) + "s";
+                    bar.appendChild(pill);
+                });
+            });
+
+        });
+
+        // Close when clicking outside
+        document.addEventListener("click", function (e) {
+            if (!e.target.closest(".category-menu-wrapper")) {
+
+                bar.classList.add("d-none");
+                bar.innerHTML = "";
+                indicator.classList.add("d-none");
+                activeId = null;
+
+                document.querySelectorAll(".category-link").forEach(l => l.classList.remove("active-category"));
+                document.querySelectorAll(".toggle-subcats-btn").forEach(b => b.classList.remove("rotated"));
+            }
+        });
+
+    });
+</script>

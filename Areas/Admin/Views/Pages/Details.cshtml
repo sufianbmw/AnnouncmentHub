@@ -1,0 +1,78 @@
+﻿@using AnnouncmentHub.ViewModels
+@model PageViewModel
+
+@{
+    ViewData["Title"] = "تفاصيل الصفحة";
+}
+
+<div class="card m-3 p-3">
+    <h4 class="text-center">📄 تفاصيل الصفحة 🖥️</h4>
+    <hr />
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>❌ خطأ!</strong> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>✅ نجاح!</strong> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Page details -->
+    <div class="row py-2">
+        <div class="col-md ps-4">
+            <label>عنوان الصفحة:</label>
+            @Model.PageTitle
+        </div>
+
+        <div class="col-md ps-4">
+            <label>التصنيف:</label>
+            @(Model.pagecategories?.CatName ?? "لا يوجد تصنيف")
+        </div>
+
+    </div>
+    <div class="row py-2">
+        <div class="col-md ps-4">
+                <label>ترتيب الصفحة:</label>
+                @Model.Ordring
+            </div>
+
+        <div class="col-md ps-4">
+            <label>حالة الصفحة:</label>
+
+            @if (Model.Active)
+            {
+                <span class="badge bg-success">مفعل ✅</span>
+            }
+            else
+            {
+                <span class="badge bg-danger">غير مفعل ❌</span>
+            }
+
+        </div>
+        </div>
+
+    <div class="row">
+        <div class="col-md rounded bg-gradient card border p-4 m-4 page-details-content">
+            <h6>تفاصيل الصفحة:</h6>
+            <hr />
+            <div style="page-min-height: 200px;overflow-y: auto;padding-right: 15px;">
+                @Html.Raw(Model.PageDetails)
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Back Button -->
+    <div class="d-flex justify-content-end mt-3">
+        <a href="@Url.Action("Index", "Pages")" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left-circle-fill"></i> العودة إلى القائمة
+        </a>
+    </div>
+</div>

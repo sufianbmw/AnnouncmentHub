@@ -1,0 +1,87 @@
+﻿@model ClientAnnouncementsViewModel
+@using Newtonsoft.Json
+
+@{
+    var client = Model.Client;
+    var page = Model.PageNumber;
+    var pageSize = Model.PageSize;
+    var totalPages = Model.TotalPages;
+    ViewBag.Title = client.ClientName;
+}
+
+<div class="container">
+    <!-- Client header -->
+    <div class="row bg-light border rounded p-3 mb-3 align-items-center">
+        <div class="col-md-2 text-center">
+            <img src="@(string.IsNullOrEmpty(client.LogoUrl) ? Url.Content("~/images/file-icons/no-image.jpg") : client.LogoUrl)"
+                 alt="@client.ClientName"
+                 class="img-fluid img-thumbnail rounded" />
+        </div>
+        <div class="col-md-10">
+            <h3 class="mb-1">@client.ClientName</h3>
+            <p class="text-muted mb-2">إجمالي الإعلانات: @Model.TotalCount</p>
+            <a asp-controller="Hub" asp-action="LoadingHub" class="btn btn-sm btn-outline-secondary">العودة</a>
+        </div>
+    </div>
+
+    <!-- Announcements list -->
+    @if (Model.Announcements.Any())
+    {
+        @foreach (var item in Model.Announcements)
+        {
+            var categories = JsonConvert.DeserializeObject<List<CategoryJsonLink>>(item.CategoriesJson ?? "[]");
+
+            <div class="row bg-light border rounded mb-2 p-3">
+                <div class="col-md-2 d-flex justify-content-center align-content-center m-0 p-0">
+@*                     <img src="@item.ThumbnailPath" class="img-fluid img-thumbnail rounded" />
+ *@                    <img src="~/images/file-icons/no-image.jpg" class="img-fluid img-thumbnail rounded" />
+
+                </div>
+                <div class="col-md-10">
+                    <div class="mb-2 mt-1 d-flex justify-content-between align-items-start">
+                        <h6 class="text-primary fw-bold m-0">@item.Title</h6>
+                        @if (item.AddedDate.HasValue)
+                        {
+                            <span class="text-muted small">🗓️ @item.AddedDate.Value.ToString("yyyy-MM-dd")</span>
+                        }
+                    </div>
+
+                    <div class="row">
+                        <div class="col">
+                            <p class="text-secondary small mb-1">الإعلان موجود في</p>
+                            <p class="mb-2">
+                                @foreach (var cat in categories)
+                                {
+                                    <span class="badge bg-secondary me-1">
+                                        <a class="text-decoration-none text-white small"
+                                           href="/Categories/Details/@cat.CategoryId">@cat.CategoryName</a>
+                                    </span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Pagination -->
+        <nav>
+            <ul class="pagination justify-content-center">
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == page ? "active" : "")">
+                        <a class="page-link"
+                           asp-action="Details"
+                           asp-route-id="@client.Id"
+                           asp-route-page="@i"
+                           asp-route-pageSize="@pageSize">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+    else
+    {
+        <div class="alert alert-info d-flex justify-content-center">لا توجد إعلانات لهذا العميل حالياً.</div>
+    }
+</div>

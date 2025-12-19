@@ -1,0 +1,190 @@
+﻿<!-- 🔎 Filter Form -->
+@using Newtonsoft.Json
+@model AnnouncementSearchResult
+
+@{
+    ViewBag.Title = "بحث الإعلانات";
+    var query = ViewContext.HttpContext.Request.Query;
+    var selectedCategories = ViewBag.SelectedCategories as string[] ?? Array.Empty<string>();
+    var allCategories = ViewBag.AllCategories as List<CategoryJsonLink> ?? new();
+    int page = Model.PageNumber;
+    int pageSize = Model.PageSize;
+    int totalPages = Model.TotalPages;
+}
+
+
+<!-- 🔎 Filter Form (includes categories) -->
+<form id="searchForm"  method="get" asp-action="Search" class="row bg-light rounded border px-2 py-2 mb-2 d-flex justify-content-center">
+
+    <div class="row pb-2">
+        <div class="col d-flex justify-content-center">
+            <input type="text" name="title" class="form-control w-75" placeholder="كلمة البحث " value="@query["title"]" />
+        </div>
+    </div>
+
+    <div class="row w-75">
+        <div class="col-md d-flex justify-content-center align-content-between">
+            <label class="form-label">من تاريخ</label>
+        </div>
+        <div class="col-md-4 d-flex justify-content-center ">
+            <input type="date" name="dateFrom" class="form-control" value="@query["dateFrom"]" />
+        </div>
+        <div class="col-md d-flex justify-content-center align-content-between">
+            <label class="form-label">إلى تاريخ</label>
+        </div>
+        <div class="col-md-4 d-flex justify-content-center">
+            <input type="date" name="dateTo" class="form-control" value="@query["dateTo"]" />
+        </div>
+    </div>
+
+    @foreach (var catId in allCategories)
+    {
+        <input type="hidden" name="SelectedCategoryIds" value="@catId.CategoryId" />
+    }
+
+    <!-- 🔢 Hidden Pagination Inputs -->
+    <input type="hidden" name="page" value="@(page)" />
+    <input type="hidden" name="pageSize" value="@pageSize" />
+    <div class="row w-75 my-2">
+        <div class="col d-flex justify-content-center">
+            <button type="submit" class="btn btn-primary w-50 me-1">بحث</button>
+            <button type="button" class="btn btn-outline-secondary" onclick="resetFilters()">
+                🔄 إعادة تعيين الكل
+            </button>
+        </div>
+    </div>
+
+   
+</form>
+<script>
+      function resetFilters() {
+        const form = document.getElementById('searchForm');
+        if (!form) return; // ✅ Safely exit if form not found
+        form.querySelectorAll('input[type="text"], input[type="date"]').forEach(input => input.value = '');
+        form.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        form.querySelector('input[name="page"]').value = 1;
+        form.submit();
+    }
+
+</script>
+<div class="row">
+    <div class="col-md-2 border pt-3">
+    
+        <form id="categoryForm">
+            @foreach (var cat in ViewBag.AllCategories as List<CategoryJsonLink>)
+            {
+                bool isChecked = ((string[])ViewBag.SelectedCategories).Contains(cat.CategoryId.ToString());
+                <div class="form-check">
+                    <input type="checkbox"
+                           class="form-check-input"
+                           name="categoryIds"
+                           id="cat-@cat.CategoryId"
+                           value="@cat.CategoryId"
+                           @(isChecked ? "checked" : "") />
+                    <label for="cat-@cat.CategoryId" class="form-check-label text-nowrap pb-2">@cat.CategoryName</label>
+                </div>
+            }
+        </form>
+
+        <script>
+            document.querySelectorAll('#categoryForm input[type=checkbox]').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    const selected = Array.from(document.querySelectorAll('#categoryForm input[type=checkbox]:checked'))
+                                          .map(cb => cb.value);
+
+                    const url = new URL(window.location.href);
+
+                    // Clear previous categoryIds
+                    url.searchParams.delete("categoryIds");
+
+                    // Add each selected categoryId as a separate query param
+                    selected.forEach(id => url.searchParams.append("categoryIds", id));
+
+                    // Reset pagination to first page
+                    url.searchParams.set("page", "1");
+
+                    window.location.href = url.toString();
+                });
+            });
+        </script>
+
+    </div>
+    <div class="col-md-10">
+        @if (Model != null && Model.Announcements.Any())
+        {
+
+            <div class="">
+                @foreach (var item in Model.Announcements)
+                {
+                    var categories = JsonConvert.DeserializeObject<List<CategoryJsonLink>>(item.CategoriesJson ?? "[]");
+
+                    <div class="row bg-light border rounded mb-2 p-3">
+                        <div class="col-md-2 d-flex justify-content-center align-content-center m-0 p-0">
+                            <img src="~/images/file-icons/no-image.jpg" class="img-fluid img-thumbnail rounded" />
+                        </div>
+                        <div class="col-md-10">
+
+                            <div class="mb-4 mt-2">
+                                <h6 class="text-primary fw-bold"> @item.Title</h6>
+                            </div>
+
+                            <p class="text-secondary small">الاعلان موجود في </p>
+
+                            <p class="mb-3">
+                                @for (int i = 0; i < categories.Count; i++)
+                                {
+                                    var cat = categories[i];
+
+                                    <span class="badge bg-secondary me-1">
+                                        <a class="text-decoration-none text-white small" href="/Categories/Details/@cat.CategoryId">@cat.CategoryName</a>
+                                        @*    @if (i < categories.Count - 1)
+                                        {
+                                            <text>, </text>
+                                            ;
+                                        } *@
+                                    </span>
+
+
+                                }
+                            </p>
+                            <span class="float-md-end mx-2 mb-2 text-muted">
+                                🗓️    تاريخ الاعلان :
+                                @(item.AddedDate.HasValue? item.AddedDate.Value.ToString("yyyy-MM-dd") : "")
+                            </span>
+
+                        </div>
+                    </div>
+                }
+
+                <!-- 📌 Pagination Controls -->
+                <nav>
+                    <ul class="pagination justify-content-center">
+                        @for (int i = 1; i <= totalPages; i++)
+                        {
+                            <li class="page-item @(i == page ? "active" : "")">
+                                <a class="page-link" href="javascript:void(0);" onclick="submitPage(@i)">@i</a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+
+                <script>
+                    function submitPage(pageNumber) {
+                        const form = document.querySelector('form');
+                        form.querySelector('input[name="page"]').value = pageNumber;
+                        form.submit();
+                    }
+                </script>
+
+            </div>
+
+
+        }
+        else
+        {
+            <div class="alert alert-info d-flex justify-content-center">لا توجد نتائج حالياً.</div>
+        }
+
+    </div>
+
+</div>

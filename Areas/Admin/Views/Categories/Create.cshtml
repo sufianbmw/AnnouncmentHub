@@ -1,0 +1,123 @@
+﻿@model AnnouncmentHub.ViewModels.CategoryViewModel
+
+@{
+    ViewData["Title"] = "➕ إنشاء تصنيف جديد";
+}
+
+<div class="container my-5">
+    <div class="card shadow-sm border-0">
+        <div class="card-header text-white" style="background-color:#1abc9c;">
+            <h3 class="mb-0">@ViewData["Title"]</h3>
+        </div>
+
+        <div class="card-body bg-light">
+                <form asp-action="Create" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+
+                <!-- 🔹 Category Name -->
+                <div class="mb-4">
+                    <label asp-for="CatName" class="form-label fs-5 fw-semibold">📛 @Html.DisplayNameFor(m => m.CatName)</label>
+                    <input asp-for="CatName" class="form-control form-control-lg" placeholder="أدخل اسم التصنيف" />
+                    <span asp-validation-for="CatName" class="text-danger"></span>
+                </div>
+
+                <!-- 🔹 Is Parent -->
+                <div class="row align-items-center mb-4">
+                    <div class="col-auto">
+                        <label asp-for="IsParent" for="IsParentCheckbox" class="form-label fs-5 fw-semibold">👑 تصنيف رئيسي؟</label>
+                    </div>
+                    <div class="col-auto form-check form-switch">
+                        <input asp-for="IsParent"  class="form-check-input" type="checkbox" id="IsParentCheckbox" />
+                    </div>
+                </div>
+
+                <!-- 🔹 Parent Categories (hidden when IsParent = true) -->
+                <div id="parentCategoriesDiv" class="mb-4 border rounded p-3 bg-white">
+                    <label class="form-label fs-5 fw-semibold">📂 تصنيفات رئيسية مرتبطة</label>
+
+                    @if (Model.ParentCategories != null && Model.ParentCategories.Any())
+                    {
+                        <div class="row">
+                            @foreach (var parent in Model.ParentCategories)
+                            {
+                                <div class="col-md-3 col-sm-6 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               name="ParentCategoryIds"
+                                               value="@parent.Value"
+                                               id="parentCheck_@parent.Value"
+                                               @(Model.ParentCategoryIds.Contains(int.Parse(parent.Value)) ? "checked" : "") />
+                                        <label class="form-check-label" for="parentCheck_@parent.Value">
+                                            📁 @parent.Text
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-muted fst-italic">لا توجد تصنيفات رئيسية متاحة حالياً.</div>
+                    }
+
+                    <span asp-validation-for="ParentCategoryIds" class="text-danger"></span>
+                </div>
+
+                <!-- 🔹 Is Active -->
+                <div class="row align-items-center mb-4">
+                    <div class="col-auto">
+                        <label asp-for="IsActive" for="IsActiveCheckbox" class="form-label fs-5 fw-semibold">✅ مفعل؟</label>
+                    </div>
+                    <div class="col-auto form-check form-switch">
+                        <input asp-for="IsActive"  class="form-check-input" type="checkbox" id="IsActiveCheckbox" checked />
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label asp-for="IconFile" class="form-label fs-5 fw-semibold">🖼️ تحميل أيقونة التصنيف</label>
+                    <input asp-for="IconFile" type="file" accept="image/*" class="form-control" />
+                    <span asp-validation-for="IconFile" class="text-danger"></span>
+
+                    <div class="mt-2">
+                        <img id="iconPreview" src="@Model.IconUrl" alt="preview" style="max-height:100px; display:@(string.IsNullOrEmpty(Model.IconUrl) ? "none" : "block");" />
+                    </div>
+                </div>
+                <hr />
+
+                <!-- 🔹 Action Buttons -->
+                <div class="d-flex justify-content-center gap-3">
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-lg px-4">↩️ رجوع</a>
+                    <button type="submit" class="btn btn-success btn-lg px-4">💾 حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        function toggleParentCategories() {
+            const isParent = document.getElementById('IsParentCheckbox').checked;
+            const parentDiv = document.getElementById('parentCategoriesDiv');
+            parentDiv.style.display = isParent ? 'none' : 'block';
+        }
+
+        document.getElementById('IsParentCheckbox').addEventListener('change', toggleParentCategories);
+        toggleParentCategories(); // Run on load
+
+                // live preview
+        document.querySelector('input[name="IconFile"]').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const img = document.getElementById('iconPreview');
+                img.src = e.target.result;
+                img.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        });
+  
+    </script>
+}

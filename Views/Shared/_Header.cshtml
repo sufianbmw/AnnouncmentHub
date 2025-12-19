@@ -1,0 +1,47 @@
+﻿@* Views/Shared/_Header.cshtml *@
+<header>
+    <div class="container-fluid p-0">
+        <!-- Carousel -->
+        <div id="headerCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+
+                <div class="carousel-item active position-relative">
+                    <img src="@Url.Content("~/cover/Banners-03.jpg")" class="d-block w-100" alt="شريحة ترحيب">
+                    <div class="overlay position-absolute top-0 start-0 w-100 h-100 bg-dark opacity-25"></div>
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>مرحباً بكم في شركتنا</h5>
+                        <p>حلول احترافية لنمو أعمالكم.</p>
+                    </div>
+                </div>
+
+                <div class="carousel-item position-relative">
+                    <img src="@Url.Content("~/cover/Banners-02.jpg")" class="d-block w-100" alt="شريحة الابتكار والجودة">
+                    <div class="overlay position-absolute top-0 start-0 w-100 h-100 bg-dark opacity-25"></div>
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>الابتكار والجودة</h5>
+                        <p>نقدم التميز في كل مشروع.</p>
+                    </div>
+                </div>
+
+                <div class="carousel-item position-relative">
+                    <img src="@Url.Content("~/cover/Banners-01.jpg")" class="d-block w-100" alt="شريحة العملاء الموثوقين">
+                    <div class="overlay position-absolute top-0 start-0 w-100 h-100 bg-dark opacity-25"></div>
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>موثوق بنا من أفضل العلامات التجارية</h5>
+                        <p>نجاحك هو مهمتنا.</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <button class="carousel-control-prev" type="button" data-bs-target="#headerCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">السابق</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#headerCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">التالي</span>
+            </button>
+        </div>
+    </div>
+</header>

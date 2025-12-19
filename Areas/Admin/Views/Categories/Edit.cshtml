@@ -1,0 +1,132 @@
+﻿@model AnnouncmentHub.ViewModels.CategoryViewModel
+
+
+@{
+    ViewData["Title"] = "✏️ تعديل تصنيف";
+}
+
+<div class="container my-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-warning text-dark">
+            <h3 class="mb-0">@ViewData["Title"]</h3>
+        </div>
+        <div class="card-body">
+                <form asp-action="Edit" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+
+                <input type="hidden" asp-for="Id" />
+
+                <div class="mb-4">
+                    <label asp-for="CatName" class="form-label fs-5">📛 @Html.DisplayNameFor(m => m.CatName)</label>
+                    <input asp-for="CatName" class="form-control form-control-lg" placeholder="أدخل اسم التصنيف" />
+                    <span asp-validation-for="CatName" class="text-danger"></span>
+                </div>
+
+                <div class="form-check form-switch mb-4">
+                    <input asp-for="IsParent"  class="form-check-input" type="checkbox" id="IsParentCheckbox" />
+                    <label asp-for="IsParent" for="IsParentCheckbox" class="form-check-label fs-5">👑 تصنيف رئيسي</label>
+                </div>
+
+                <div id="parentCategoriesDiv" class="mb-4 border rounded p-3">
+                    <label class="form-label fs-5 fw-semibold">📂 تصنيفات رئيسية مرتبطة</label>
+                    <div class="row">
+                        @foreach (var parent in Model.ParentCategories)
+                        {
+                            <div class="col-md-3 col-sm-6 border rounded p-1 mx-1 mb-1">
+                                <div class="form-check">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           name="ParentCategoryIds"
+                                           value="@parent.Value"
+                                           id="parentCheck_@parent.Value"
+                                    @(Model.ParentCategoryIds.Contains(int.Parse(parent.Value)) ? "checked" : "") />
+                                    <label class="form-check-label" for="parentCheck_@parent.Value">
+                                        📁 @parent.Text
+                                    </label>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <span asp-validation-for="ParentCategoryIds" class="text-danger"></span>
+                </div>
+
+                <div class="form-check form-switch mb-5">
+                    <input asp-for="IsActive" class="form-check-input" type="checkbox" id="IsActiveCheckbox" />
+                    <label asp-for="IsActive" for="IsActiveCheckbox" class="form-check-label fs-5">✅ مفعل</label>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="IconFile" class="form-label fs-5 fw-semibold">🖼️ تحميل أيقونة التصنيف</label>
+                    <input asp-for="IconFile" type="file" accept="image/*" class="form-control" />
+                    <span asp-validation-for="IconFile" class="text-danger"></span>
+                    <div class="mt-2" style="display:inline-block; background-color:#cecece; border-radius:8px; padding:6px;">
+                        <img id="iconPreview"
+                             src="@(string.IsNullOrEmpty(Model.IconUrl) ? "" : Model.IconUrl)"
+                             alt="preview"
+                             style="
+             max-height:100px;
+             border-radius:8px;
+             background-color:#000000;
+             border:1px solid #ddd;
+             display:@(string.IsNullOrEmpty(Model.IconUrl) ? "none" : "block");
+             object-fit:contain;
+         " />
+                    </div>
+
+                </div>
+
+
+                <hr />
+
+                <div class="d-flex justify-content-end gap-3">
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                        ↩️ رجوع
+                    </a>
+                    <button type="submit" class="btn btn-warning btn-lg">
+                        💾 حفظ التعديلات
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // 🔹 Toggle parent categories section visibility
+            function toggleParentCategories() {
+                const parentCheckbox = document.getElementById('IsParentCheckbox');
+                const parentDiv = document.getElementById('parentCategoriesDiv');
+                if (!parentCheckbox || !parentDiv) return;
+                parentDiv.style.display = parentCheckbox.checked ? 'none' : 'block';
+            }
+
+            const parentCheckbox = document.getElementById('IsParentCheckbox');
+            if (parentCheckbox) {
+                parentCheckbox.addEventListener('change', toggleParentCategories);
+                toggleParentCategories(); // Initialize on load
+            }
+
+            // 🔹 Show live preview when selecting a new icon
+            const iconInput = document.querySelector('input[name="IconFile"]');
+            if (iconInput) {
+                iconInput.addEventListener('change', function (e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = ev => {
+                        const img = document.getElementById('iconPreview');
+                        if (!img) return;
+                        img.src = ev.target.result;
+                        img.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+        });
+    </script>
+
+}

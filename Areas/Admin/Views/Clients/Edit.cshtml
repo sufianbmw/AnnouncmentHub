@@ -1,0 +1,133 @@
+﻿@using AnnouncmentHub.ViewModels
+
+@model ClientViewModel
+
+@{
+    ViewData["Title"] = "تعديل عميل";
+}
+
+<form asp-action="Edit" method="post" enctype="multipart/form-data" 
+      class="card shadow-sm rounded border border-primary p-4 bg-light">
+    <h3 class="text-center mb-4">تعديل عميل 🛠️</h3>
+
+    <!-- Hidden fields -->
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="LogoUrl" />
+    <input type="hidden" asp-for="CoverImageUrl" />
+
+    <!-- Client Name -->
+    <div class="form-group col mb-3">
+        <label asp-for="ClientName" class="control-label">اسم العميل 🏢</label>
+        <input asp-for="ClientName" class="form-control" />
+        <span asp-validation-for="ClientName" class="text-danger"></span>
+    </div>
+
+
+
+
+    <div class="row">
+        <!-- Current Logo -->
+        @if (!string.IsNullOrEmpty(Model.LogoUrl))
+        {
+            <div class="form-group col-md-6 mb-3">
+                <label class="control-label">الشعار الحالي</label><br />
+                <img src="@Model.LogoUrl" class="img-thumbnail" alt="Current Logo" style="max-width: 200px;" />
+            </div>
+        }
+        <!-- Current Cover -->
+        @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
+        {
+            <div class="form-group col-md-6 mb-3">
+                <label class="control-label">الغلاف الحالي</label><br />
+                <img src="@Model.CoverImageUrl" class="img-thumbnail" alt="Current Cover" style="max-width: 400px;" />
+            </div>
+        }
+        <!-- Upload New Logo -->
+        <div class="form-group col-md-6 mb-3">
+            <label asp-for="LogoFile" class="control-label">تحميل شعار جديد 🌐</label>
+            <input asp-for="LogoFile" type="file" class="form-control" />
+
+        </div>
+
+ 
+        <!-- Upload New Cover -->
+        <div class="form-group col-md-6 mb-3">
+            <label asp-for="CoverImageFile" class="control-label">تحميل غلاف جديد 🖼️</label>
+            <input asp-for="CoverImageFile" type="file" class="form-control" />
+        </div>
+
+        <!-- Active Switch -->
+        <div class="form-check form-switch mb-4">
+            <input asp-for="IsActive" class="form-check-input" type="checkbox" id="IsActiveCheckbox" />
+            <label for="IsActiveCheckbox" class="form-check-label">✅ مفعل</label>
+        </div>
+    </div>
+
+
+    <hr />
+
+    <!-- Buttons -->
+    <div class="col d-flex justify-content-center">
+        <button type="submit" class="btn btn-warning me-2 w-25">
+            <i class="bi bi-pencil-fill"></i> تعديل ✏️
+        </button>
+        <a href="@Url.Action("Index")" class="btn btn-secondary w-25">
+            <i class="bi bi-x-circle-fill"></i> إلغاء ❌
+        </a>
+    </div>
+</form>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}
+
+@* <form asp-action="Edit" method="post" enctype="multipart/form-data" class="card shadow-sm rounded border border-primary p-4 bg-light">
+    <h3 class="text-center">تعديل عميل 🛠️</h3>
+
+    <!-- Hidden field for the client ID (to keep track of which client we're editing) -->
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="LogoUrl" />
+
+    <div class="form-group mb-3">
+        <label asp-for="ClientName" class="control-label">اسم العميل 🏢</label>
+        <input asp-for="ClientName" class="form-control" />
+        <span asp-validation-for="ClientName" class="text-danger"></span>
+    </div>
+
+    <!-- Display the current logo if one exists -->
+    @if (!string.IsNullOrEmpty(Model.LogoUrl))
+    {
+        <div class="form-group mb-3">
+            <label class="control-label">الشعار الحالي</label>
+            <img src="@Model.LogoUrl" class="img-thumbnail" alt="Current Logo" style="max-width: 200px;" />
+        </div>
+    }
+
+    <!-- File upload for Logo (Client Logo) -->
+    <div class="form-group mb-3">
+        <label asp-for="LogoFile" class="control-label">تحميل صورة الشعار 🌐</label>
+        <input asp-for="LogoFile" type="file" class="form-control" />
+    </div>
+
+
+
+    <div class="form-check form-switch mb-4">
+        <label for="IsActiveCheckbox" class="form-check-label">✅ مفعل</label>
+        <input asp-for="IsActive" class="form-check-input" type="checkbox" id="IsActiveCheckbox" />
+    </div>
+
+    <hr />
+
+    <div class="col d-flex justify-content-center">
+        <!-- Submit button to update the client -->
+        <button type="submit" class="btn btn-warning me-2 w-25">
+            <i class="bi bi-pencil-fill"></i> تعديل ✏️
+        </button>
+
+        <!-- Cancel button that returns to the Index view -->
+        <a href="@Url.Action("Index")" class="btn btn-secondary w-25">
+            <i class="bi bi-x-circle-fill"></i> إلغاء ❌
+        </a>
+    </div>
+</form>
+ *@

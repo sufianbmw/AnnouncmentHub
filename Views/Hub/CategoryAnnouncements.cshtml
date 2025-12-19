@@ -1,0 +1,154 @@
+﻿@model CategoryAnnouncementsViewModel
+
+@{
+    ViewBag.Title = $"إعلانات {Model.CategoryName}";
+}
+
+<div class="container mt-3">
+    <div class="row">
+
+        <!-- ⭐ Page Title -->
+        <div class="col-12 mb-3">
+            <h3 class="fw-bold text-primary">@Model.CategoryName</h3>
+        </div>
+
+        <!-- ⭐ Subcategory Filters -->
+        <div class="col-12 mb-3">
+            <div class="p-3 rounded border bg-light">
+
+                <h6 class="fw-bold text-secondary mb-2">
+                    فلتر حسب الفئات الفرعية:
+                </h6>
+
+                <div class="filter-badges">
+
+                    <!-- Show All -->
+                   @*  <span class="filter-badge @(Model.SelectedSubcategories.Contains(0) ? "active" : "")"
+                          data-id="0">
+                        عرض الكل
+                    </span> *@
+                    @if (!Model.IsSubcategoryPage)
+                    {
+                        <span class="filter-badge @(Model.SelectedSubcategories.Contains(0) ? "active" : "")"
+                              data-id="0">
+                            عرض الكل
+                        </span>
+                    }
+
+                    <!-- Subcategories -->
+                    @foreach (var sub in Model.Subcategories)
+                    {
+                        <span class="filter-badge @(Model.SelectedSubcategories.Contains(sub.Id) ? "active" : "")"
+                              data-id="@sub.Id">
+                            @sub.CatName
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ⭐ Announcements container -->
+        <div id="announcements-container" class="col-12">
+            @await Html.PartialAsync("_AnnouncementsPartial", Model)
+        </div>
+
+        <!-- ⭐ Pagination container -->
+        <div id="pagination-container" class="col-12">
+            @await Html.PartialAsync("_PaginationPartial", Model)
+        </div>
+
+    </div>
+</div>
+
+
+@section Scripts {
+
+    <script>
+
+        // When badge is clicked
+        $(document).on("click", ".filter-badge", function () {
+
+            const id = parseInt($(this).data("id"));
+
+            if (id === 0) {
+                // Select ALL
+                $(".filter-badge").removeClass("active");
+                $(this).addClass("active");
+            } else {
+                $(".filter-badge[data-id=0]").removeClass("active");
+                $(this).toggleClass("active");
+
+                if ($(".filter-badge.active").length === 0) {
+                    $(".filter-badge[data-id=0]").addClass("active");
+                }
+            }
+
+            triggerFilter();
+        });
+
+
+        // Call AJAX to fetch announcements
+        function triggerFilter(page = 1) {
+
+            var selected = $(".filter-badge.active").map(function () {
+                return parseInt($(this).data("id"));
+            }).get();
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("CategoryAnnouncementsAjax", "Hub")',
+                contentType: "application/json",
+                data: JSON.stringify({
+                    categoryId: @Model.CategoryId,
+                    subcategories: selected,
+                    page: page,
+                    pageSize: @Model.PageSize
+                }),
+                success: function (data) {
+                    $("#announcements-container").html(data.announcements);
+                    $("#pagination-container").html(data.pagination);
+                }
+            });
+        }
+
+        // Pagination via AJAX
+        function loadPage(page) {
+            triggerFilter(page);
+        }
+
+    </script>
+
+
+    <style>
+
+        .filter-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .filter-badge {
+            padding: 6px 14px;
+            background: #f1f1f1;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            transition: 0.2s;
+            user-select: none;
+        }
+
+            .filter-badge:hover {
+                background: #e5e5e5;
+            }
+
+            .filter-badge.active {
+                background: #0d6efd;
+                color: #fff;
+                border-color: #0d6efd;
+            }
+
+    </style>
+
+}

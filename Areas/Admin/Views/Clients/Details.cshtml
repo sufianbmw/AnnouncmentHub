@@ -1,0 +1,86 @@
+﻿@using AnnouncmentHub.ViewModels
+@model ClientViewModel
+
+
+@{
+    ViewData["Title"] = "تفاصيل العميل";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow-lg border-0 rounded-3">
+                <!-- 🔹 Header -->
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="mb-0">
+                        👤 تفاصيل العميل
+                    </h4>
+                </div>
+
+                <!-- 🔹 Body -->
+                <div class="card-body bg-light">
+                    <dl class="row mb-4">
+                        <!-- اسم العميل -->
+                        <dt class="col-sm-3 fw-bold text-secondary">اسم العميل:</dt>
+                        <dd class="col-sm-9">@Model.ClientName</dd>
+
+                        <!-- الشعار -->
+                        <dt class="col-sm-3 fw-bold text-secondary">الشعار:</dt>
+                        <dd class="col-sm-9">
+                            @if (!string.IsNullOrEmpty(Model.LogoUrl))
+                            {
+                                <img src="@Model.LogoUrl" alt="Logo"
+                                     class="img-thumbnail shadow-sm border border-2"
+                                     style="max-width: 150px; border-radius: 8px;" />
+                            }
+                            else
+                            {
+                                <span class="text-muted fst-italic">لا يوجد شعار</span>
+                            }
+                        </dd>
+
+                        <!-- الغلاف -->
+                        <dt class="col-sm-3 fw-bold text-secondary">الغلاف:</dt>
+                        <dd class="col-sm-9">
+                            @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
+                            {
+                                <img src="@Model.CoverImageUrl" alt="Cover"
+                                     class="img-thumbnail shadow-sm border border-2"
+                                     style="max-width: 250px; border-radius: 8px;" />
+                            }
+                            else
+                            {
+                                <span class="text-muted fst-italic">لا يوجد غلاف</span>
+                            }
+                        </dd>
+
+                        <!-- الحالة -->
+                        <dt class="col-sm-3 fw-bold text-secondary">الحالة:</dt>
+                        <dd class="col-sm-9">
+                            @if (Model.IsActive)
+                            {
+                                <span class="badge bg-success px-3 py-2">✅ مفعل</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger px-3 py-2">❌ غير مفعل</span>
+                            }
+                        </dd>
+                    </dl>
+
+                    <!-- 🔹 Buttons -->
+                    <div class="d-flex justify-content-center mt-4">
+                        <a href="@Url.Action("Edit", "Clients", new { id = Model.Id })"
+                           class="btn btn-warning me-2 px-4">
+                            ✏️ تعديل
+                        </a>
+                        <a href="@Url.Action("Index", "Clients")"
+                           class="btn btn-secondary px-4">
+                            ⬅️ العودة للقائمة
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,80 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - AnnouncmentHub</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/arcss/bootstrap.rtl.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/AnnouncmentHub.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/photoswipe/photoswipe.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" />
+    <link rel="stylesheet" href="~/css/main.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom box-shadow py-0">
+            <div class="container-fluid navbar-back">
+
+                <!-- 🔹 Logo + Company Name -->
+                <a class="navbar-brand d-flex align-items-center logo" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/joofferslogo.png" alt="شعار الموقع" class="me-2" style="height:150px;" />
+                </a>
+                <!-- 🔹 Mobile toggle button -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+                        aria-controls="mainNavbar" aria-expanded="false" aria-label="تبديل القائمة">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- 🔹 Navbar Links -->
+                <div class="collapse navbar-collapse justify-content-between" id="mainNavbar">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Home" asp-action="Index">الرئيسية</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Categories" asp-action="Index">الفئات</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Clients" asp-action="Index">عملائنا</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Announcements" asp-action="Index">الإعلانات</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Hub" asp-action="LoadingHub">صفحة الهبوط</a></li>
+                    </ul>
+                    <partial name="_LoginPartial" />
+                </div>
+            </div>
+        </nav>
+    </header>
+
+
+    @RenderSection("FullWidthHeader", required: false)
+
+    <div class="container">
+        @if (ViewBag.Breadcrumb != null)
+        {
+            @await Html.PartialAsync("_Breadcrumb", ViewBag.Breadcrumb as List<AnnouncmentHub.ViewModels.BreadcrumbItem>)
+        }
+
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2025 - AnnouncmentHub -
+            <a asp-controller="Home" asp-action="Privacy">الخصوصية</a>
+        </div>
+    </footer>
+
+    <!-- ✅ تحميل مكتبات الجافاسكربت في نهاية الصفحة لتحسين الأداء -->
+    <script src="~/lib/jquery/dist/jquery.min.js" defer></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" defer></script>
+
+    <!-- ✅ ملفات الجافاسكربت الخاصة بالموقع -->
+    <script src="~/js/site.js" asp-append-version="true" defer></script>
+
+    <!-- ✅ مكتبات خارجية -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js" defer></script>
+    <script src="https://unpkg.com/photoswipe@5/dist/photoswipe.umd.min.js" defer></script>
+    <script src="https://unpkg.com/photoswipe@5/dist/photoswipe-lightbox.umd.min.js" defer></script>
+
+    <!-- ✅ قسم السكريبتات المخصصة للصفحات -->
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

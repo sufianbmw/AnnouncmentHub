@@ -1,0 +1,400 @@
+﻿using AnnouncmentHub.Data;
+using AnnouncmentHub.Models;
+using AnnouncmentHub.ViewModels;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace AnnouncmentHub.Areas.Admin.Controllers
+{
+    [Area("Admin")]
+    public class ClientsController : Controller
+    {
+        private readonly ApplicationDbContext _context;
+
+        public ClientsController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        private async Task<string> SaveFileAsync(string operation, IFormFile file, string oldPathInEdit)
+        {
+            try
+            {
+                // ✅ Define the uploads folder inside "wwwroot/uploads/YYYY/MM" (organized by year/month)
+                var currentYear = DateTime.Now.Year.ToString();
+                var currentMonth = DateTime.Now.Month.ToString("D2"); // Numeric month (01, 02, ..., 12)
+                //var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", currentYear, currentMonth);
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads","clientslogo");
+
+                // ✅ Ensure the directory exists
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);  // Create directory if it doesn't exist
+                }
+
+                // ✅ Generate a unique file name using GUID
+                var fileExtension = Path.GetExtension(file.FileName).ToLower();
+                var uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                // ✅ Save the file securely to the file system
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(fileStream);  // Copy the uploaded file to the file stream
+                }
+
+                // ✅ Delete old file when editing (if applicable)
+                if (!string.IsNullOrEmpty(oldPathInEdit) && operation == "Edit")
+                {
+                    var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", oldPathInEdit.TrimStart('/'));
+                    if (System.IO.File.Exists(oldFilePath))
+                    {
+                        System.IO.File.Delete(oldFilePath);  // Delete old file from server
+                    }
+                }
+
+                // ✅ Return the relative file path to store in the database (no leading '/' for easier storage)
+                return $"/uploads/clientslogo/{uniqueFileName}";
+            }
+            catch (Exception ex)
+            {
+                // ✅ Log the error (you can integrate with a logging framework like Serilog or NLog)
+                Console.WriteLine($"Error saving file: {ex.Message}");
+                return string.Empty;  // Return empty string if file save fails
+            }
+        }
+
+        // GET: Clients
+        public async Task<IActionResult> Index()
+        {
+            var clients = await _context.Clients.Select(c=>new ClientViewModel
+            {
+                Id=c.Id,
+                ClientName=c.ClientName,
+                LogoUrl=c.LogoUrl,
+                IsActive=c.IsActive
+            }).ToListAsync();
+            return View(clients);
+        }
+
+        // GET: Clients/Details/5
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var client = await _context.Clients.Select(c=>new ClientViewModel
+            {
+                Id=c.Id,
+                ClientName=c.ClientName,
+                CoverImageUrl=c.CoverImageUrl,
+                LogoUrl=c.LogoUrl,
+                IsActive = c.IsActive
+                
+
+            })
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (client == null)
+            {
+                return NotFound();
+            }
+
+            return View(client);
+        }
+
+        // GET: Clients/Create
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+           // POST: Clients/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(ClientViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                string? logoUrl = null;
+                string? coverUrl = null;
+
+                // ✅ Handle logo upload
+                if (model.LogoFile != null && model.LogoFile.Length > 0)
+                {
+                    logoUrl = await SaveFileAsync("Create", model.LogoFile, null);
+                }
+                else if (!string.IsNullOrEmpty(model.LogoUrl))
+                {
+                    logoUrl = model.LogoUrl;
+                }
+
+                // ✅ Handle cover upload
+                if (model.CoverImageFile != null && model.CoverImageFile.Length > 0)
+                {
+                    // here you might want a separate folder e.g. "clientscovers"
+                    coverUrl = await SaveFileAsync("Create", model.CoverImageFile, null);
+                }
+                else if (!string.IsNullOrEmpty(model.CoverImageUrl))
+                {
+                    coverUrl = model.CoverImageUrl;
+                }
+
+                // ✅ Create a new client
+                var client = new Client
+                {
+                    ClientName = model.ClientName,
+                    LogoUrl = logoUrl,
+                    CoverImageUrl = coverUrl,
+                    IsActive = model.IsActive
+                };
+
+                await _context.Clients.AddAsync(client);
+                await _context.SaveChangesAsync();
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Return the view with validation errors
+            return View(model);
+        }
+
+        //public async Task<IActionResult> Create(ClientViewModel model)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        string logoUrl = null;
+
+        //        // Handle file upload (if a file is selected)
+        //        if (model.LogoFile != null && model.LogoFile.Length > 0)
+        //        {
+        //            // Save the uploaded file using the SaveFileAsync method
+        //            logoUrl = await SaveFileAsync("Create", model.LogoFile, null);  // No old path on Create
+        //        }
+        //        else if (!string.IsNullOrEmpty(model.LogoUrl))  // If URL is provided instead of file upload
+        //        {
+        //            logoUrl = model.LogoUrl;
+        //        }
+
+        //        // Create a new client with the logo URL (either from the file upload or URL)
+        //        var client = new Client
+        //        {
+        //            ClientName = model.ClientName,
+        //            LogoUrl = logoUrl,
+        //            IsActive = model.IsActive // You can set IsActive here as needed
+        //        };
+
+        //        _context.Add(client);  // Add the new client to the context
+        //        await _context.SaveChangesAsync();  // Save the client to the database
+
+        //        // Redirect to the Index action (or wherever you want to go after creating the client)
+        //        return RedirectToAction(nameof(Index));
+        //    }
+
+        //    // If validation fails, return the view with the model to display errors
+        //    return View(model);
+        //}
+
+
+        // GET: Clients/Edit/5
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var client = await _context.Clients.FindAsync(id);
+            if (client == null)
+            {
+                return NotFound();
+            }
+
+            // Map the existing client data to the ViewModel for editing
+            var model = new ClientViewModel
+            {
+                Id = client.Id,
+                ClientName = client.ClientName,
+                IsActive=client.IsActive,
+                LogoUrl = client.LogoUrl, // Set existing Logo URL if available
+                CoverImageUrl=client.CoverImageUrl
+            };
+
+            return View(model);
+        }
+
+
+        // POST: Clients/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, ClientViewModel model)
+        {
+            if (id != model.Id)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                var client = await _context.Clients.FindAsync(id);
+                if (client == null)
+                {
+                    return NotFound();
+                }
+
+                string logoUrl = client.LogoUrl;
+                string coverUrl = client.CoverImageUrl;
+
+                // ✅ Handle logo
+                if (model.LogoFile != null && model.LogoFile.Length > 0)
+                {
+                    logoUrl = await SaveFileAsync("Edit", model.LogoFile, client.LogoUrl);
+                }
+                else if (!string.IsNullOrEmpty(model.LogoUrl))
+                {
+                    logoUrl = model.LogoUrl;
+                }
+
+                // ✅ Handle cover
+                if (model.CoverImageFile != null && model.CoverImageFile.Length > 0)
+                {
+                    coverUrl = await SaveFileAsync("Edit", model.CoverImageFile, client.CoverImageUrl);
+                }
+                else if (!string.IsNullOrEmpty(model.CoverImageUrl))
+                {
+                    coverUrl = model.CoverImageUrl;
+                }
+
+                // ✅ Update fields
+                client.ClientName = model.ClientName;
+                client.LogoUrl = logoUrl;
+                client.CoverImageUrl = coverUrl;
+                client.IsActive = model.IsActive;
+
+                try
+                {
+                    _context.Update(client);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!ClientExists(client.Id))
+                        return NotFound();
+                    else
+                        throw;
+                }
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View(model);
+        }
+
+        //public async Task<IActionResult> Edit(int id, ClientViewModel model)
+        //{
+        //    if (id != model.Id)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    if (ModelState.IsValid)
+        //    {
+        //        string logoUrl = model.LogoUrl;
+
+        //        // Handle file upload (if a new file is selected)
+        //        if (model.LogoFile != null && model.LogoFile.Length > 0)
+        //        {
+        //            // Get the old logo URL for deletion (if updating the logo)
+        //            var oldLogoUrl = await _context.Clients
+        //                .Where(c => c.Id == id)
+        //                .Select(c => c.LogoUrl)
+        //                .FirstOrDefaultAsync();
+
+        //            // Call SaveFileAsync to save the uploaded logo file and get the new logo URL
+        //            logoUrl = await SaveFileAsync("Edit", model.LogoFile, oldLogoUrl);
+        //        }
+
+        //        // Find and update the client
+        //        var client = await _context.Clients.FindAsync(id);
+        //        if (client == null)
+        //        {
+        //            return NotFound();
+        //        }
+
+        //        // Update client with the new logo URL and name
+        //        client.ClientName = model.ClientName;
+        //        client.LogoUrl = logoUrl;
+        //        client.IsActive = model.IsActive;
+
+        //        try
+        //        {
+        //            _context.Update(client);
+        //            await _context.SaveChangesAsync();
+        //        }
+        //        catch (DbUpdateConcurrencyException)
+        //        {
+        //            if (!ClientExists(client.Id))
+        //            {
+        //                return NotFound();
+        //            }
+        //            else
+        //            {
+        //                throw;
+        //            }
+        //        }
+
+        //        // Redirect to the Index action (or wherever you want to go after editing)
+        //        return RedirectToAction(nameof(Index));
+        //    }
+
+        //    return View(model); // Return to the form if validation fails
+        //}
+
+        [HttpPost, ActionName("DeleteConfirmed")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var client = await _context.Clients
+                .Include(c => c.Announcements)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (client == null)
+            {
+                return NotFound();
+            }
+
+            // 🔍 Check if client has announcements
+            if (client.Announcements.Any())
+            {
+                TempData["Error"] = "عذرًا، لا يمكن حذف هذا العميل لأنه مرتبط بإعلانات موجودة.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // If logo exists, delete file
+            if (!string.IsNullOrEmpty(client.LogoUrl))
+            {
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", client.LogoUrl.TrimStart('/'));
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                }
+            }
+
+            _context.Clients.Remove(client);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
+
+
+
+
+        private bool ClientExists(int id)
+        {
+            return _context.Clients.Any(e => e.Id == id);
+        }
+        // Method to check if the client exists (for concurrency)
+      
+    }
+}

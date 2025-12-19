@@ -1,0 +1,274 @@
+﻿@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<AnnouncmentHub.ViewModels.AnnouncementViewModel>
+
+@{
+    ViewData["Title"] = "الإعلانات";
+}
+
+<div class="mt-2 container">
+    <!-- ✅ رأس الصفحة وزر إضافة -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5><span style="display:inline-block; transform: scaleX(-1);">📢</span> قائمة الإعلانات</h5>
+        
+    </div>
+
+    <!-- ✅ نموذج الفلترة -->
+    <div class="bg-light rounded p-3 shadow mb-2">
+        <form asp-action="Index" method="get">
+            <div class="row g-2">
+                <!-- 🔍 فلتر عنوان الإعلان -->
+                <div class="col">
+                    <input type="text" name="categoryName" value="@ViewBag.CategoryNameFilter" class="form-control" placeholder="عنوان الإعلان" />
+                </div>
+
+                <!-- 🏷 التصنيف الرئيسي -->
+                <div class="col">
+                    <select class="form-select" id="ParentCategories" name="parentCategoryId" asp-items="(IEnumerable<SelectListItem>)ViewBag.ParentCategories" class="form-select"></select>
+                </div>
+
+                <!-- 📂 التصنيف الفرعي -->
+                <div class="col">
+                    <select id="SubCategories" name="subCategoryId" class="form-select">
+                        <option value="-1">-- اختر الفئة الفرعية --</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- أزرار التصفية وإعادة التعيين -->
+            <div class="row pt-3">
+                <div class="col d-flex justify-content-center align-items-center">
+                    <button type="submit" class="btn btn-primary w-25">🔍 تصفية</button>
+                    <button type="button" class="btn btn-secondary ms-2 w-25" id="resetFiltersBtn">🗑 مسح الفلاتر</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="row mb-2">
+        <div class="col d-flex justify-content-end">
+            <a asp-action="Create" class="btn btn-outline-success">➕ إضافة إعلان جديد</a>
+
+        </div>
+
+    </div>
+    <!-- ✅ تنبيهات -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger text-center">@TempData["Error"]</div>
+    }
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success text-center">@TempData["Success"]</div>
+    }
+    <!-- ✅ الترقيم -->
+    <div class="d-flex justify-content-center">
+        @Html.PagedListPager(Model, page => Url.Action("Index", new
+            {
+                page,
+                categoryName = ViewBag.CategoryNameFilter,
+                parentCategoryId = ViewBag.ParentCategoryIdFilter,
+                subCategoryId = ViewBag.SubCategoryIdFilter
+            }),
+                 new PagedListRenderOptions
+        {
+            LiElementClasses = new[] { "page-item" },
+            PageClasses = new[] { "page-link" }
+        })
+    </div>
+    <!-- ✅ جدول الإعلانات -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th style="width:70px;">#</th> <!-- 🔹 new index column -->
+
+                    <th>📌 العنوان</th>
+                    <th>📁 التصنيفات الرئيسية</th>
+                    <th>📂 التصنيفات الفرعية</th>
+                    <th>📅 التاريخ</th>
+                    <th>📎 الملف</th>
+                    <th>⚙️ العمليات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                var startIndex = (Model.PageNumber - 1) * Model.PageSize; // 🔹 offset for current page
+                var i = 1;
+                }
+                @foreach (var item in Model)
+                {
+               
+                    <tr>
+                        <!-- 🔹 serial number -->
+
+                        <td class="text-center fw-bold">@((startIndex + i++).ToString())</td>
+
+                        <td>@item.Title</td>
+                        <td>
+                            
+                            @foreach (var parent in item.ParentCategoryNames)
+                            {
+                                 <span class="badge bg-primary">@parent</span>
+
+                            }
+                        </td>
+                        <td>
+                            @foreach (var sub in item.SubCategoryNames)
+                            {
+                                <span class="badge bg-secondary">@sub</span>
+                            }
+                        </td>
+                        <td>@item.AddedDate.ToString("yyyy-MM-dd")</td>
+                     @*    <td>
+                            @if (!string.IsNullOrEmpty(item.FilePath))
+                            {
+                                <a href="@item.FilePath" target="_blank" class="btn btn-sm btn-outline-info">📄 فتح</a>
+                            }
+
+                        </td> *@
+                        <td>
+                            @if (!string.IsNullOrEmpty(item.FilePath))
+                            {
+                                var extension = System.IO.Path.GetExtension(item.FilePath).ToLower();
+
+                                if (extension == ".pdf")
+                                {
+                                    <!-- ✅ فتح PDF باستخدام PDF.js -->
+                                    <a href="~/Scripts/pdfjs/web/viewer.html?file=@Url.Content(item.FilePath)"
+                                       target="_blank"
+                                       class="btn btn-sm btn-outline-info">
+                                        📄 PDF
+                                    </a>
+                                }
+                                else if (extension == ".jpg" || extension == ".jpeg" || extension == ".png" || extension == ".gif")
+                                {
+                                    <!-- 🖼️ عرض الصور -->
+                                    <a href="@Url.Content(item.FilePath)"
+                                       target="_blank"
+                                       class="btn btn-sm btn-outline-primary">
+                                        🖼️  صورة
+                                    </a>
+                                }
+                                else
+                                {
+                                    <!-- 📥 تحميل باقي الملفات -->
+                                    <a href="@Url.Content(item.FilePath)"
+                                       target="_blank"
+                                       class="btn btn-sm btn-outline-secondary">
+                                        📥 تحميل ملف
+                                    </a>
+                                }
+                            }
+                        </td>
+
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">✏️ تعديل</a>
+                            @* <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('هل أنت متأكد من الحذف؟')">🗑 حذف</button>
+                            </form> *@
+                            <!-- Delete button that triggers the modal -->
+                            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="@item.Id">
+                                <i class="bi bi-trash-fill"></i> حذف 🗑️
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ✅ الترقيم -->
+    <div class="d-flex justify-content-center">
+        @Html.PagedListPager(Model, page => Url.Action("Index", new
+            {
+                page,
+                categoryName = ViewBag.CategoryNameFilter,
+                parentCategoryId = ViewBag.ParentCategoryIdFilter,
+                subCategoryId = ViewBag.SubCategoryIdFilter
+            }),
+                 new PagedListRenderOptions
+        {
+            LiElementClasses = new[] { "page-item" },
+            PageClasses = new[] { "page-link" }
+        })
+    </div>
+</div>
+<!-- Modal for confirmation -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger" id="deleteModalLabel">🔔 تأكيد الحذف</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                ⚠️
+             
+                هل أنت متأكد أنك تريد حذف هذا الاعلان ؟ هذه العملية لا يمكن التراجع عنها.
+                ❗
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <form id="deleteForm" method="post" action="@Url.Action("DeleteConfirmed", "Announcements")" style="display:inline;">
+                    @Html.AntiForgeryToken()  <!-- Include the anti-forgery token -->
+                    <input type="hidden" name="id" id="deleteClientId" value="1">  <!-- The value should dynamically be set by JavaScript -->
+                    <button type="submit" class="btn btn-danger">حذف</button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ✅ السكربت الخاص بالفلترة -->
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // عند تغيير التصنيف الرئيسي
+            $('#ParentCategories').on('change', function () {
+                var parentId = $(this).val();
+                var subCatSelect = $('#SubCategories');
+
+                subCatSelect.empty();
+                subCatSelect.append('<option value="-1">-- اختر الفئة الفرعية --</option>');
+
+                if (parentId && parentId !== "-1") {
+                    $.get('/Announcements/GetSubcategories', { parentId: parentId }, function (data) {
+                        $.each(data, function (i, item) {
+                            subCatSelect.append($('<option>', {
+                                value: item.id,
+                                text: item.catName
+                            }));
+                        });
+
+                        // استعادة القيمة السابقة
+                        var selectedSub = '@ViewBag.SubCategoryIdFilter';
+                        if (selectedSub) {
+                            subCatSelect.val(selectedSub);
+                        }
+                    });
+                }
+            });
+
+            // تحميل أولي للفئة المختارة
+            var selectedParent = '@ViewBag.ParentCategoryIdFilter';
+            if (selectedParent && selectedParent !== "-1") {
+                $('#ParentCategories').val(selectedParent).trigger('change');
+            }
+
+            // زر إعادة الفلاتر
+            $('#resetFiltersBtn').on('click', function () {
+                window.location.href = '@Url.Action("Index", "Announcements")';
+            });
+        });
+
+
+                // Get the modal's delete button and set the id for the hidden input field
+        var deleteButtons = document.querySelectorAll('[data-bs-toggle="modal"]');
+        deleteButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                var clientId = this.getAttribute('data-id');  // Get the client Id from the button's data-id attribute
+                document.getElementById('deleteClientId').value = clientId; // Set the client Id in the hidden input field
+            });
+        });
+    </script>
+}

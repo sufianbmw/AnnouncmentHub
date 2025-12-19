@@ -1,0 +1,201 @@
+﻿@using Newtonsoft.Json
+@model AnnouncementSearchResult
+
+@{
+    ViewBag.Title = "بحث الإعلانات";
+    var query = ViewContext.HttpContext.Request.Query;
+    var selectedCategories = ViewBag.SelectedCategories as string[] ?? Array.Empty<string>();
+    var allCategories = ViewBag.AllCategories as List<CategoryJsonLink> ?? new();
+    int page = Model.PageNumber;
+    int pageSize = Model.PageSize;
+    int totalPages = Model.TotalPages;
+}
+
+<!-- 🔎 Filters -->
+<form id="searchForm" method="get" asp-action="Search" class="row bg-light rounded border px-2 py-2 mb-2 d-flex justify-content-center">
+
+    <div class="row pb-2 w-100">
+        <div class="col d-flex justify-content-center">
+            <input type="text" name="title" class="form-control w-75" placeholder="كلمة البحث" value="@query["title"]" />
+        </div>
+    </div>
+
+    <div class="row w-75 g-3">
+        <div class="col-md d-flex justify-content-center align-items-center">
+            <label class="form-label mb-0">من تاريخ</label>
+        </div>
+        <div class="col-md-4">
+            <input type="date" name="dateFrom" class="form-control" value="@query["dateFrom"]" />
+        </div>
+        <div class="col-md d-flex justify-content-center align-items-center">
+            <label class="form-label mb-0">إلى تاريخ</label>
+        </div>
+        <div class="col-md-4">
+            <input type="date" name="dateTo" class="form-control" value="@query["dateTo"]" />
+        </div>
+    </div>
+
+    <!-- Pagination state -->
+    <input type="hidden" name="page" value="@(page)" />
+    <input type="hidden" name="pageSize" value="@pageSize" />
+
+    <div class="row w-75 my-2">
+        <div class="col d-flex justify-content-center gap-2">
+            <button type="submit" class="btn btn-primary w-50">بحث</button>
+            <button type="button" class="btn btn-outline-secondary" onclick="resetFilters()">🔄 إعادة تعيين الكل</button>
+        </div>
+    </div>
+
+ 
+
+</form>
+
+<script>
+    function resetFilters() {
+        const form = document.getElementById('searchForm');
+        if (!form) return;
+        form.querySelectorAll('input[type="text"], input[type="date"]').forEach(i => i.value = '');
+        form.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        form.querySelector('input[name="page"]').value = 1;
+        form.submit();
+    }
+
+    function submitPage(pageNumber) {
+        const form = document.getElementById('searchForm');
+        form.querySelector('input[name="page"]').value = pageNumber;
+        form.submit();
+    }
+</script>
+
+<div class="row">
+    <div id="categorySidebar" class="col-md-2 border pt-3 bg-light">
+        <h6 class="fw-bold mb-3">التصنيفات</h6>
+        @foreach (var cat in allCategories)
+        {
+            bool isChecked = selectedCategories.Contains(cat.CategoryId.ToString());
+            <div class="form-check mb-2">
+                <input type="checkbox"
+                       class="form-check-input"
+                       form="searchForm"
+                       name="categoryIds"
+                       id="aside-@cat.CategoryId"
+                       value="@cat.CategoryId"
+                       @(isChecked ? "checked" : "")
+                       onchange="document.getElementById('searchForm').submit();" />
+                <label for="aside-@cat.CategoryId" class="form-check-label text-nowrap">@cat.CategoryName</label>
+            </div>
+        }
+    </div>
+
+    <div class="col-md-10">
+        @if (Model != null && Model.Announcements.Any())
+        {
+            @foreach (var item in Model.Announcements)
+            {
+                var categories = JsonConvert.DeserializeObject<List<CategoryJsonLink>>(item.CategoriesJson ?? "[]");
+
+                <div class="row bg-light border rounded mb-2 p-3">
+                    <div class="col-md-2 d-flex justify-content-center align-content-center m-0 p-0">
+                         @* <img src="~/images/file-icons/no-image.jpg" class="img-fluid img-thumbnail rounded" />*@
+                        @{
+                            var filePath = item.FilePath;
+                            var extension = System.IO.Path.GetExtension(filePath ?? "").ToLower();
+                            string displayPath;
+
+                            if (string.IsNullOrEmpty(filePath))
+                            {
+                                displayPath = Url.Content("~/images/file-icons/no-image.jpg");
+                            }
+                            else if (new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp" }.Contains(extension))
+                            {
+                                displayPath = filePath;
+                            }
+                            else if (extension == ".pdf")
+                            {
+                                displayPath = Url.Content("~/images/file-icons/pdf-icon.png");
+                            }
+                            else if (extension == ".doc" || extension == ".docx")
+                            {
+                                displayPath = Url.Content("~/images/file-icons/word-icon.png");
+                            }
+                            else if (extension == ".xls" || extension == ".xlsx")
+                            {
+                                displayPath = Url.Content("~/images/file-icons/excel-icon.png");
+                            }
+                            else
+                            {
+                                displayPath = Url.Content("~/images/file-icons/file-icon.png");
+                            }
+                        }
+                        <div class="col-md-4 p-2" style="width:90%;height:100%">
+                            <div class="ratio ratio-1x1 bg-white border rounded shadow-sm overflow-hidden">
+                                <img src="@displayPath"
+                                     alt="Thumbnail"
+                                     class="w-100 h-100"
+                                     style="object-fit: cover;" />
+                            </div>
+                        </div>
+                         </div>
+                    <div class="col-md-10">
+                        <div class="mb-4 mt-2">
+                            <h6 class="text-primary fw-bold">@item.Title</h6>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <p class="text-secondary small">الإعلان موجود في</p>
+
+                                <p class="mb-3">
+                                                    
+                                    @foreach (var cat in item.Categories)
+                                    {
+                                        <span class="badge bg-secondary me-1">
+                                            <a class="text-decoration-none text-white small"
+                                               href="/Categories/Details/@cat.CategoryId">
+                                                @cat.CategoryName
+                                            </a>
+                                        </span>
+                                    }
+
+                                </p>
+                            </div>
+                            <div class="col text-end">
+                                @if (item.ClientId.HasValue && !string.IsNullOrEmpty(item.Client?.ClientName))
+                                {
+                                    <p class="fw-bold text-muted">
+                                        <a href="@Url.Action("ClientProfile", "Hub", new { id = item.ClientId })" class="text-decoration-none">
+                                            للمعلن @item.Client.ClientName
+                                        </a>
+                                    </p>
+                                }
+
+
+                            </div>
+                        </div>
+                   
+                     
+
+                        <span class="float-md-end mx-2 mb-2 text-muted">
+                            🗓️ تاريخ الإعلان :
+                            @(item.AddedDate.HasValue? item.AddedDate.Value.ToString("yyyy-MM-dd") : "")
+                        </span>
+                    </div>
+                </div>
+            }
+
+            <nav>
+                <ul class="pagination justify-content-center">
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        <li class="page-item @(i == page ? "active" : "")">
+                            <a class="page-link" href="javascript:void(0);" onclick="submitPage(@i)">@i</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+        else
+        {
+            <div class="alert alert-info d-flex justify-content-center">لا توجد نتائج حالياً.</div>
+        }
+    </div>
+</div>

@@ -1,0 +1,356 @@
+﻿
+.main-menu {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.category-wrapper {
+    background: linear-gradient(to bottom, #eef2f3, #d6e0ea); /* تدرج ناعم */
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.subcategories-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.category-btn {
+    padding: 10px 20px;
+    font-size: 15px;
+    background: linear-gradient(to bottom, #3498db, #6dd5fa);
+    border: none;
+    color: white;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+    .category-btn:hover,
+    .category-btn:focus {
+        background: linear-gradient(to bottom, #2980b9, #3498db);
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+        transform: translateY(-1px);
+    }
+
+.subcategory-btn {
+    padding: 8px 16px;
+    font-size: 14px;
+    /*             background: linear-gradient(to bottom, #2980b9, #6dd5fa);
+         */ background: linear-gradient(to bottom, #16a085, #1abc9c);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    margin: 5px;
+    min-width: 140px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+    /*       .subcategory-btn:hover,
+                    .subcategory-btn:focus {
+                        background: linear-gradient(to bottom, #2471a3, #3498db);
+                        box-shadow: 0 4px 10px rgba(41, 128, 185, 0.4);
+                        transform: translateY(-1px);
+                    } */
+    .subcategory-btn:hover,
+    .subcategory-btn:focus {
+        background: linear-gradient(to bottom, #148f77, #1abc9c);
+        box-shadow: 0 4px 10px rgba(22, 160, 133, 0.4);
+        transform: translateY(-1px);
+    }
+
+    .category-btn.active,
+    .subcategory-btn.active {
+        background: linear-gradient(to bottom, #2c3e50, #34495e);
+        color: #fff;
+        box-shadow: 0 0 8px rgba(44, 62, 80, 0.4);
+    }
+
+.announcement-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 10px;
+}
+
+.announcement {
+    background: linear-gradient(to bottom, #eef2f3, #d6e0ea); /* تدرج ناعم */
+
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+    margin-bottom: 10px;
+    border-radius: 10px;
+}
+
+    .announcement img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .announcement h3 {
+        font-size: 18px;
+    }
+
+    .announcement p {
+        font-size: 14px;
+        color: #555;
+    }
+
+    .announcement .announcement-content {
+        padding: 10px;
+        background-color: #f9f9f9;
+    }
+
+    .announcement a {
+        color: #3498db;
+        text-decoration: none;
+    }
+
+        .announcement a:hover {
+            text-decoration: underline;
+        }
+
+/* Modal Styling for PDF */
+#pdfModal {
+    display: none; /* hidden by default */
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+    justify-content: center;
+    align-items: center;
+    overflow: auto; /* scroll if needed */
+}
+
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    padding: 20px;
+    width: 85%;
+    max-width: 1024px;
+    border-radius: 10px;
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    height: 90vh; /* fixed height */
+    overflow: hidden; /* hide modal scrollbars */
+}
+
+/* PDF canvas container scrolls internally */
+#pdfCanvas {
+    flex: 1 1 auto;
+    overflow-y: auto; /* enable vertical scroll only here */
+    margin-bottom: 10px;
+}
+
+    #pdfCanvas canvas {
+        width: 100% !important;
+        height: auto !important;
+        display: block;
+    }
+
+/* Close button */
+.close {
+    color: #aaa;
+    font-size: 30px;
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    cursor: pointer;
+}
+
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+    }
+
+/* PDF navigation buttons fixed at bottom inside modal */
+.pdf-navigation {
+    flex-shrink: 0;
+    margin-top: 0;
+    text-align: center;
+    display: none; /* visible only when modal open */
+    position: sticky;
+    bottom: 0;
+    background: white;
+    padding: 10px 0;
+    border-top: 1px solid #ddd;
+    z-index: 10;
+}
+
+    .pdf-navigation button {
+        padding: 8px 16px;
+        margin: 0 10px;
+        cursor: pointer;
+        font-size: 16px;
+        border-radius: 4px;
+        border: 1px solid #3498db;
+        background-color: #3498db;
+        color: white;
+        transition: background-color 0.3s ease;
+    }
+
+        .pdf-navigation button:hover {
+            background-color: #2980b9;
+        }
+
+.pdf-share {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 15px;
+    font-size: 16px;
+    justify-content: center;
+}
+
+    .pdf-share span {
+        font-weight: bold;
+    }
+
+.social-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    color: white;
+    font-size: 18px;
+    transition: background-color 0.3s ease;
+    text-decoration: none;
+}
+
+    .social-btn.fb {
+        background-color: #3b5998;
+    }
+
+    .social-btn.tw {
+        background-color: #1da1f2;
+    }
+
+    .social-btn.wa {
+        background-color: #25d366;
+    }
+
+    .social-btn.Dow {
+        background-color: #000000;
+    }
+
+    .social-btn:hover {
+        opacity: 0.8;
+    }
+/* Fade-in animation */
+.fade-in {
+    animation: fadeIn 0.5s ease forwards;
+    opacity: 0;
+}
+
+.fade-out {
+    animation: fadeOut 0.3s ease forwards;
+    opacity: 1;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+.pswp {
+    z-index: 9990 !important;
+}
+
+#imageShareButtons {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 10050 !important; /* Must be above .pswp which usually has 1000-10000 */
+    background: rgba(255, 255, 255, 0.95);
+    padding: 10px 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* 📷 Responsive image gallery styles */
+#imageGallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+    #imageGallery a {
+        flex: 1 1 200px; /* grow, shrink, base width */
+        max-width: 240px;
+        text-align: center;
+        text-decoration: none;
+    }
+
+    #imageGallery img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+        border-radius: 6px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+
+        #imageGallery img:hover {
+            transform: scale(1.05);
+        }
+
+/* 📱 Responsive behavior for smaller screens */
+@media (max-width: 768px) {
+    #imageGallery a {
+        flex: 1 1 45%;
+    }
+}
+
+@media (max-width: 480px) {
+    #imageGallery a {
+        flex: 1 1 100%;
+    }
+}
+
+
+*, ::after, ::before {
+    box-sizing: border-box;
+}
