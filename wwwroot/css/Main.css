@@ -359,10 +359,10 @@
 
 
 
-.crumb-link:hover {
-    color: #084298;
-    text-decoration: none;
-}
+    .crumb-link:hover {
+        color: #084298;
+        text-decoration: none;
+    }
 
 .crumb-sep {
     color: #aaa;
@@ -407,7 +407,8 @@
     background-color: var(--jo-footer-bg);
     color: var(--jo-text);
     border-top: 1px solid var(--jo-divider);
-   justify-content:center
+    justify-content: center;
+    border-top: 5px solid #58b79c;
 }
 
     /* Titles */
@@ -450,18 +451,19 @@
     width: 34px;
     height: 34px;
     border-radius: 50%;
-    background-color: #E3F3F0;
+    background-color: #ffffff;
     color: var(--jo-primary-dark);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     transition: all 0.25s ease;
     font-size: 15px;
+    font-weight:bold;
 }
 
-    .social-icon:hover {
+    .social-icon:hover, .jo-footer i:hover{
         background-color: var(--jo-primary);
-        color: #fff;
+        color: #ffffff;
         transform: translateY(-2px);
     }
 
@@ -471,4 +473,3 @@
     font-size: 13px;
     color: var(--jo-primary-dark);
 }
-

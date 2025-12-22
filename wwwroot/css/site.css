@@ -29,9 +29,8 @@ body {
     direction: rtl;
     text-align: right;
     font-family: 'Noto Kufi Arabic', sans-serif;
-    margin-bottom: 60px;
     background: linear-gradient(135deg, #e0f0ff, #ffffff);
-    /* font-weight: bold;*/
+   
 }
 
 h1, h2, h3 {
