@@ -19,6 +19,10 @@ namespace AnnouncmentHub.Controllers
             _repository = repository;
             _breadcrumbService = breadcrumbService;
         }
+        public IActionResult Index()
+        {
+            return View();
+        }
         private string RenderPartial(string partialName, object model)
         {
             return RazorViewToStringRenderer.RenderViewToString(HttpContext, partialName, model);

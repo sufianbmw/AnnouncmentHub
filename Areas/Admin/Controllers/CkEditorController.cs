@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace AnnouncmentHub.Areas.Admin.Controllers
 {
-    [Route("[controller]/[action]")]
+    //[Route("[controller]/[action]")]
     public class CkEditorController : Controller
     {
         private readonly IWebHostEnvironment _env;
