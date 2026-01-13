@@ -120,22 +120,36 @@ namespace AnnouncmentHub.Controllers
             return Json(announcements);
         }
 
-        //public async Task<IActionResult> Search(string title,string[] categoryIds,int? clientId,DateTime? dateFrom,DateTime? dateTo,int page = 1,int pageSize = 10)
-        //{
-        //    // نحول الـ array لستـرنج مفصول بفواصل عشان SP
-        //    string categoryIdsStr = categoryIds != null && categoryIds.Any() ? string.Join(",", categoryIds): null;
-        //    var result =await  _repository.GetAnnouncementsDynamic(title,categoryIdsStr,clientId,dateFrom,dateTo,page,pageSize);
+        public async Task<IActionResult> RandomAnnouncementsTop30()
+        {
+            var result = await _repository.GetAnnouncementsDynamic(
+      title: null,
+      categoryIds: new List<int>(), // فارغ
+      clientId: null,
+      dateFrom: null,
+      dateTo: null,
+      pageNumber: 1,
+      pageSize: 30
+  );
 
-        //    ViewBag.TotalCount = result.TotalCount;
 
-        //    // تحميل كل التصنيفات عشان الـ checkboxes
-        //    ViewBag.AllCategories = await GetAllCategories();
+            // خلط النتائج عشوائياً
+            var random = new Random();
+            var randomAnnouncements = result.Announcements.OrderBy(a => random.Next()).ToList();
 
-        //    // نحفظ التصنيفات المختارة عشان نعيد تظبيطها في الـ view
-        //    ViewBag.SelectedCategories = categoryIds ?? new string[0];
+            // إنشاء ViewModel
+            var vm = new CategoryAnnouncementsViewModel
+            {
+                Announcements = randomAnnouncements,
+                TotalCount = result.TotalCount,
+                PageNumber = 1,
+                PageSize = 30
+            };
 
-        //    return View(result);
-        //}
+            return PartialView("_RandomAnnouncementsTop30", vm);
+        }
+
+
         public async Task<IActionResult> Search(
     string title,
     List<int>? categoryIds,

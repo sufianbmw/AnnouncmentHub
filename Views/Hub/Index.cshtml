@@ -6,6 +6,15 @@
 {
     @await Html.PartialAsync("_Header")
 }
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
+
+<div id="random-announcements">
+    <div class="text-center">Loading...</div>
 </div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            $("#random-announcements").load("/Hub/RandomAnnouncementsTop30");
+        });
+    </script>
+}

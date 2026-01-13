@@ -38,9 +38,10 @@ namespace AnnouncmentHub.Service
             var dp = new DynamicParameters();
             dp.Add("Title", title);
             //dp.Add("CategoryIds", categoryIdsCsv);
-            var categoriesTable = BuildIntTable(categoryIds);
-
+           // var categoriesTable = BuildIntTable(categoryIds);
+            var categoriesTable = BuildIntTable(categoryIds ?? new List<int>());
             dp.Add("CategoryIds", categoriesTable.AsTableValuedParameter("IntList"));
+
 
             dp.Add("ClientId", clientId);
             dp.Add("IsActive", dbType: DbType.Boolean, value: (bool?)null); // pass null = no filter (or 1 if you want only active)
@@ -50,7 +51,7 @@ namespace AnnouncmentHub.Service
             dp.Add("PageSize", pageSize);
 
             using var multi = await conn.QueryMultipleAsync(
-                "SearchAnnouncementsDynamic77",
+                "SearchAnnouncementsDynamic88",
                 dp,
                 commandType: CommandType.StoredProcedure,
                 commandTimeout: 30
