@@ -1,7 +1,116 @@
 ﻿@using AnnouncmentHub.Helpers
-@model CategoryAnnouncementsViewModel
+@using Newtonsoft.Json
 
-<div class="row g-3">
+@model CategoryAnnouncementsViewModel
+<div class="d-flex justify-content-start mb-3">
+    <h3 class="section-title mb-0">
+        أخر الإعلانات
+    </h3>
+</div>
+<!-- 🔹 Announcements -->
+<div class="container">
+    @if (Model.Announcements.Any())
+    {
+        <div class="row g-3">
+            @foreach (var item in Model.Announcements)
+            {
+                var categories = JsonConvert.DeserializeObject<List<CategoryJsonLink>>(item.CategoriesJson ?? "[]");
+
+                <div class="col-md-3">
+                    <div class="card shadow-sm h-100">
+                        <div class="row g-0">
+                            <!-- Thumbnail -->
+                            <div class="col-4 text-center d-flex align-items-center justify-content-center bg-light">
+                                @{
+                                    var filePath = item.FilePath;
+                                    var extension = System.IO.Path.GetExtension(filePath ?? "").ToLower();
+                                    string displayPath;
+
+                                    if (string.IsNullOrEmpty(filePath))
+                                    {
+                                        displayPath = Url.Content("~/images/file-icons/no-image.jpg");
+                                    }
+                                    else if (new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp" }.Contains(extension))
+                                    {
+                                        displayPath = filePath;
+                                    }
+                                    else if (extension == ".pdf")
+                                    {
+                                        displayPath = Url.Content("~/images/file-icons/pdf-icon.png");
+                                    }
+                                    else if (extension == ".doc" || extension == ".docx")
+                                    {
+                                        displayPath = Url.Content("~/images/file-icons/word-icon.png");
+                                    }
+                                    else if (extension == ".xls" || extension == ".xlsx")
+                                    {
+                                        displayPath = Url.Content("~/images/file-icons/excel-icon.png");
+                                    }
+                                    else
+                                    {
+                                        displayPath = Url.Content("~/images/file-icons/file-icon.png");
+                                    }
+                                }
+
+                                <div class="col-md-4 p-2" style="width:90%;height:100%">
+                                    <div class="ratio ratio-1x1 bg-white border rounded shadow-sm overflow-hidden">
+                                        <img src="@displayPath"
+                                             alt="Thumbnail"
+                                             class="w-100 h-100"
+                                             style="object-fit: cover;" />
+                                    </div>
+                                </div>
+
+
+                            </div>
+
+                            <!-- Content -->
+                            <div class="col-8">
+                                <div class="card-body">
+                                    <h6 class="card-title fw-bold">
+                                        <a asp-controller="Hub" asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none text-primary">
+                                            @item.Title
+                                        </a>
+                                    </h6>
+                                    @if (item.AddedDate.HasValue)
+                                    {
+                                        <small class="text-muted">🗓️ @DateTimeHelper.FormatDateTime(item.AddedDate)</small>
+                                    }
+                                    <p class="card-text small mt-2 text-muted">
+                                        @(string.IsNullOrEmpty(item.Description) ? "لا يوجد وصف" : item.Description.Length > 80 ? item.Description[..item.Description.LastIndexOf(" ", 80)] + "..." : item.Description)
+                                    </p>
+                                    <div>
+                                        @foreach (var cat in categories)
+                                        {
+                                        
+                                            <span class="badge bg-secondary me-1">
+                                                <a asp-controller="Hub" class="text-decoration-none text-white small" asp-action="SubCategoryAnnouncements" asp-route-id="@cat.CategoryId">
+                                                    @cat.CategoryName
+                                                </a>
+                                            </span>
+                                        }
+                                    </div>
+                                    <div class="mt-2">
+                                        @if (!string.IsNullOrEmpty(item.FilePath))
+                                        {
+                                            <a href="@item.FilePath" target="_blank" class="btn btn-sm btn-outline-info">
+                                                📂 فتح الملف
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+    
+    }
+
+</div>
+@* <div class="row g-3">
     @if (Model?.Announcements != null && Model.Announcements.Any())
     {
         @foreach (var item in Model.Announcements)
@@ -30,7 +139,7 @@
                                      class="w-100 h-100 object-fit-cover"
                                      alt="Thumbnail" />
                             </div>
-                        </d xcvb\]" iv>
+                        </div>
 
                         <!-- Content -->
                         <div class="col-8">
@@ -49,22 +158,24 @@
                                 </p>
 
                                 <span class="text-muted small mt-auto">
-                                    🗓️ @item.AddedDate?.ToString("yyyy-MM-dd")
+@*                                     🗓️ @item.AddedDate?.ToString("yyyy-MM-dd")
+                              <small class="text-muted">🗓️ @DateTimeHelper.FormatDateTime(item.AddedDate)</small>
+
                                 </span>
                             </div>
                         </div>
                     </div>
 
                 </div>
-            </div>
+           
         }
     }
     else
     {
         <div class="col-12">
             <div class="alert alert-info text-center shadow-sm">
-                لا توجد إعلانات مطابقة للفلتر.
+                لا توجد إعلانات .
             </div>
         </div>
     }
-</div>
+</div> *@

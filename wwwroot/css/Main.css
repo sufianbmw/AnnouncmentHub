@@ -20,14 +20,42 @@
 .navbar-back {
     background: #5cb39833;
     border-bottom: 5px solid #58b79c;
+    min-height: 300px;
+    background: linear-gradient(120deg, #1e1e1e12, #def0ea, #1abc9c);
+    background-size: 200% 200%;
+    animation: bgMove 14s ease infinite;
+    color: #fff;
+    overflow: hidden;
 }
+@keyframes bgMove {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
 /*Menu Css*/
 /* =========================================
    MAIN MENU WRAPPER
 ========================================= */
-.category-menu-wrapper {
+/*.category-menu-wrapper {
     position: relative;
     padding: 15px 0;
+}*/
+.category-menu-wrapper 
+{
+    position: sticky;
+    top: 0;
+    z-index: 1100;
+    padding: 15px 0;
+ 
 }
 
 /* =========================================
@@ -99,16 +127,16 @@
    SUBCATEGORY BAR
 ========================================= */
 .subcategories-bar {
-    background: linear-gradient(to bottom, #1b8dec42, #e7f8f3);
-    border-radius: 20px 0;
+/*    background: linear-gradient(to bottom, #1b8dec42, #e7f8f3);
+*/    border-radius: 20px 0;
     padding: 12px 18px;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.10);
-    border: 2px solid #e8e8e8;
-    margin-top: 14px;
+/*    box-shadow: 0 4px 15px rgba(0,0,0,0.10);
+*//*    border: 2px solid #e8e8e8;
+*/    margin-top: 14px;
     animation: slideDown .25s ease-out;
 }
 
@@ -458,10 +486,10 @@
     justify-content: center;
     transition: all 0.25s ease;
     font-size: 15px;
-    font-weight:bold;
+    font-weight: bold;
 }
 
-    .social-icon:hover, .jo-footer i:hover{
+    .social-icon:hover, .jo-footer i:hover {
         background-color: var(--jo-primary);
         color: #ffffff;
         transform: translateY(-2px);
@@ -473,6 +501,7 @@
     font-size: 13px;
     color: var(--jo-primary-dark);
 }
+
 .announcement-card {
     border-radius: 12px;
     transition: transform .2s ease, box-shadow .2s ease;
@@ -486,3 +515,18 @@
 .object-fit-cover {
     object-fit: cover;
 }
+.section-title {
+    font-weight: 700;
+    font-size: 1.8rem;
+    color: #006e5b;
+}
+
+    .section-title .section-underline {
+        content: "";
+        display: block;
+        width: 60px;
+        height: 4px;
+        background-color: #1abc9c;
+        margin: 6px auto 0;
+        border-radius: 2px;
+    }

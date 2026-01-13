@@ -53,6 +53,65 @@
                                 <span class="text-muted fst-italic">لا يوجد غلاف</span>
                             }
                         </dd>
+                        <!-- فيسبوك -->
+                        <dt class="col-sm-3 fw-bold text-secondary">📘 فيسبوك:</dt>
+                        <dd class="col-sm-9">
+                            @if (!string.IsNullOrEmpty(Model.FacebookLink))
+                            {
+                                <a href="@Model.FacebookLink" target="_blank" class="text-decoration-none">
+                                    زيارة الصفحة
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-muted fst-italic">غير متوفر</span>
+                            }
+                        </dd>
+
+                        <!-- واتساب -->
+                        <dt class="col-sm-3 fw-bold text-secondary">💬 واتساب:</dt>
+                        <dd class="col-sm-9">
+                            @if (!string.IsNullOrEmpty(Model.WhatsUp))
+                            {
+                                <a href="https://wa.me/@Model.WhatsUp" target="_blank" class="text-decoration-none">
+                                    مراسلة واتساب
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-muted fst-italic">غير متوفر</span>
+                            }
+                        </dd>
+
+                        <!-- رقم الهاتف -->
+                        <dt class="col-sm-3 fw-bold text-secondary">📞 الهاتف:</dt>
+                        <dd class="col-sm-9">
+                            @if (!string.IsNullOrEmpty(Model.MobileNumber))
+                            {
+                                <a href="tel:@Model.MobileNumber" class="text-decoration-none">
+                                    @Model.MobileNumber
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-muted fst-italic">غير متوفر</span>
+                            }
+                        </dd>
+
+                        <!-- الموقع الإلكتروني -->
+                        <dt class="col-sm-3 fw-bold text-secondary">🌐 الموقع:</dt>
+                        <dd class="col-sm-9">
+                            @if (!string.IsNullOrEmpty(Model.SiteUrl))
+                            {
+                                <a href="@Model.SiteUrl" target="_blank" class="text-decoration-none">
+                                    زيارة الموقع
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-muted fst-italic">غير متوفر</span>
+                            }
+                        </dd>
 
                         <!-- الحالة -->
                         <dt class="col-sm-3 fw-bold text-secondary">الحالة:</dt>

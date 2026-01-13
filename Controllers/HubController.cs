@@ -123,14 +123,13 @@ namespace AnnouncmentHub.Controllers
         public async Task<IActionResult> RandomAnnouncementsTop30()
         {
             var result = await _repository.GetAnnouncementsDynamic(
-      title: null,
-      categoryIds: new List<int>(), // فارغ
-      clientId: null,
-      dateFrom: null,
-      dateTo: null,
-      pageNumber: 1,
-      pageSize: 30
-  );
+            title: null,
+            categoryIds: new List<int>(), // فارغ
+            clientId: null,
+            dateFrom: null,
+            dateTo: null,
+            pageNumber: 1,
+            pageSize: 30);
 
 
             // خلط النتائج عشوائياً

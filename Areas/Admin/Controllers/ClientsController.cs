@@ -59,7 +59,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
             catch (Exception ex)
             {
                 // ✅ Log the error (you can integrate with a logging framework like Serilog or NLog)
-                Console.WriteLine($"Error saving file: {ex.Message}");
+                //Console.WriteLine($"Error saving file: {ex.Message}");
                 return string.Empty;  // Return empty string if file save fails
             }
         }
@@ -91,7 +91,11 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
                 ClientName=c.ClientName,
                 CoverImageUrl=c.CoverImageUrl,
                 LogoUrl=c.LogoUrl,
-                IsActive = c.IsActive
+                IsActive = c.IsActive,
+                WhatsUp=c.WhatsUp,
+                FacebookLink=c.FacebookLink,
+                SiteUrl=c.SiteUrl,
+                MobileNumber=c.MobileNumber
                 
 
             })
@@ -115,8 +119,20 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ClientViewModel model)
         {
+            //if (!ModelState.IsValid)
+            //{
+            //    // لمعرفة سبب الخطأ
+            //    var errors = ModelState.Values.SelectMany(v => v.Errors);
+            //    foreach (var error in errors)
+            //    {
+            //        Console.WriteLine(error.ErrorMessage);
+            //    }
+
+            //    return View(model);
+            //}
             if (ModelState.IsValid)
             {
+
                 string? logoUrl = null;
                 string? coverUrl = null;
 
@@ -145,6 +161,10 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
                 var client = new Client
                 {
                     ClientName = model.ClientName,
+                    WhatsUp = model.WhatsUp,
+                    FacebookLink = model.FacebookLink,
+                    SiteUrl = model.SiteUrl,
+                    MobileNumber = model.MobileNumber,
                     LogoUrl = logoUrl,
                     CoverImageUrl = coverUrl,
                     IsActive = model.IsActive
@@ -216,6 +236,10 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
             {
                 Id = client.Id,
                 ClientName = client.ClientName,
+                WhatsUp=client.WhatsUp,
+                SiteUrl=client.SiteUrl,
+                MobileNumber=client.MobileNumber,
+                FacebookLink=client.FacebookLink,
                 IsActive=client.IsActive,
                 LogoUrl = client.LogoUrl, // Set existing Logo URL if available
                 CoverImageUrl=client.CoverImageUrl
@@ -268,6 +292,10 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
 
                 // ✅ Update fields
                 client.ClientName = model.ClientName;
+                    client.WhatsUp = model.WhatsUp;
+                client.FacebookLink = model.FacebookLink;
+                client.SiteUrl = model.SiteUrl;
+                client.MobileNumber = model.MobileNumber;
                 client.LogoUrl = logoUrl;
                 client.CoverImageUrl = coverUrl;
                 client.IsActive = model.IsActive;

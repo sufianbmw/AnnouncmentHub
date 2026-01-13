@@ -12,6 +12,17 @@ namespace AnnouncmentHub.ViewModels
         [Display(Name = "اسم العميل")]
         public string ClientName { get; set; }
 
+        [Display(Name = "رابط الفيسبوك")]
+       public string? FacebookLink { get; set; }
+
+        [Display(Name = "رابط الواتس اب")]
+        public string? WhatsUp { get; set; }
+
+        [Display(Name = "رقم الهاتف")]
+        public string? MobileNumber { get; set; }
+
+        [Display(Name = "رابط الموقع الالكتروني")]
+        public string? SiteUrl { get; set; }
         [Display(Name = "مفعل")]
         public bool IsActive { get; set; } = true; // Default to active
 
@@ -33,6 +44,6 @@ namespace AnnouncmentHub.ViewModels
         public int PageNumber { get; set; }
         public int PageSize { get; set; }
         public int TotalClients { get; set; }
-        public List<Client> Clients { get; set; }
+        public List<Client>? Clients { get; set; }
     }
 }

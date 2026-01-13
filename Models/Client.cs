@@ -6,6 +6,11 @@ namespace AnnouncmentHub.Models
     {
         public string ClientName { get; set; }
         public string? LogoUrl { get; set; }
+        public string?  FacebookLink { get; set; }
+        public string?  WhatsUp { get; set; }
+        public string?  MobileNumber { get; set; }
+        public string?  SiteUrl { get; set; }
+
         [NotMapped]
         public IFormFile? LogoFile { get; set; }
         public string? CoverImageUrl { get; set; }   // Stored in DB

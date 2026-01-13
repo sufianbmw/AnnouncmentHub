@@ -5,6 +5,96 @@
     ViewData["Title"] = "إضافة عميل جديد";
 }
 
+<form asp-action="Create" method="post" enctype="multipart/form-data" class="card shadow-sm rounded border border-primary p-4 bg-light">
+    <h4 class="text-center mb-4">إضافة عميل جديد 🆕</h4>
+
+    <!-- اسم العميل -->
+    <div class="form-group mb-3">
+        <label asp-for="ClientName" class="control-label">اسم العميل 🏢</label>
+        <input asp-for="ClientName" class="form-control" />
+        <span asp-validation-for="ClientName" class="text-danger"></span>
+    </div>
+
+    <div class="row mb-3">
+        <!-- رفع الشعار -->
+        <div class="form-group col-md-6">
+            <label asp-for="LogoFile" class="control-label">تحميل صورة الشعار 🌐</label>
+            <input asp-for="LogoFile" type="file" accept="image/*" class="form-control" />
+            <span asp-validation-for="LogoFile" class="text-danger"></span>
+        </div>
+
+        <!-- رفع صورة الغلاف -->
+        <div class="form-group col-md-6">
+            <label asp-for="CoverImageFile" class="control-label">تحميل صورة الغلاف 🖼️</label>
+            <input asp-for="CoverImageFile" type="file" accept="image/*" class="form-control" />
+            <span asp-validation-for="CoverImageFile" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <!-- رابط فيسبوك -->
+        <div class="form-group col-md-6">
+            <label asp-for="FacebookLink" class="control-label">رابط فيسبوك 🌐</label>
+            <input asp-for="FacebookLink" class="form-control" placeholder="https://facebook.com/username" />
+            <span asp-validation-for="FacebookLink" class="text-danger"></span>
+        </div>
+
+        <!-- رقم واتساب -->
+        <div class="form-group col-md-6">
+            <label asp-for="WhatsUp" class="control-label">رقم واتساب 📱</label>
+            <input asp-for="WhatsUp" class="form-control" placeholder="+962 7xxxxxxx" />
+            <span asp-validation-for="WhatsUp" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <!-- رقم الجوال -->
+        <div class="form-group col-md-6">
+            <label asp-for="MobileNumber" class="control-label">رقم الجوال 📞</label>
+            <input asp-for="MobileNumber" class="form-control" placeholder="+962 7xxxxxxx" />
+            <span asp-validation-for="MobileNumber" class="text-danger"></span>
+        </div>
+
+        <!-- الموقع الإلكتروني -->
+        <div class="form-group col-md-6">
+            <label asp-for="SiteUrl" class="control-label">الموقع الإلكتروني 🌐</label>
+            <input asp-for="SiteUrl" class="form-control" placeholder="https://example.com" />
+            <span asp-validation-for="SiteUrl" class="text-danger"></span>
+        </div>
+    </div>
+
+    <!-- مفعل -->
+    <div class="form-check form-switch mb-4">
+        <label for="IsActiveCheckbox" class="form-check-label">✅ مفعل</label>
+        <input asp-for="IsActive" class="form-check-input" type="checkbox" id="IsActiveCheckbox" checked />
+    </div>
+
+    <hr />
+
+    <div class="col d-flex justify-content-center gap-3">
+        <button type="submit" class="btn btn-success w-25">
+            <i class="bi bi-check-circle-fill"></i> حفظ ✅
+        </button>
+
+        <a href="@Url.Action("Index")" class="btn btn-secondary w-25">
+            <i class="bi bi-x-circle-fill"></i> إلغاء ❌
+        </a>
+    </div>
+</form>
+
+@section Scripts {
+@{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+
+@* @using AnnouncmentHub.ViewModels
+@model ClientViewModel
+
+@{
+    ViewData["Title"] = "إضافة عميل جديد";
+}
+
 
 <form asp-action="Create" method="post" enctype="multipart/form-data" class="card shadow-sm rounded border border-primary p-4 bg-light">
     <h4 class="text-center">إضافة عميل جديد 🆕</h4>
@@ -56,3 +146,4 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 }
+ *@

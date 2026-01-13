@@ -11,7 +11,7 @@
 }
 
 @section FullWidthHeader {
-    <!-- 🔹 Cover -->
+@*     <!-- 🔹 Cover -->
     <div class="position-relative mb-4">
         <img src="@(string.IsNullOrEmpty(client.CoverImageUrl)
                                      ? Url.Content("~/images/file-icons/no-cover.jpg")
@@ -24,13 +24,11 @@
         <div class="position-absolute bottom-0 end-0 w-100 p-4"
              style="background: linear-gradient(to top, rgba(0,0,0,0.6) 40%, transparent 100%);">
             <div class="d-flex justify-content-start align-items-center text-white">
-                <img src="@(string.IsNullOrEmpty(client.LogoUrl)
-                                                                  ? Url.Content("~/images/file-icons/no-image.jpg")
-                                                                  : client.LogoUrl)"
-                 alt="@client.ClientName"
-                 class="rounded-circle border border-4 border-white shadow"
-                 style="width:140px; height:140px; object-fit:contain;" />
+                <img src="@(string.IsNullOrEmpty(client.LogoUrl)? Url.Content("~/images/file-icons/no-image.jpg"): client.LogoUrl)"
+                 alt="@client.ClientName" class="rounded-circle border border-4 border-white shadow" style="width:140px; height:140px; object-fit:contain;" />
                 <div class="text-start ms-3">
+                    <h3 class="mb-2 fw-bold">@client.ClientName</h3>
+                    <h3 class="mb-2 fw-bold">@client.ClientName</h3>
                     <h3 class="mb-2 fw-bold">@client.ClientName</h3>
                     <span class="badge bg-primary fs-6 shadow">
                         إجمالي الإعلانات: @Model.TotalCount
@@ -39,7 +37,86 @@
            
         </div>
     </div>
-</div>
+</div> *@
+    <!-- 🔹 Cover -->
+    <div class="position-relative mb-4">
+        <img src="@(string.IsNullOrEmpty(client.CoverImageUrl)
+                              ? Url.Content("~/images/file-icons/no-cover.jpg")
+                              : client.CoverImageUrl)"
+         alt="Cover - @client.ClientName"
+         class="img-fluid w-100 shadow-lg"
+         style="max-height:370px; object-fit:cover;" />
+
+        <!-- 🔹 Overlay -->
+        <div class="position-absolute bottom-0 end-0 w-100 p-4"
+             style="background: linear-gradient(to top, rgba(0,0,0,0.6) 40%, transparent 100%);">
+
+            <div class="d-flex justify-content-start align-items-center text-white flex-wrap">
+
+                <!-- Logo -->
+                <img src="@(string.IsNullOrEmpty(client.LogoUrl)
+                                          ? Url.Content("~/images/file-icons/no-image.jpg")
+                                          : client.LogoUrl)"
+                 alt="@client.ClientName"
+                 class="rounded-circle border border-4 border-white shadow"
+                 style="width:140px; height:140px; object-fit:contain;" />
+
+                <!-- Info -->
+                <div class="text-start ms-3">
+                    <h3 class="mb-2 fw-bold">@client.ClientName</h3>
+
+                    <span class="badge bg-primary fs-6 shadow mb-2 d-inline-block">
+                        إجمالي الإعلانات: @Model.TotalCount
+                    </span>
+
+                    <!-- 🔹 Contact & Social Links -->
+                    <div class="d-flex gap-3 mt-3 flex-wrap align-items-center">
+
+                        @* 📞 Mobile *@
+                    @if (!string.IsNullOrEmpty(client.MobileNumber))
+                        {
+                            <a href="tel:@client.MobileNumber"
+                               class="text-white text-decoration-none fw-semibold">
+                                📞 <span class="ms-1">@client.MobileNumber</span>
+                            </a>
+                        }
+
+                        @* 💬 WhatsApp *@
+                        @if (!string.IsNullOrEmpty(client.WhatsUp))
+                        {
+                            <a href="https://wa.me/@client.WhatsUp.Replace("+", "")"
+                               target="_blank"
+                               class="text-white text-decoration-none fw-semibold">
+                                💬 واتساب
+                            </a>
+                        }
+
+                        @* 📘 Facebook *@
+                        @if (!string.IsNullOrEmpty(client.FacebookLink))
+                        {
+                            <a href="@client.FacebookLink"
+                               target="_blank"
+                               class="text-white text-decoration-none fw-semibold">
+                                📘 فيسبوك
+                            </a>
+                        }
+
+                        @* 🌐 Website *@
+                        @if (!string.IsNullOrEmpty(client.SiteUrl))
+                        {
+                            <a href="@client.SiteUrl"
+                               target="_blank"
+                               class="text-white text-decoration-none fw-semibold">
+                                🌐 الموقع
+                            </a>
+                        }
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 }
 
 
