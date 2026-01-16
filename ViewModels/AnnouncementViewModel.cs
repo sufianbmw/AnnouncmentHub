@@ -62,8 +62,18 @@ namespace AnnouncmentHub.ViewModels
         // نخلي كمان قائمة جاهزة للتعامل معها في الـ View
         public string? CategoriesJson { get; set; }
 
+        public List<AnnouncementImage>? ExistingImages { get; set; }
+
+
         [Display(Name = "التصنيفات")]
         public List<CategoryJsonLink> Categories { get; set; } = new();
+
+        // ✅ صور متعددة
+        [Display(Name = "رفع صور متعددة")]
+        public List<IFormFile>? ImageFiles { get; set; }
+
+        // للعرض
+        public List<string>? ImageUrls { get; set; }
 
     }
 }

@@ -1,0 +1,81 @@
+﻿@model List<AnnouncmentHub.ViewModels.ClientViewModel>
+
+<div class="container my-4">
+
+    <div class="section-separator my-2">
+        <div class="container">
+            <h3 class="section-title mb-0">
+                🌟 عملاؤنا المميزون
+            </h3>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        @foreach (var client in Model)
+        {
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="card h-100 shadow-sm border-0 rounded-4 text-center">
+
+                    <!-- Logo -->
+                    <div class="p-3">
+                        <a href="hub/ClientProfile/@client.Id" class="text-decoration-none">
+
+                        <img src="@(string.IsNullOrEmpty(client.LogoUrl)
+                                                         ? Url.Content("~/images/no-logo.png")
+                                                         : client.LogoUrl)"
+                         class="img-fluid rounded-circle shadow-sm border"
+                         style="width:90px;height:90px;object-fit:contain;" />
+                         </a>
+
+                </div>
+
+                    <!-- Name -->
+                    <div class="card-body pt-0">
+                        <h6 class="fw-bold text-dark mb-3">
+                            <a href="hub/ClientProfile/@client.Id" class="text-decoration-none">
+                            @client.ClientName
+                            </a>
+                        </h6>
+
+                        <!-- Links -->
+                        <div class="d-flex justify-content-center gap-2 flex-wrap">
+
+                        @if (!string.IsNullOrEmpty(client.FacebookLink))
+                            {
+                                <a href="@client.FacebookLink" target="_blank"
+                                   class="btn btn-sm btn-outline-primary">
+                                    📘
+                                </a>
+                            }
+
+                            @if (!string.IsNullOrEmpty(client.WhatsUp))
+                            {
+                                <a href="https://wa.me/@client.WhatsUp" target="_blank"
+                                   class="btn btn-sm btn-outline-success">
+                                    💬
+                                </a>
+                            }
+
+                            @if (!string.IsNullOrEmpty(client.MobileNumber))
+                            {
+                                <a href="tel:@client.MobileNumber"
+                                   class="btn btn-sm btn-outline-secondary">
+                                    📞
+                                </a>
+                            }
+
+                            @if (!string.IsNullOrEmpty(client.SiteUrl))
+                            {
+                                <a href="@client.SiteUrl" target="_blank"
+                                   class="btn btn-sm btn-outline-dark">
+                                    🌐
+                                </a>
+                            }
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        }
+    </div>
+</div>

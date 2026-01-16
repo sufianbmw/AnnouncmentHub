@@ -13,6 +13,8 @@
         public int? ClientId { get; set; }
         public Client? Client { get; set; }
         public ICollection<AnnouncementCategory> AnnouncementCategories { get; set; } = new List<AnnouncementCategory>();
+        // ✅ Multiple Images
+        public ICollection<AnnouncementImage> AnnouncementImages { get; set; } = new List<AnnouncementImage>();
     }
 
 }

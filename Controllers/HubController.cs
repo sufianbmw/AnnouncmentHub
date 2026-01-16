@@ -147,6 +147,29 @@ namespace AnnouncmentHub.Controllers
 
             return PartialView("_RandomAnnouncementsTop30", vm);
         }
+        public async Task<IActionResult> Top30RandomClients()
+        {
+
+            var clients = await _context.Clients
+       .Where(c => c.IsActive)
+       .OrderBy(c => Guid.NewGuid())
+       .Take(30)
+       .Select(c => new ClientViewModel
+       {
+           Id = c.Id,
+           ClientName = c.ClientName,
+           LogoUrl = c.LogoUrl,
+           FacebookLink = c.FacebookLink,
+           WhatsUp = c.WhatsUp,
+           MobileNumber = c.MobileNumber,
+           SiteUrl = c.SiteUrl
+       })
+       .ToListAsync();
+
+            return PartialView("_Top30RandomClients", clients);
+
+           
+        }
 
 
         public async Task<IActionResult> Search(

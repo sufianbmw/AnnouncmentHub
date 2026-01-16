@@ -26,6 +26,48 @@
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
         </div>
+
+       
+            @if (Model.ExistingImages != null && Model.ExistingImages.Any())
+            {
+            <div class="mb-4 border rounded p-2 h-100 text-center bg-light">
+                    <label class="form-label fw-bold">الصور الحالية</label>
+
+                    <div class="row g-3">
+                        @foreach (var img in Model.ExistingImages)
+                        {
+                            <div class="col-6 col-md-3">
+                                <div class="position-relative border rounded p-2 h-100 text-center bg-light">
+                                <img src="@img.ImageUrl" class="img-thumbnail mb-2" style="height:120px">
+
+                             @*    <button type="button"
+                                        class="btn btn-sm btn-danger"
+                                        onclick="deleteImage(@img.Id, this)">
+                                    🗑 حذف
+                                </button> *@
+
+                                <button type="button"
+                                        class="btn btn-sm btn-danger"
+                                        onclick="deleteImage(@img.Id)">
+                                    🗑️ حذف
+                                </button>
+
+
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        <div class="mb-3">
+            <label class="form-label fw-bold">إضافة صور جديدة</label>
+            <input type="file" name="ImageFiles" class="form-control" multiple accept="image/*" />
+            <small class="text-muted">
+                يمكنك رفع أكثر من صورة (JPG, PNG)
+            </small>
+        </div>
+
+       
         <div class="row">
             <div class="col mb-3">
                 <label asp-for="File" class="form-label">📎 @Html.DisplayNameFor(m => m.File)</label>
@@ -146,6 +188,53 @@
             // (optional) used by popup for manual value update
             document.getElementById(id).value = value;
         }
+
+        //   function deleteImage(imageId, btn) {
+        //     if (!confirm('هل تريد حذف الصورة؟')) return;
+
+        //     fetch('/Admin/Announcements/DeleteImage/' + imageId, {
+        //         method: 'POST',
+        //         headers: {
+        //             'RequestVerificationToken':
+        //                 document.querySelector('input[name="__RequestVerificationToken"]').value
+        //         }
+        //     })
+        //     .then(res => {
+        //         if (res.ok) {
+        //             btn.closest('.image-box').remove();
+        //         } else {
+        //             alert('فشل حذف الصورة');
+        //         }
+        //     });
+        // }
+          
+        //   function deleteImage(imageId) {
+        //     if (!confirm('هل أنت متأكد من حذف الصورة؟')) return;
+        //     fetch(`/admin/Announcements/DeleteImage/${imageId}`, {
+        //         method: 'POST',
+        //         headers: {
+        //             'X-Requested-With': 'XMLHttpRequest'
+        //         }
+        //     })
+        //     .then(res => {
+        //         if (res.ok) {
+        //             // 🔄 إعادة تحميل جزء الصور فقط
+        //             $("#announcement-images").load(location.href + " #announcement-images>*");
+        //         } else {
+        //             alert('❌ فشل حذف الصورة');
+        //         }
+        //     });
+        // }
+    
+            
+        function deleteImage(imageId) {
+            if (!confirm('هل أنت متأكد؟')) return;
+
+            fetch(`/admin/Announcements/DeleteImage/${imageId}`, { method: 'POST' })
+                .then(() => location.reload());
+        }
+    
+
     </script>
 }
 

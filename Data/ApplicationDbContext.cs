@@ -19,6 +19,7 @@ namespace AnnouncmentHub.Data
 
         // Add this:
         public DbSet<AnnouncementCategory> AnnouncementCategories { get; set; }
+        public DbSet<AnnouncementImage> AnnouncementImage { get; set; }
         public DbSet<Page> Pages { get; set; }
         public DbSet<PageCategorie> PageCategories { get; set; }
 

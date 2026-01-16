@@ -307,6 +307,26 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
 
             // Save the announcement to the database
             _context.Announcements.Add(announcement);
+            // ✅ Save multiple images using the same helper
+            if (model.ImageFiles != null && model.ImageFiles.Any())
+            {
+                foreach (var image in model.ImageFiles)
+                {
+                    if (image == null || image.Length == 0)
+                        continue;
+
+                    var imagePath = await SaveFileAsync("Create", image, null);
+
+                    if (!string.IsNullOrEmpty(imagePath))
+                    {
+                        announcement.AnnouncementImages.Add(new AnnouncementImage
+                        {
+                            ImageUrl = imagePath
+                        });
+                    }
+                }
+            }
+
             await _context.SaveChangesAsync();
 
             // Set success message and redirect to the Index page
@@ -322,6 +342,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
 
             var announcement = await _context.Announcements
                 .Include(a => a.AnnouncementCategories)
+                .Include(a => a.AnnouncementImages)
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (announcement == null) return NotFound();
@@ -341,6 +362,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
                 DateFrom = announcement.DateFrom, // Nullable DateTime, can be null
                 DateTo = announcement.DateTo,     // Nullable DateTime, can be null
                 ClientId = announcement.ClientId, // Associate client if selected
+                ExistingImages=announcement.AnnouncementImages.ToList(),
                 SelectedSubCategories = announcement.AnnouncementCategories.Select(ac => ac.CategoryId).ToList()
             };
 
@@ -394,6 +416,8 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
 
             var announcement = await _context.Announcements
                 .Include(a => a.AnnouncementCategories)
+                .Include(a => a.AnnouncementImages)
+               
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (announcement == null) return NotFound();
@@ -430,6 +454,24 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
                         CategoryId = subcategoryId,
                         AnnouncementId = announcement.Id
                     });
+                }
+            }
+
+            // Add new additional images (do NOT delete old ones)
+            if (model.ImageFiles != null && model.ImageFiles.Any())
+            {
+                foreach (var image in model.ImageFiles)
+                {
+                    if (image.Length > 0)
+                    {
+                        var imagePath = await SaveFileAsync("Create", image,null);
+
+                        announcement.AnnouncementImages.Add(new AnnouncementImage
+                        {
+                            ImageUrl = imagePath,
+                            AnnouncementId = announcement.Id
+                        });
+                    }
                 }
             }
 
@@ -485,6 +527,27 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
                 Console.WriteLine($"Error saving file: {ex.Message}");
                 return string.Empty;  // Return empty string if file save fails
             }
+        }
+
+        [HttpPost]
+        [Route("Admin/Announcements/DeleteImage/{id}")]
+        public async Task<IActionResult> DeleteImage(int id)
+        {
+            var image = await _context.AnnouncementImage.FindAsync(id);
+            if (image == null) return NotFound();
+
+            // حذف الملف من السيرفر
+            var filePath = Path.Combine(
+                Directory.GetCurrentDirectory(),"wwwroot",image.ImageUrl.TrimStart('/')
+            );
+
+            if (System.IO.File.Exists(filePath))
+                System.IO.File.Delete(filePath);
+
+            _context.AnnouncementImage.Remove(image);
+            await _context.SaveChangesAsync();
+
+            return Ok();
         }
 
         [HttpPost, ActionName("DeleteConfirmed")]

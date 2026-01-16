@@ -2,19 +2,19 @@
     ViewData["Title"] = "Home Page";
 }
 
-@* @section FullWidthHeader
-{
-    @await Html.PartialAsync("_Header")
-} *@
+<div id="random-announcements" class="my-4">
+    <div class="text-center text-muted">⏳ جاري تحميل الإعلانات...</div>
+</div>
 
-<div id="random-announcements">
-    <div class="text-center">Loading...</div>
+<div id="random-clients" class="my-4">
+    <div class="text-center text-muted">⏳ جاري تحميل العملاء...</div>
 </div>
 
 @section Scripts {
     <script>
-        $(function () {
+        $(document).ready(function () {
             $("#random-announcements").load("/Hub/RandomAnnouncementsTop30");
+            $("#random-clients").load("/Hub/Top30RandomClients");
         });
     </script>
 }
