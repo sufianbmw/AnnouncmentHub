@@ -27,6 +27,7 @@
     color: #fff;
     overflow: hidden;
 }
+
 @keyframes bgMove {
     0% {
         background-position: 0% 50%;
@@ -49,13 +50,11 @@
     position: relative;
     padding: 15px 0;
 }*/
-.category-menu-wrapper 
-{
+.category-menu-wrapper {
     position: sticky;
     top: 0;
     z-index: 1100;
     padding: 15px 0;
- 
 }
 
 /* =========================================
@@ -127,16 +126,17 @@
    SUBCATEGORY BAR
 ========================================= */
 .subcategories-bar {
-/*    background: linear-gradient(to bottom, #1b8dec42, #e7f8f3);
-*/    border-radius: 20px 0;
+    /*    background: linear-gradient(to bottom, #1b8dec42, #e7f8f3);
+*/ border-radius: 20px 0;
     padding: 12px 18px;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 12px;
-/*    box-shadow: 0 4px 15px rgba(0,0,0,0.10);
-*//*    border: 2px solid #e8e8e8;
-*/    margin-top: 14px;
+    /*    box-shadow: 0 4px 15px rgba(0,0,0,0.10);
+*/ /*    border: 2px solid #e8e8e8;
+*/
+    margin-top: 14px;
     animation: slideDown .25s ease-out;
 }
 
@@ -348,6 +348,9 @@
     direction: rtl;
     font-size: 15px;
     font-weight: 600;
+    background: linear-gradient(120deg, #1e1e1e12, #def0ea, #1abc9c);
+    background-size: 200% 200%;
+    animation: bgMove 14s ease infinite
 }
 
     .custom-breadcrumb ol {
@@ -355,8 +358,8 @@
         align-items: center;
         flex-wrap: nowrap; /* Ensure items don't wrap */
         padding: 10px 15px;
-        background: #f7f9fb;
-        border-radius: 8px;
+        /*        background: #f7f9fb;
+*/ border-radius: 8px;
         border: 1px solid #e4e7eb;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
         margin: 0;
@@ -531,6 +534,35 @@
     color: #006e5b8f;
     position: relative;
     padding-inline-start: 14px;
-    border-left: 5px solid #0d6efd4a; /* Bootstrap primary */
+   /*  border-left: 5px solid #0d6efd4a; Bootstrap primary */
     border-right: 5px solid #0d6efd4a; /* Bootstrap primary */
 }
+
+.bgGradiants {
+    background: linear-gradient(120deg, #1e1e1e12, #def0ea, #1abc9c);
+    background-size: 200% 200%;
+    animation: bgMove 14s ease infinite
+}
+
+.bgGradiantSrch {
+    transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+}
+
+    /* ✨ Hover effect */
+    .bgGradiantSrch:hover {
+        transform: translateX(-6px); /* مناسب لـ RTL */
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+        filter: brightness(1.08);
+    }
+
+    /* ✅ Active (selected category) */
+    .bgGradiantSrch.active {
+        transform: translateX(-6px);
+        box-shadow: 0 8px 22px rgba(13, 110, 253, 0.45);
+        filter: brightness(1.12);
+    }
+
+    /* 🖱️ Click feedback */
+    .bgGradiantSrch:active {
+        transform: translateX(-3px) scale(0.98);
+    }

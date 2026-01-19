@@ -16,7 +16,7 @@
             {
                 @foreach (var mc in Model.MainCategories)
                 {
-                    <a class="btn btn-outline-primary w-100 text-start mb-2 @(Model.MainCategoryId == mc.Id ? "active" : "")"
+                    <a class="btn bgGradiantSrch bgGradiants w-100 text-start mb-2 @(Model.MainCategoryId == mc.Id ? "active" : "")"
                        asp-action="Search2"
                        asp-route-mainCategoryId="@mc.Id">
                         @mc.CatName
@@ -38,7 +38,7 @@
                 <input type="hidden" id="mainCategoryId" value="@(Model.MainCategoryId ?? 0)" />
                 <input type="hidden" id="pageSize" value="@Model.PageSize" />
 
-                <div class="row g-3 bg-white border rounded p-3">
+                <div class="row g-3 bgGradiants border rounded p-3">
 
                     <div class="col-md-4">
                         <label class="form-label">كلمة البحث</label>
