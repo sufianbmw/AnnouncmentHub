@@ -14,7 +14,10 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
+
+// Register Services
 builder.Services.AddScoped<AnnouncementRepository>();
+
 builder.Services.AddScoped<BreadcrumbService>();
 
 var app = builder.Build();
@@ -39,8 +42,9 @@ app.UseRouting();
 app.UseAuthorization();
 
 //app.MapControllerRoute(
-//    name: "default",
-//    pattern: "{controller=Home}/{action=Index}/{id?}");
+//name: "default",
+//pattern: "{controller=Home}/{action=Index}/{id?}");
+
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");

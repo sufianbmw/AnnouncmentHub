@@ -8,9 +8,10 @@
             <div class="card-body p-4">
              
                       <!-- Title -->
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                 <div>
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                 <div class="col w-100">
                         <h4 class="text-primary fw-bold">@Model.Title</h4>
+
                         <span class="text-dark text-end">
                             📅 تاريخ الإضافة: @DateTimeHelper.FormatDateTime(Model.AddedDate)
                         </span>
@@ -34,6 +35,36 @@
                         </div>
 
                     }
+                <div class="card border-0 shadow-sm mb-4 shadow-sm d-flex align-items-end">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3">📤 مشاركة الإعلان</h6>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            <a class="btn btn-success"
+                               target="_blank"
+                               href="https://wa.me/?text=@($"{Model.Title} - {Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")">
+                                <i class="bi bi-whatsapp"></i> واتساب
+                            </a>
+
+                            <a class="btn btn-primary"
+                               target="_blank"
+                               href="https://www.facebook.com/sharer/sharer.php?u=@($"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")">
+                                <i class="bi bi-facebook"></i> فيسبوك
+                            </a>
+
+                            <a class="btn btn-dark"
+                               target="_blank"
+                               href="https://twitter.com/intent/tweet?text=@Model.Title&url=@($"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")">
+                                <i class="bi bi-twitter-x"></i> X
+                            </a>
+
+                            <button class="btn btn-outline-secondary" onclick="copyAnnouncementLink()">
+                                <i class="bi bi-link-45deg"></i> نسخ الرابط
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
               
                 </div>
 
@@ -53,10 +84,55 @@
 
 
                 <hr />
+            @if (Model.ImageUrls?.Any() == true)
+            {
+                <div class="card mb-4 rounded bg-secondary">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0">🖼️ معرض الصور</h6>
+                            <span class="text-black small">
+                                (@Model.ImageUrls.Count صورة)
+                            </span>
+                        </div>
 
-                <!-- Client Info -->
-     
+                        <div id="announcementGallery" class="row g-3">
+                            @foreach (var img in Model.ImageUrls)
+                            {
+                                <div class="col-6 col-md-4 col-lg-3">
+                                    <a href="@img"
+                                       data-pswp-width="1200"
+                                       data-pswp-height="800"
+                                       class="gallery-item">
+                                        <img src="@img"
+                                             loading="lazy"
+                                             class="img-fluid rounded-3 border gallery-img p-1" />
+                                        <span class="zoom-icon">🔍</span>
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+          
 
+       @*      <div id="announcementGallery" class="row g-2">
+                @foreach (var img in Model.ImageUrls)
+                {
+                    <div class="col-6 col-md-3">
+                        <a href="@img"
+                           data-pswp-width="1200"
+                           data-pswp-height="800"
+                           target="_blank">
+                            <img src="@img"
+                                 class="img-fluid rounded shadow-sm"
+                                 style="height:160px;object-fit:cover;cursor:pointer;" />
+                        </a>
+                    </div>
+                }
+            </div> } *@
+
+           
 
                 <!-- Attachment -->
                 <div class="mb-4 text-center">
@@ -98,4 +174,31 @@
             </div>
         </div>
     </div>
+
+@section Scripts {
+    <script src="~/js/photoswipe/photoswipe.umd.min.js"></script>
+    <script src="~/js/photoswipe/photoswipe-lightbox.umd.min.js"></script>
+    <link href="~/css/photoswipe/photoswipe.css" rel="stylesheet" />
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const lightbox = new PhotoSwipeLightbox({
+                gallery: '#announcementGallery',
+                children: 'a',
+                pswpModule: PhotoSwipe
+            });
+            lightbox.init();
+        });
+  
+
+        function copyAnnouncementLink() {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('✅ تم نسخ رابط الإعلان');
+            });
+        }
+  
+
+    </script>
+}
 

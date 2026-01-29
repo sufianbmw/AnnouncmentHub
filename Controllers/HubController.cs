@@ -679,6 +679,7 @@ namespace AnnouncmentHub.Controllers
         {
             var announcement = await _context.Announcements
                 .Include(a => a.Client)
+                .Include(a => a.AnnouncementImages) // 🔥 مهم
                 .Include(a => a.AnnouncementCategories)
                     .ThenInclude(ac => ac.Category)
                 .FirstOrDefaultAsync(a => a.Id == id);
@@ -725,7 +726,10 @@ namespace AnnouncmentHub.Controllers
                 FilePath = announcement.FilePath,
                 AddedDate = announcement.AddedDate,
                 ClientId = announcement.ClientId,
-                Client = announcement.Client
+                Client = announcement.Client,
+                ImageUrls = announcement.AnnouncementImages?
+                            .Select(i => i.ImageUrl)
+                            .ToList() ?? new List<string>()
             };
 
             return View(vm);
