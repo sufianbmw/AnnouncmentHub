@@ -505,15 +505,7 @@
     color: var(--jo-primary-dark);
 }
 
-.announcement-card {
-    border-radius: 12px;
-    transition: transform .2s ease, box-shadow .2s ease;
-}
 
-    .announcement-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 10px 25px rgba(0,0,0,.15);
-    }
 
 .object-fit-cover {
     object-fit: cover;
@@ -566,3 +558,21 @@
     .bgGradiantSrch:active {
         transform: translateX(-3px) scale(0.98);
     }
+.announcement-card {
+    transition: all 0.3s ease;
+}
+
+    .announcement-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+
+.announcement-img {
+    transition: transform 0.4s ease;
+}
+
+.announcement-card:hover .announcement-img {
+    transform: scale(1.05);
+}
+
+

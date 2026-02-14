@@ -25,6 +25,8 @@ namespace AnnouncmentHub.Service
     DateTime? dateTo,
     int pageNumber,
     int pageSize,
+        bool isRandom = false,
+
     CancellationToken cancellationToken = default)
         {
             title = string.IsNullOrWhiteSpace(title) ? null : title.Trim();
@@ -49,9 +51,10 @@ namespace AnnouncmentHub.Service
             dp.Add("DateTo", dateTo);
             dp.Add("PageNumber", pageNumber);
             dp.Add("PageSize", pageSize);
+            dp.Add("IsRandom", isRandom); 
 
             using var multi = await conn.QueryMultipleAsync(
-                "SearchAnnouncementsDynamic88",
+                "SearchAnnouncementsDynamic99",
                 dp,
                 commandType: CommandType.StoredProcedure,
                 commandTimeout: 30

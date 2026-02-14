@@ -27,6 +27,9 @@ namespace AnnouncmentHub.ViewModels
         // 🔹 Selected Subcategories (IDs for filtering)
         public List<int> SelectedSubcategories { get; set; } = new();
         // 🔹 Pagination
+
+        public List<string>? ImageUrls { get; set; }
+
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
         public int TotalCount { get; set; }

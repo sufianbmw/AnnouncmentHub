@@ -120,26 +120,55 @@ namespace AnnouncmentHub.Controllers
             return Json(announcements);
         }
 
+        //public async Task<IActionResult> RandomAnnouncementsTop30()
+        //{
+        //    var result = await _repository.GetAnnouncementsDynamic(
+        //    title: null,
+        //    categoryIds: new List<int>(), // فارغ
+        //    clientId: null,
+        //    dateFrom: null,
+        //    dateTo: null,
+        //    pageNumber: 1,
+        //    isRandom: true,
+        //    pageSize: 30);
+
+
+
+        //    // خلط النتائج عشوائياً
+        //    var random = new Random();
+        //  //  var randomAnnouncements = result.Announcements.OrderBy(a => random.Next()).ToList();
+        //  var randomAnnouncements = result.Announcements.OrderBy(x => Guid.NewGuid()).ToList();
+        //    // إنشاء ViewModel
+        //    var vm = new CategoryAnnouncementsViewModel
+        //    {
+        //        Announcements = randomAnnouncements,
+        //        TotalCount = result.TotalCount,
+        //        PageNumber = 1,
+        //        PageSize = 30
+        //    };
+
+        //    return PartialView("_RandomAnnouncementsTop30", vm);
+        //}
+
+
+
         public async Task<IActionResult> RandomAnnouncementsTop30()
         {
             var result = await _repository.GetAnnouncementsDynamic(
-            title: null,
-            categoryIds: new List<int>(), // فارغ
-            clientId: null,
-            dateFrom: null,
-            dateTo: null,
-            pageNumber: 1,
-            pageSize: 30);
+                title: null,
+                categoryIds: null, // أفضل من new List<int>()
+                clientId: null,
+                dateFrom: null,
+                dateTo: null,
+                pageNumber: 1,
+                pageSize: 30,
+                isRandom: true
+            );
 
-
-            // خلط النتائج عشوائياً
-            var random = new Random();
-            var randomAnnouncements = result.Announcements.OrderBy(a => random.Next()).ToList();
-
-            // إنشاء ViewModel
             var vm = new CategoryAnnouncementsViewModel
             {
-                Announcements = randomAnnouncements,
+                Announcements = result.Announcements, // ✅ بدون إعادة ترتيب
+           
                 TotalCount = result.TotalCount,
                 PageNumber = 1,
                 PageSize = 30
@@ -147,6 +176,7 @@ namespace AnnouncmentHub.Controllers
 
             return PartialView("_RandomAnnouncementsTop30", vm);
         }
+
         public async Task<IActionResult> Top30RandomClients()
         {
 
