@@ -1,4 +1,5 @@
-﻿using AnnouncmentHub.Models;
+﻿using AnnouncmentHub.Helpers;
+using AnnouncmentHub.Models;
 
 namespace AnnouncmentHub.ViewModels
 {
@@ -21,6 +22,11 @@ namespace AnnouncmentHub.ViewModels
 
         // ✅ Deserialized objects (ready to use in Views)
         public List<CategoryJsonLink> Categories { get; set; } = new();
+
+        public string? ImagesJson { get; set; }
+        public List<AnnouncementImageVm> Images { get; set; } = new();
+
+
 
         // ✅ Optional: just IDs extracted from Categories list
         public List<int> CategoryIds => Categories?.Select(c => c.CategoryId).ToList() ?? new();

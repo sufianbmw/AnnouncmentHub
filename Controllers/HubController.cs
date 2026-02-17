@@ -168,7 +168,6 @@ namespace AnnouncmentHub.Controllers
             var vm = new CategoryAnnouncementsViewModel
             {
                 Announcements = result.Announcements, // ✅ بدون إعادة ترتيب
-           
                 TotalCount = result.TotalCount,
                 PageNumber = 1,
                 PageSize = 30

@@ -1,4 +1,5 @@
-﻿using AnnouncmentHub.Models;
+﻿using AnnouncmentHub.Helpers;
+using AnnouncmentHub.Models;
 using AnnouncmentHub.ViewModels;
 using Dapper;
 using Microsoft.Data.SqlClient;
@@ -54,7 +55,7 @@ namespace AnnouncmentHub.Service
             dp.Add("IsRandom", isRandom); 
 
             using var multi = await conn.QueryMultipleAsync(
-                "SearchAnnouncementsDynamic99",
+                "SearchAnnouncementsDynamic9999",
                 dp,
                 commandType: CommandType.StoredProcedure,
                 commandTimeout: 30
@@ -66,16 +67,30 @@ namespace AnnouncmentHub.Service
                 splitOn: "Client_Id" // MUST match the alias in the SP
             ).ToList();
 
+            //foreach (var a in announcements)
+            //{
+            //    if (!string.IsNullOrEmpty(a.CategoriesJson))
+            //    {
+            //        a.Categories = JsonConvert.DeserializeObject<List<CategoryJsonLink>>(a.CategoriesJson);
+            //    }
+            //    else
+            //    {
+            //        a.Categories = new List<CategoryJsonLink>();
+            //    }
+            //}
             foreach (var a in announcements)
             {
+                // Categories
                 if (!string.IsNullOrEmpty(a.CategoriesJson))
-                {
-                    a.Categories = JsonConvert.DeserializeObject<List<CategoryJsonLink>>(a.CategoriesJson);
-                }
+                    a.Categories = JsonConvert.DeserializeObject<List<CategoryJsonLink>>(a.CategoriesJson) ?? new();
                 else
-                {
                     a.Categories = new List<CategoryJsonLink>();
-                }
+
+                // ✅ Images (NEW)
+                if (!string.IsNullOrEmpty(a.ImagesJson))
+                    a.Images = JsonConvert.DeserializeObject<List<AnnouncementImageVm>>(a.ImagesJson) ?? new();
+                else
+                    a.Images = new List<AnnouncementImageVm>();
             }
 
 

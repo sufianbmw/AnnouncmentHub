@@ -1,0 +1,130 @@
+﻿@using AnnouncmentHub.Helpers
+@using Newtonsoft.Json
+
+@model CategoryAnnouncementsViewModel
+<div class="d-flex justify-content-start mb-3">
+    <h3 class="section-title mb-0">
+    </h3>
+</div>
+
+<div class="section-separator my-3">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+
+            <!-- العنوان -->
+            <h3 class="section-title mb-0">
+                📰 آخر الإعلانات
+            </h3>
+
+            <!-- رابط البحث -->
+            <a href="/hub/search2" class="btn btn-outline-primary">
+                🔍 البحث المتقدم
+            </a>
+
+        </div>
+    </div>
+</div>
+<!-- 🔹 Announcements -->
+<div class="container">
+    @if (Model.Announcements.Any())
+    {
+       
+    <div class="row g-3">
+    @foreach (var item in Model.Announcements)
+    {
+        var categories = JsonConvert.DeserializeObject<List<CategoryJsonLink>>(item.CategoriesJson ?? "[]");
+       
+            var filePath = item.FilePath;
+            var extension = System.IO.Path.GetExtension(filePath ?? "").ToLower();
+            string displayPath;
+
+            if (string.IsNullOrEmpty(filePath))
+                displayPath = Url.Content("~/images/file-icons/no-image.jpg");
+            else if (new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp" }.Contains(extension))
+                displayPath = filePath;
+            else if (extension == ".pdf")
+                displayPath = Url.Content("~/images/file-icons/pdf-icon.png");
+            else if (extension == ".doc" || extension == ".docx")
+                displayPath = Url.Content("~/images/file-icons/word-icon.png");
+            else if (extension == ".xls" || extension == ".xlsx")
+                displayPath = Url.Content("~/images/file-icons/excel-icon.png");
+            else
+                displayPath = Url.Content("~/images/file-icons/file-icon.png");
+        
+
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 border-0 rounded-4 overflow-hidden announcement-card">
+
+                <!-- 🔹 Image Top -->
+                <div class="ratio ratio-4x3 overflow-hidden">
+                    <a asp-controller="Hub" asp-action="Details" asp-route-id="@item.Id">
+                        <img src="@displayPath"
+                             class="w-100 h-100 announcement-img"
+                             style="object-fit: cover;" />
+                    </a>
+                </div>
+
+                <!-- 🔹 Card Body -->
+                <div class="card-body d-flex flex-column">
+
+                    <!-- Title -->
+                    <h6 class="fw-bold mb-1">
+                        <a asp-controller="Hub"
+                           asp-action="Details"
+                           asp-route-id="@item.Id"
+                           class="text-decoration-none text-primary">
+                            @item.Title
+                        </a>
+                    </h6>
+
+                    <!-- Date -->
+                    @if (item.AddedDate.HasValue)
+                    {
+                        <small class="text-muted mb-2">
+                            🗓️ @DateTimeHelper.FormatDateTime(item.AddedDate)
+                        </small>
+                    }
+
+                    <!-- Description -->
+                    <p class="small text-muted flex-grow-1">
+                        @(string.IsNullOrEmpty(item.Description) ? "لا يوجد وصف" : item.Description.Length > 80 ? item.Description[..item.Description.LastIndexOf(" ", 80)] + "...": item.Description)
+                    </p>
+
+                    <!-- Categories -->
+                    <div class="mb-2">
+                        @foreach (var cat in categories)
+                        {
+                            <span class="badge bg-secondary me-1 mb-1">
+                                <a asp-controller="Hub"
+                                   asp-action="SubCategoryAnnouncements"
+                                   asp-route-id="@cat.CategoryId"
+                                   class="text-decoration-none text-white small">
+                                    @cat.CategoryName
+                                </a>
+                            </span>
+                        }
+                    </div>
+
+                    <!-- File Button -->
+                    @if (!string.IsNullOrEmpty(item.FilePath))
+                    {
+                        <div class="mt-auto">
+                            <a href="@item.FilePath"
+                               target="_blank"
+                               class="btn btn-sm btn-outline-info w-100">
+                                📂 فتح الملف
+                            </a>
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+      
+
+    }
+
+</div>
