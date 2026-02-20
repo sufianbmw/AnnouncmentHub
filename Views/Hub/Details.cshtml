@@ -141,15 +141,16 @@
                 <hr />
             @if (Model.ImageUrls?.Any() == true)
             {
-                <div class="card mb-4 rounded bg-secondary">
+                <div class="card mb-4 rounded" style="background:#cfcfd8">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h6 class="fw-bold mb-0">🖼️ معرض الصور</h6>
+                           
                             <span class="text-black small">
                                 (@Model.ImageUrls.Count صورة)
                             </span>
                         </div>
-
+                        <hr />
                         <div id="announcementGallery" class="row g-3">
                             @foreach (var img in Model.ImageUrls)
                             {
@@ -160,7 +161,7 @@
                                        class="gallery-item">
                                         <img src="@img"
                                              loading="lazy"
-                                             class="img-fluid rounded-3 border gallery-img p-1" />
+                                             class="img-thumbnail rounded-3 border gallery-img p-1" />
                                         <span class="zoom-icon">🔍</span>
                                     </a>
                                 </div>
