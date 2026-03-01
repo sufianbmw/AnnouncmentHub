@@ -14,7 +14,7 @@ namespace AnnouncmentHub.Service
 
         public AnnouncementRepository(IConfiguration config)
         {
-            _connectionString = config.GetConnectionString("DefaultConnection");
+            _connectionString = config.GetConnectionString("AnnouncmentHubConStr");
         }
         public async Task<AnnouncementSearchResult> GetAnnouncementsDynamic(
     string title,
@@ -55,7 +55,8 @@ namespace AnnouncmentHub.Service
             dp.Add("IsRandom", isRandom); 
 
             using var multi = await conn.QueryMultipleAsync(
-                "SearchAnnouncementsDynamic9999",
+                "SearchAnnouncementsDynamic9999_Optimized",
+                //"SearchAnnouncementsDynamic9999",
                 dp,
                 commandType: CommandType.StoredProcedure,
                 commandTimeout: 30
