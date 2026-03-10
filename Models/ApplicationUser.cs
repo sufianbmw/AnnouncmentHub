@@ -14,6 +14,8 @@ namespace AnnouncmentHub.Models
         [Display(Name = "Profile Picture")]
         public byte[]? ProfilePic { get; set; }
 
+        // Optional: Helper property for full name
+        public string FullName => $"{FName} {LName}";
 
     }
 }
