@@ -1,0 +1,113 @@
+﻿@model IEnumerable<UserViewModel>
+
+@{ ViewData["Title"] = "المستخدمين"; }
+
+<a asp-action="AddUser" class="btn btn-primary">
+    <i class="fas fa-user-plus"></i>
+    مستخدم جديد</a>
+
+<div asp-validation-summary="All" class="text-danger"></div>
+
+<div id="alert" class="alert alert-success alert-dismissible fade show mt-4 d-none" role="alert">
+    <strong>User Deleted ... !</strong>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+<div id="issue" class="alert alert-danger alert-dismissible fade show mt-4 d-none" role="alert">
+    <strong>Something Wrong when User Deleted ... !</strong>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
+<table class="table table-striped mt-4 text-center">
+    <thead>
+        <tr class="bg-primary text-white">
+            <th>الاسم</th>
+            <th class="d-none d-lg-table-cell">اسم المستخدم</th>
+            <th class="d-none d-lg-table-cell">حالة الحساب</th>
+@*            <th class="d-none d-lg-table-cell">الصلاحية</th>
+*@            <th>العمليات</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+        <tr>
+            <td class="font-weight-bold text-left">
+                <a class="text-decoration-none" asp-action="Edit" asp-route-userId="@user.Id">
+
+                    @{ var Fullname = (string.IsNullOrEmpty(user.FName) ? " الاســم " : user.FName) + "  " + (string.IsNullOrEmpty(user.LName) ? " غير مدخل " : user.LName); }
+                    @Fullname
+                </a>
+            </td>
+            <td class="d-none d-lg-table-cell">
+
+                <a href="MailTo:@user.Email">
+                    <i class="fas fa-mail-bulk"></i> @user.UserName
+                </a>
+
+            </td>
+
+            <td class="d-none d-lg-table-cell text-center">
+
+                <input asp-for="@user.UserStatus" disabled="disabled" />
+            </td>
+       
+@*            <td class="d-none d-lg-table-cell text-center text-danger"> @string.Join(" , ", user.Roles.ToList()) </td>
+*@         
+            <td>
+                <a class="btn btn-danger" asp-controller="Users" asp-action="Delete" asp-route-userId="@user.Id"><i class="fas fa-trash"></i> </a>
+                <a href="javascript:;" data-id="@user.Id" class="btn btn-danger js-delete d-none">
+                    <i class="fas fa-trash"></i>
+                    مباشر
+                </a>
+                <a class="btn btn-primary" asp-controller="Users" asp-action="ManageRoles" asp-route-userId="@user.Id">
+                    <i class="fas fa-user-alt-slash"></i>
+                    أدارة الادوار
+                </a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+@section Scripts{
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(
+            function () {
+                $('.js-delete').on('click', function () {
+                    var btn = $(this);
+                    bootbox.confirm({
+                        message: "Are You Sure Needed To Delete This User...",
+                        buttons: {
+                            confirm: {
+                                label: 'Yes',
+                                className: 'btn-danger'
+                            },
+                            cancel: {
+                                label: 'No',
+                                className: 'btn-secondary'
+                            }
+                        },
+                        callback: function (result) {
+                            if (result) {
+                                $.ajax({
+                                    url: '/api/users/?userId=' + btn.data('id'),
+                                    method: 'DELETE',
+                                    success: function () {
+                                        btn.parents('tr').fadeOut();
+                                        $('#alert').removeClass('d-none');
+                                        setTimeout(function () { $('#alert').addClass('d-none'); }, 3000);
+                                    },
+                                    error: function () {
+                                        $('#issue').removeClass('d-none');
+                                        setTimeout(function () { $('#issue').addClass('d-none'); }, 3000);
+                                    }
+                                });
+                            }
+                        }
+                    });
+
+                });
+            });
+
+    </script>
+} 

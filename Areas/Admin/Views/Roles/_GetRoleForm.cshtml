@@ -1,0 +1,10 @@
+﻿@model List<RoleFormViewModel>
+
+@*<form method="get" asp-controller="Roles" asp-action="GetRole" class="shadow-lg p-3 m-5 bg-white rounded">*@
+
+  @foreach (RoleFormViewModel item in Model)
+  {
+   <p class="text-muted h1">- @item.DisplayName .</p>
+  }
+
+@*</form>*@

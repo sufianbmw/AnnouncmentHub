@@ -1,0 +1,61 @@
+﻿@model ProfileFormViewModel
+@{
+    ViewData["Title"] = "تعديل الحساب ";
+}
+
+<form asp-action="Edit" method="post" class="shadow-lg p-3 m-5 bg-white rounded">
+    <h4 class="text-center text-primary">
+        <i class="fas fa-edit"></i>
+        تعديل بيانات الحساب 
+    </h4>
+    <hr />
+    <input type="hidden" asp-for="Id" />
+    <div class="form-group">
+        <label asp-for="FName"></label>
+        <input asp-for="FName" class="form-control" />
+        <span asp-validation-for="FName" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="LName"></label>
+        <input asp-for="LName" class="form-control" />
+        <span asp-validation-for="LName" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Email"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="UserName"></label>
+        <input asp-for="UserName" class="form-control" />
+        <span asp-validation-for="UserName" class="text-danger"></span>
+    </div> 
+ 
+    <div class="form-group form-check pr-5">
+       
+        <label asp-for="UserStatus">
+            <input class="form-check-input" asp-for="UserStatus" />
+
+            @Html.DisplayNameFor(m => m.UserStatus)
+
+        </label>
+     
+    </div>
+
+    <hr />
+    <div class="form-group text-center">
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i>
+            حفظ
+        </button> |
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-alt-circle-left"></i>
+
+            رجوع
+        </a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

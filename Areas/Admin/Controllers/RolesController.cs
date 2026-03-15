@@ -10,9 +10,10 @@ using AnnouncmentHub.Data;
 using AnnouncmentHub.Models;
 using AnnouncmentHub.ViewModels;
 
-namespace WestrenPolutary.Controllers
+namespace AnnouncmentHub.Areas.Admin.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Area("Admin")]
+    //[Authorize(Roles = "Admin")]
     public class RolesController : Controller
     {
         private readonly RoleManager<ApplicationRole> _rolemanager;

@@ -1,0 +1,136 @@
+﻿@model AddUserViewModel
+@{
+    ViewData["Title"] = "👤 مستخدم جديد";
+}
+
+<div class="container">
+    <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-header bg-primary text-white text-center rounded-top-4 py-3">
+            <h4 class="mb-0">
+                <i class="fas fa-user-plus me-2"></i> 👤 إضافة مستخدم جديد
+            </h4>
+        </div>
+
+        <div class="card-body bg-light">
+
+                <form asp-action="AddUser" method="post" class="needs-validation shadow-lg p-3 m-2 bg-white rounded mb-5" novalidate>
+
+                @Html.AntiForgeryToken()
+
+                <!-- 👥 User Basic Info -->
+                <h5 class="text-secondary fw-bold mb-3">🧾 بيانات المستخدم الأساسية</h5>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="FName" class="form-label fw-bold">🪪 الاسم الأول</label>
+                        <input asp-for="FName" class="form-control" placeholder="اكتب الاسم الأول" />
+                        <span asp-validation-for="FName" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="LName" class="form-label fw-bold">🪪 الاسم الأخير</label>
+                        <input asp-for="LName" class="form-control" placeholder="اكتب الاسم الأخير" />
+                        <span asp-validation-for="LName" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Email" class="form-label fw-bold">📧 البريد الإلكتروني</label>
+                        <input asp-for="Email" class="form-control" placeholder="example@email.com" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="UserName" class="form-label fw-bold">👨‍💻 اسم المستخدم</label>
+                        <input asp-for="UserName" class="form-control" placeholder="اسم المستخدم" />
+                        <span asp-validation-for="UserName" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- 🔐 Password Section -->
+                <h5 class="text-secondary fw-bold mt-4 mb-3">🔐 إعداد كلمة المرور</h5>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="Password" class="form-label fw-bold">🔑 كلمة المرور</label>
+                        <input asp-for="Password" class="form-control" type="password" placeholder="********" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="ConfirmPassword" class="form-label fw-bold">🔁 تأكيد كلمة المرور</label>
+                        <input asp-for="ConfirmPassword" class="form-control" type="password" placeholder="أعد إدخال كلمة المرور" />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- 🚦 User Status -->
+                <div class="form-check form-switch mt-4">
+                    <input asp-for="UserStatus" class="form-check-input" type="checkbox" id="UserStatus" />
+                    <label asp-for="UserStatus" class="form-check-label fw-bold">
+                        🟢 الحساب مفعل
+                    </label>
+                </div>
+
+                <!-- 🛡️ Roles Section -->
+                <div class="card border-primary mt-4">
+                    <div class="card-header bg-primary bg-opacity-10 text-primary fw-bold">
+                        🛡️ الصلاحيات (Roles)
+                    </div>
+                    <div class="card-body row row-cols-2 row-cols-md-3">
+                        @for (int i = 0; i < Model.Roles.Count; i++)
+                        {
+                            <div class="form-check mb-2 col">
+                                <input type="hidden" asp-for="Roles[i].RoleId" />
+                                <input type="hidden" asp-for="Roles[i].RoleName" />
+                                <input type="hidden" asp-for="Roles[i].DisplayName" />
+                                <!-- 👇 Checkbox with unique id -->
+                                <input asp-for="Roles[i].IsSelected"
+                                       id="role{@i}"
+                                       class="form-check-input me-2"
+                                       style="cursor: pointer;" />
+
+                                <!-- 👇 Label linked by id -->
+                                <label for="role{@i}"
+                                       class="form-check-label fw-semibold text-dark"
+                                       style="cursor: pointer;">
+                                    🔸 @Model.Roles[i].DisplayName
+                                </label>
+                            </div>
+                        }
+                        <span asp-validation-for="Roles" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- 💾 Buttons -->
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-success px-4 me-2">
+                        💾 حفظ المستخدم
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                        ↩️ رجوع
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // 🚨 Bootstrap client-side validation (for style only)
+        (() => {
+            'use strict'
+            const forms = document.querySelectorAll('.needs-validation')
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+    </script>
+}

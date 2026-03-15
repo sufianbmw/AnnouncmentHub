@@ -6,9 +6,10 @@ using AnnouncmentHub.Data;
 using AnnouncmentHub.Models;
 using AnnouncmentHub.ViewModels;
 
-namespace AnnouncmentHub.Controllers
+namespace AnnouncmentHub.Areas.Admin.Controllers
 {
-   // [Authorize(Roles = "Admin")]
+    // [Authorize(Roles = "Admin")]
+    [Area("Admin")]
     public class UsersController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -372,7 +373,7 @@ namespace AnnouncmentHub.Controllers
                 LName = user.LName,
                 UserName = user.UserName,
                 Email = user.Email,
-                UserStatus = (bool)user.UserStatus
+                UserStatus = user.UserStatus
                 //,BrancheId = (user.BranchesId != null ? (Guid)user.BranchesId : Guid.Empty)
 
             };
@@ -399,7 +400,7 @@ namespace AnnouncmentHub.Controllers
                     LName = user.LName,
                     UserName = user.UserName,
                     Email = user.Email,
-                    UserStatus = (bool)user.UserStatus
+                    UserStatus = user.UserStatus
                    //,BrancheId = (user.BranchesId != null ? (Guid)user.BranchesId : Guid.Empty)
                 };
                 //var branchslst = _context.Branches.ToList();

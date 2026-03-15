@@ -1,0 +1,46 @@
+﻿@model UserRolesViewModel
+
+@{ 
+    ViewData["Title"] = "أدارة الصلاحيات";
+}
+<form method="post" class="m-4">
+    <div class="card mt-4">
+        <div class="card-header">
+            اضافة/حذف الصلاحيات
+            <hr />
+            <h4 class=".text-secondary">
+                <i class="fas fa-user-alt"></i>
+                المستخدم :
+                @Model.UserName
+            </h4>
+        </div>
+        <div class="card-body">
+            <input type="hidden" asp-for="UserId" />
+            @for (int i = 0; i < Model.Roles.Count; i++)
+            {
+                <div class="form-check m-1">
+                    <input type="hidden" asp-for="@Model.Roles[i].RoleName" />
+                    <input asp-for="@Model.Roles[i].IsSelected" class="form-check-input" />
+                    <label class="form-check-label" asp-for="@Model.Roles[i].IsSelected">
+                        @Model.Roles[i].DisplayName
+                    </label>
+                </div>
+            }
+            <div asp-validation-summary="All" class="text-danger">
+
+            </div>
+            <div class="card-footer text-center">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    حفظ
+                </button>
+                |
+                <a asp-action="Index" class="btn btn-primary">
+                    <i class="fas fa-arrow-alt-circle-left"></i>
+                    الغاء
+                </a>
+            </div>
+        </div>
+
+    </div>
+</form>
