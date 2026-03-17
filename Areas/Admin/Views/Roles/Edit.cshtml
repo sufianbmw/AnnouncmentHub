@@ -1,0 +1,39 @@
+﻿@model RoleViewModel
+@{
+    ViewData["Title"] = "تعديل الدور";
+}
+<h4 class="m-4">تعديل الدور</h4>
+<hr />
+<form asp-action="Edit" method="post" class="shadow-lg p-3 m-5 bg-white rounded">
+    <h5>
+        <i class="fas fa-edit"></i>
+
+        بيانات الدور للتعديل
+    </h5>
+    <hr />
+    <input type="hidden" asp-for="RoleId" />
+    <div class="form-group">
+        <label asp-for="RoleName"></label>
+        <input asp-for="RoleName" class="form-control" />
+        <span asp-validation-for="RoleName" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="DisplayName"></label>
+        <input asp-for="DisplayName" class="form-control" />
+        <span asp-validation-for="DisplayName" class="text-danger"></span>
+    </div>
+    <hr />
+    <div class="form-group text-center">
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i>
+            حفظ
+        </button> |
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-alt-circle-left"></i>
+        رجوع </a>
+    </div>
+</form>
+
+    @section Scripts {
+        @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    }

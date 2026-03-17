@@ -1,0 +1,143 @@
+﻿@model IEnumerable<UserViewModel>
+@using System.Linq
+
+@{
+    ViewData["Title"] = "إدارة المستخدمين";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="text-primary">
+        👥 إدارة المستخدمين
+    </h3>
+    <a asp-action="AddUser" class="btn btn-primary shadow-sm">
+        <i class="fas fa-user-plus"></i>
+        مستخدم جديد
+    </a>
+</div>
+
+<!-- Alerts -->
+<div id="alert" class="alert alert-success alert-dismissible fade show mt-4 d-none" role="alert">
+    ✅ تم حذف المستخدم بنجاح
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+<div id="issue" class="alert alert-danger alert-dismissible fade show mt-4 d-none" role="alert">
+    ⚠️ حدث خطأ أثناء حذف المستخدم
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
+<div class="table-responsive shadow-sm rounded-3">
+    <table class="table align-middle table-hover text-center mb-0">
+        <thead class="table-primary">
+            <tr>
+                <th>#️⃣</th>
+                <th>👤 الاسم الكامل</th>
+                <th class="d-none d-lg-table-cell">📧 اسم المستخدم</th>
+                <th class="d-none d-lg-table-cell">🎭 الأدوار</th>
+                <th class="d-none d-lg-table-cell">🔒 حالة الحساب</th>
+                <th>⚙️ العمليات</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                int rowNumber = 1;
+            }
+
+            @foreach (var user in Model)
+            {
+                var fullname = $"{(string.IsNullOrEmpty(user.FName) ? "الاســم" : user.FName)} {(string.IsNullOrEmpty(user.LName) ? "غير مدخل" : user.LName)}";
+                var hasRoles = user.Roles != null && user.Roles.Count > 0;
+                var roles = hasRoles ? user.Roles.ToList() : new List<string>();
+
+                <tr>
+                    <!-- #️⃣ -->
+                    <td>@rowNumber</td>
+
+                    <!-- 👤 Full name -->
+                    <td class="fw-semibold text-start">
+                        <a class="text-decoration-none text-dark" asp-action="Edit" asp-route-userId="@user.Id">
+                            <i class="fas fa-user-circle text-primary"></i> @fullname
+                        </a>
+                    </td>
+
+                    <!-- 📧 Username -->
+                    <td class="d-none d-lg-table-cell text-secondary">
+                        <a href="mailto:@user.Email" class="text-decoration-none">
+                            <i class="fas fa-envelope text-primary"></i> @user.UserName
+                        </a>
+                    </td>
+
+                    <!-- 🎭 Roles -->
+                    <td class="d-none d-lg-table-cell">
+                        @if (hasRoles)
+                        {
+                            foreach (var role in roles)
+                            {
+                                var badgeClass = role switch
+                                {
+                                    "Admin" => "bg-danger",
+                                    "Manager" => "bg-warning text-dark",
+                                    "Editor" => "bg-info text-dark",
+                                    "User" => "bg-success",
+                                    _ => "bg-secondary"
+                                };
+
+                                <span class="badge @badgeClass m-1 px-3 py-2 shadow-sm">@role</span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="text-muted">— لا توجد صلاحيات —</span>
+                        }
+                    </td>
+
+                    <!-- 🔒 Status -->
+                    <td class="d-none d-lg-table-cell">
+                        @if (user.UserStatus)
+                        {
+                            <span class="badge bg-success px-3 py-2">🟢 مفعل</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger px-3 py-2">🔴 موقوف</span>
+                        }
+                    </td>
+
+                    <!-- ⚙️ Actions -->
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a class="btn btn-outline-secondary btn-sm"
+                               asp-action="Edit" asp-route-userId="@user.Id"
+                               data-bs-toggle="tooltip" title="تعديل المستخدم">
+                                <i class="fas fa-edit"></i>
+                            </a>
+
+                            <a class="btn btn-outline-primary btn-sm"
+                               asp-controller="Users" asp-action="ManageRoles" asp-route-userId="@user.Id"
+                               data-bs-toggle="tooltip" title="إدارة الأدوار">
+                                <i class="fas fa-user-shield"></i>
+                            </a>
+
+                            <a asp-action="Delete" asp-route-UserId="@user.Id"
+                               class="btn btn-outline-danger btn-sm"
+                               data-bs-toggle="tooltip" title="حذف المستخدم">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+
+                rowNumber++;
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Enable Bootstrap tooltips
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+            new bootstrap.Tooltip(el);
+        });
+    </script>
+}

@@ -1,0 +1,122 @@
+﻿@model ProfileFormViewModel
+@{
+    ViewData["Title"] = "تعديل بيانات المستخدم";
+}
+
+<div class="container mt-4 mb-5">
+    <div class="card shadow-lg border-0 rounded-3">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                ✏️ تعديل بيانات المستخدم
+            </h5>
+            <a asp-action="Index" class="btn btn-light btn-sm">
+                <i class="fas fa-arrow-left"></i> رجوع
+            </a>
+        </div>
+
+        <div class="card-body p-4">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <form asp-action="Edit" method="post" class="row bg-white rounded g-3">
+
+                <input type="hidden" asp-for="Id" />
+
+                <!-- الاسم الأول -->
+                <div class="col-md-6">
+                    <label asp-for="FName" class="form-label fw-bold">🧍 الاسم الأول</label>
+                    <input asp-for="FName" class="form-control" />
+                    <span asp-validation-for="FName" class="text-danger small"></span>
+                </div>
+
+                <!-- الاسم الأخير -->
+                <div class="col-md-6">
+                    <label asp-for="LName" class="form-label fw-bold">🧍‍♂️ الاسم الأخير</label>
+                    <input asp-for="LName" class="form-control" />
+                    <span asp-validation-for="LName" class="text-danger small"></span>
+                </div>
+
+                <!-- البريد الإلكتروني -->
+                <div class="col-md-6">
+                    <label asp-for="Email" class="form-label fw-bold">📧 البريد الإلكتروني</label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <!-- اسم المستخدم -->
+                <div class="col-md-6">
+                    <label asp-for="UserName" class="form-label fw-bold">👤 اسم المستخدم</label>
+                    <input asp-for="UserName" class="form-control" />
+                    <span asp-validation-for="UserName" class="text-danger small"></span>
+                </div>
+
+                <!-- حالة الحساب -->
+                <div class="col-12 mt-2">
+                    <div class="form-check">
+                        <input class="form-check-input" asp-for="UserStatus" />
+                        <label asp-for="UserStatus" class="form-check-label fw-bold">
+                            🔒 مفعل؟
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 🎭 Roles -->
+                <div class="col-12 mt-4">
+                    <div class="card border-info">
+                        <div class="card-header bg-info text-white">
+                            <i class="fas fa-user-shield"></i> الصلاحيات / الأدوار
+                        </div>
+                        <div class="card-body">
+                            @if (Model.Roles != null && Model.Roles.Any())
+                            {
+                                @for (int i = 0; i < Model.Roles.Count; i++)
+                                {
+                                    <div class="form-check form-check-inline mb-2">
+                                        <input type="hidden" asp-for="Roles[i].RoleId" />
+                                        <input type="hidden" asp-for="Roles[i].RoleName" />
+                                        <input type="hidden" asp-for="Roles[i].DisplayName" /> <!-- ✅ Add this line -->
+
+                                        <input class="form-check-input" asp-for="Roles[i].IsSelected" id="role_@i" />
+                                        <label class="form-check-label badge bg-light text-dark border p-2" for="role_@i">
+                                            🎭 @Model.Roles[i].DisplayName
+                                        </label>
+                                    </div>
+                                }
+                            }
+
+                            else
+                            {
+                                <span class="text-muted">لا توجد صلاحيات متاحة.</span>
+                            }
+                            <span asp-validation-for="Roles" class="text-danger small d-block mt-2"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="col-12 mt-4 text-center">
+                    <button type="submit" class="btn btn-success px-4">
+                        <i class="fas fa-save"></i> حفظ التعديلات
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary px-4 ms-2">
+                        <i class="fas fa-arrow-left"></i> رجوع
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+            new bootstrap.Tooltip(el);
+        });
+    </script>
+}

@@ -1,0 +1,11 @@
+﻿@model List<RoleFormViewModel>
+@{ 
+    ViewData["Title"] = "Roles List";
+}
+<div class="row">
+    @foreach (var item in Model)
+    {
+    <span>  @item.DisplayName .</span>
+    }
+
+</div>

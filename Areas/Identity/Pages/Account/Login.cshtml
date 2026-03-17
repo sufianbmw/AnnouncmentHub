@@ -1,50 +1,63 @@
 ﻿@page
 @model LoginModel
+
 @{
-    ViewData["Title"] = "تسجيل الدخول";
+    //https:///deepai.org/chat/ai-code#9f2a5367-ae7a-4339-9107-b846391bc360
+    ViewData["Title"] = "🚪 تسجيل الدخول";
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-5">
-            <div class="card shadow-lg border-0">
-                <div class="card-header bg-gradient text-white text-center" style="background: linear-gradient(45deg, #007bff, #0056b3);">
-                    <h4 class="mb-0">🔐 تسجيل الدخول</h4>
-                </div>
-                <div class="card-body p-4">
-                    <form method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-                        <div class="input-group mb-3">
-                            <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
-                            <input asp-for="Input.Email" class="form-control" placeholder="أدخل بريدك الإلكتروني" />
-                        </div>
-                        <span asp-validation-for="Input.Email" class="text-danger"></span>
-
-                        <div class="input-group mb-3">
-                            <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
-                            <input asp-for="Input.Password" class="form-control" placeholder="أدخل كلمة المرور" />
-                        </div>
-                        <span asp-validation-for="Input.Password" class="text-danger"></span>
-
-                        <div class="form-check mb-3">
-                            <input asp-for="Input.RememberMe" class="form-check-input" />
-                            <label asp-for="Input.RememberMe" class="form-check-label"></label>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-100 btn-lg">تسجيل الدخول</button>
-                    </form>
-                </div>
-                <div class="card-footer text-center bg-light">
-                    <a asp-page="./ForgotPassword" class="text-decoration-none me-2">نسيت كلمة المرور؟</a>
-                    <a asp-page="./Register" class="text-decoration-none me-2">إنشاء حساب جديد</a>
-                    <a asp-page="./ResendEmailConfirmation" class="text-decoration-none">إعادة إرسال تأكيد البريد</a>
-                </div>
+<div class="container d-flex align-items-center justify-content-center min-vh-100 bg-light">
+    <div class="card shadow-lg p-4" style="max-width: 500px; width: 100%;">
+        <h2 class="text-center mb-4">🔐 تسجيل الدخول</h2>
+        <p class="text-center mb-4 text-muted">مرحبًا بك! يرجى تسجيل الدخول للاستمرار.</p>
+        <form id="account" method="post" class="needs-validation" novalidate>
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <!-- البريد الإلكتروني -->
+            <div class="mb-3">
+                <label for="email" class="form-label">📧 البريد الإلكتروني</label>
+                <input asp-for="Input.Email" class="form-control" id="email" placeholder="name@example.com" required />
+                <div class="invalid-feedback">يرجى إدخال البريد الإلكتروني الخاص بك.</div>
             </div>
-        </div>
+            <!-- كلمة المرور -->
+            <div class="mb-3">
+                <label for="password" class="form-label">🔒 كلمة المرور</label>
+                <input asp-for="Input.Password" type="password" class="form-control" id="password" placeholder="كلمة المرور" required />
+                <div class="invalid-feedback">يرجى إدخال كلمة المرور.</div>
+            </div>
+            <!-- تذكرني -->
+            <div class="mb-3 form-check">
+                <input asp-for="Input.RememberMe" type="checkbox" class="form-check-input" id="rememberMe" />
+                <label class="form-check-label" for="rememberMe">📝 تذكرني</label>
+            </div>
+            <!-- زر تسجيل الدخول -->
+            <button type="submit" class="btn btn-primary w-100 mb-3">🚀 تسجيل الدخول</button>
+            <!-- روابط إضافية -->
+            <div class="d-flex flex-column align-items-center gap-2">
+                <a asp-page="./ForgotPassword" class="text-decoration-none text-secondary">❓ نسيت كلمة المرور؟</a>
+                <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="text-decoration-none text-secondary">📝 سجل كمستخدم جديد</a>
+                <a asp-page="./ResendEmailConfirmation" class="text-decoration-none text-secondary">✉️ إعادة إرسال تأكيد البريد الإلكتروني</a>
+            </div>
+        </form>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        // تفعيل التحقق من النموذج باستخدام Bootstrap
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+    </script>
 }
