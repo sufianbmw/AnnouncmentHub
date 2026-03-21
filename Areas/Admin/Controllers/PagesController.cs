@@ -2,6 +2,7 @@
 using AnnouncmentHub.Helpers;
 using AnnouncmentHub.Models;
 using AnnouncmentHub.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -10,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 namespace AnnouncmentHub.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin")]
     public class PagesController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment) : Controller
     {
         private readonly ApplicationDbContext _context = context;

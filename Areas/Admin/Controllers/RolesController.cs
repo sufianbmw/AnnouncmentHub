@@ -13,7 +13,7 @@ using AnnouncmentHub.ViewModels;
 namespace AnnouncmentHub.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     public class RolesController : Controller
     {
         private readonly RoleManager<ApplicationRole> _rolemanager;

@@ -8,7 +8,7 @@ using AnnouncmentHub.ViewModels;
 
 namespace AnnouncmentHub.Areas.Admin.Controllers
 {
-    // [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     [Area("Admin")]
     public class UsersController : Controller
     {

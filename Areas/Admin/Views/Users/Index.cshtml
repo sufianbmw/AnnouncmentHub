@@ -5,29 +5,31 @@
     ViewData["Title"] = "إدارة المستخدمين";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h3 class="text-primary">
-        👥 إدارة المستخدمين
-    </h3>
-    <a asp-action="AddUser" class="btn btn-primary shadow-sm">
-        <i class="fas fa-user-plus"></i>
-        مستخدم جديد
-    </a>
-</div>
+<h3 class="text-primary text-center">
+    👥 إدارة المستخدمين
+</h3>
+<div class="card m-3 p-3">
+    <p class="d-flex justify-content-end">
+   
+        <a asp-action="AddUser" class="btn btn-primary shadow-sm">
+            <i class="fas fa-user-plus"></i>
+            مستخدم جديد
+        </a>
+    </p>
 
-<!-- Alerts -->
-<div id="alert" class="alert alert-success alert-dismissible fade show mt-4 d-none" role="alert">
-    ✅ تم حذف المستخدم بنجاح
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
-<div id="issue" class="alert alert-danger alert-dismissible fade show mt-4 d-none" role="alert">
-    ⚠️ حدث خطأ أثناء حذف المستخدم
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
-
+    <!-- Alerts -->
+    <div id="alert" class="alert alert-success alert-dismissible fade show mt-4 d-none" role="alert">
+        ✅ تم حذف المستخدم بنجاح
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div id="issue" class="alert alert-danger alert-dismissible fade show mt-4 d-none" role="alert">
+        ⚠️ حدث خطأ أثناء حذف المستخدم
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
 <div class="table-responsive shadow-sm rounded-3">
-    <table class="table align-middle table-hover text-center mb-0">
-        <thead class="table-primary">
+        <table class="table table-bordered table-striped table-hover table-sm">
+            <thead class="table-dark">
+ 
             <tr>
                 <th>#️⃣</th>
                 <th>👤 الاسم الكامل</th>
@@ -48,26 +50,45 @@
                 var hasRoles = user.Roles != null && user.Roles.Count > 0;
                 var roles = hasRoles ? user.Roles.ToList() : new List<string>();
 
-                <tr>
-                    <!-- #️⃣ -->
-                    <td>@rowNumber</td>
+                    <tr class="align-middle">
+                        <!-- #️⃣ -->
+                    <td>
+                            <div class="w-100 d-flex justify-content-center">
+                                <span>
+                        @rowNumber
+                                </span>
+
+                            </div>
+                    </td>
 
                     <!-- 👤 Full name -->
                     <td class="fw-semibold text-start">
+                            <div class="w-100 d-flex justify-content-center">
+                                <span>
                         <a class="text-decoration-none text-dark" asp-action="Edit" asp-route-userId="@user.Id">
                             <i class="fas fa-user-circle text-primary"></i> @fullname
                         </a>
+                                </span>
+
+                            </div>
                     </td>
 
                     <!-- 📧 Username -->
                     <td class="d-none d-lg-table-cell text-secondary">
+                            <div class="w-100 d-flex justify-content-center">
+                                <span>
                         <a href="mailto:@user.Email" class="text-decoration-none">
                             <i class="fas fa-envelope text-primary"></i> @user.UserName
                         </a>
+                                </span>
+
+                            </div>
                     </td>
 
                     <!-- 🎭 Roles -->
                     <td class="d-none d-lg-table-cell">
+                            <div class="w-100 d-flex justify-content-center">
+                                <span>
                         @if (hasRoles)
                         {
                             foreach (var role in roles)
@@ -88,10 +109,15 @@
                         {
                             <span class="text-muted">— لا توجد صلاحيات —</span>
                         }
+                                </span>
+
+                            </div>
                     </td>
 
                     <!-- 🔒 Status -->
                     <td class="d-none d-lg-table-cell">
+                            <div class="w-100 d-flex justify-content-center">
+                                <span>
                         @if (user.UserStatus)
                         {
                             <span class="badge bg-success px-3 py-2">🟢 مفعل</span>
@@ -100,12 +126,17 @@
                         {
                             <span class="badge bg-danger px-3 py-2">🔴 موقوف</span>
                         }
+                                </span>
+
+                            </div>
                     </td>
 
                     <!-- ⚙️ Actions -->
                     <td>
-                        <div class="btn-group" role="group">
-                            <a class="btn btn-outline-secondary btn-sm"
+
+                            <div class="w-100 d-flex justify-content-center">
+                                <span>
+                                    <a class="btn btn-outline-secondary btn-sm"
                                asp-action="Edit" asp-route-userId="@user.Id"
                                data-bs-toggle="tooltip" title="تعديل المستخدم">
                                 <i class="fas fa-edit"></i>
@@ -122,6 +153,7 @@
                                data-bs-toggle="tooltip" title="حذف المستخدم">
                                 <i class="fas fa-trash-alt"></i>
                             </a>
+                                </span>
                         </div>
                     </td>
                 </tr>
@@ -131,7 +163,7 @@
         </tbody>
     </table>
 </div>
-
+</div>
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>

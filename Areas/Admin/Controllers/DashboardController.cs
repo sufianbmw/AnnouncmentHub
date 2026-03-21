@@ -22,11 +22,14 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
             var CategoryCounter = _context.Categories.Where(c => c.IsParent == true).Count();
             var SubCategoryCounter = _context.Categories.Where(c => c.IsParent == false).Count();
             var PagesCounter = _context.Pages.Count();
+            var UsersCounter = _context.Users.Count();
+
             ViewBag.AdsCount = AdsCounter;
             ViewBag.ClientCount = ClientCounter;
             ViewBag.CategoryCount = CategoryCounter;
             ViewBag.SubCategoryCount = SubCategoryCounter;
             ViewBag.pagesCount = PagesCounter;
+            ViewBag.UsersCount = UsersCounter;
             // 🚧 Skip authentication for now
             ViewData["Title"] = "لوحة التحكم";
             return View();
