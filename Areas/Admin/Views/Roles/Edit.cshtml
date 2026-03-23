@@ -2,6 +2,63 @@
 @{
     ViewData["Title"] = "تعديل الدور";
 }
+
+<div class="container py-4">
+
+    <!-- Page Header -->
+    <div class="card shadow-sm border-0 rounded-4 mb-4 p-4">
+        <div class="card-body text-center">
+            <h2 class="fw-bold text-primary mb-1">✏️ تعديل الدور</h2>
+            <p class="text-muted mb-0">قم بتحديث بيانات الدور / الصلاحية بشكل منظم وآمن 🔐</p>
+        </div>
+        <!-- Edit Form -->
+        <div class="shadow-lg border-0 rounded-4 p-4">
+            <div class="card-header bg-primary text-white fw-bold rounded-top-4">
+                🛠️ بيانات الدور للتعديل
+            </div>
+
+                <form asp-action="Edit" method="post">
+                    <input type="hidden" asp-for="RoleId" />
+
+                    <div class="form-floating mb-3">
+                        <input asp-for="RoleName" class="form-control rounded-3" placeholder="اسم الدور" />
+                        <label asp-for="RoleName">🛡️ اسم الدور</label>
+                        <span asp-validation-for="RoleName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-floating mb-4">
+                        <input asp-for="DisplayName" class="form-control rounded-3" placeholder="وصف الصلاحية" />
+                        <label asp-for="DisplayName">📝 وصف الصلاحية</label>
+                        <span asp-validation-for="DisplayName" class="text-danger small"></span>
+                    </div>
+
+                    <hr />
+
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill px-4 fw-bold">
+                            💾 حفظ التعديلات
+                        </button>
+
+                        <a asp-action="Index" class="btn btn-outline-secondary btn-lg rounded-pill px-4 fw-bold">
+                            🔙 رجوع
+                        </a>
+                    </div>
+                </form>
+        </div>
+    </div>
+
+
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+@* @model RoleViewModel
+@{
+    ViewData["Title"] = "تعديل الدور";
+}
 <h4 class="m-4">تعديل الدور</h4>
 <hr />
 <form asp-action="Edit" method="post" class="shadow-lg p-3 m-5 bg-white rounded">
@@ -37,3 +94,4 @@
     @section Scripts {
         @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     }
+ *@

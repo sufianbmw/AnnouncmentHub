@@ -30,3 +30,29 @@ footer {
     border-top: 3px solid #e74c3c;
     font-size: 0.9rem;
 }
+.navbar .nav-link {
+    transition: all 0.2s ease-in-out;
+}
+
+    .navbar .nav-link:hover {
+        opacity: 0.9;
+    }
+
+.dropdown-menu {
+    min-width: 230px;
+}
+
+.dropdown-item {
+    border-radius: 10px;
+    margin: 2px 6px;
+    transition: all 0.2s ease-in-out;
+}
+
+    .dropdown-item:hover {
+        background-color: #f8f9fa;
+        transform: translateX(-2px);
+    }
+
+.dropdown-toggle::after {
+    margin-right: .4rem;
+}

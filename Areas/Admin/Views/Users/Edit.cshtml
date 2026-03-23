@@ -64,7 +64,36 @@
                         </label>
                     </div>
                 </div>
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm rounded-4 mt-2">
+                        <div class="card-header bg-warning fw-bold text-dark">
+                            🔑 تغيير كلمة المرور
+                        </div>
+                        <div class="card-body row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="NewPassword" class="form-control" placeholder="كلمة المرور الجديدة" />
+                                    <label asp-for="NewPassword">🔐 كلمة المرور الجديدة</label>
+                                    <span asp-validation-for="NewPassword" class="text-danger small"></span>
+                                </div>
+                            </div>
 
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="ConfirmPassword" class="form-control" placeholder="تأكيد كلمة المرور" />
+                                    <label asp-for="ConfirmPassword">✅ تأكيد كلمة المرور</label>
+                                    <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <small class="text-muted">
+                                    اترك الحقول فارغة إذا كنت لا تريد تغيير كلمة المرور.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <!-- 🎭 Roles -->
                 <div class="col-12 mt-4">
                     <div class="card border-info">

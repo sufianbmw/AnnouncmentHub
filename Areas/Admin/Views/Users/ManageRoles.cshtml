@@ -1,46 +1,92 @@
 ﻿@model UserRolesViewModel
 
-@{ 
-    ViewData["Title"] = "أدارة الصلاحيات";
+@{
+    ViewData["Title"] = "إدارة الصلاحيات";
 }
-<form method="post" class="m-4">
-    <div class="card mt-4">
-        <div class="card-header">
-            اضافة/حذف الصلاحيات
-            <hr />
-            <h4 class=".text-secondary">
-                <i class="fas fa-user-alt"></i>
-                المستخدم :
-                @Model.UserName
-            </h4>
-        </div>
-        <div class="card-body">
-            <input type="hidden" asp-for="UserId" />
-            @for (int i = 0; i < Model.Roles.Count; i++)
-            {
-                <div class="form-check m-1">
-                    <input type="hidden" asp-for="@Model.Roles[i].RoleName" />
-                    <input asp-for="@Model.Roles[i].IsSelected" class="form-check-input" />
-                    <label class="form-check-label" asp-for="@Model.Roles[i].IsSelected">
-                        @Model.Roles[i].DisplayName
-                    </label>
-                </div>
-            }
-            <div asp-validation-summary="All" class="text-danger">
 
+<div class="container py-4">
+
+    <!-- Header -->
+    <div class="card shadow-sm border-0 rounded-4 mb-4">
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h2 class="fw-bold text-primary mb-1">🎭 إدارة الصلاحيات</h2>
+                <p class="text-muted mb-0">إضافة أو حذف صلاحيات المستخدم بسهولة ✨</p>
             </div>
-            <div class="card-footer text-center">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i>
-                    حفظ
+            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill">
+                🔙 رجوع
+            </a>
+        </div>
+    </div>
+
+    <form method="post">
+        <div class="card shadow-lg border-0 rounded-4">
+
+            <!-- Card Header -->
+            <div class="card-header bg-primary text-white rounded-top-4 py-3">
+                <h4 class="mb-0 fw-bold">
+                    👤 المستخدم: <span class="text-warning">@Model.UserName</span>
+                </h4>
+            </div>
+
+            <!-- Card Body -->
+            <div class="card-body p-4">
+
+                <input type="hidden" asp-for="UserId" />
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-dark">🛡️ اختر الصلاحيات المناسبة للمستخدم</label>
+                </div>
+
+                @if (Model.Roles != null && Model.Roles.Any())
+                {
+                    <div class="row g-3">
+                        @for (int i = 0; i < Model.Roles.Count; i++)
+                        {
+                            <div class="col-md-4 col-sm-6">
+                                <div class="card border-0 shadow-sm h-100 rounded-4 role-card">
+                                    <div class="card-body">
+                                        <input type="hidden" asp-for="@Model.Roles[i].RoleName" />
+
+                                        <div class="form-check form-switch">
+                                            <input asp-for="@Model.Roles[i].IsSelected"
+                                                   class="form-check-input"
+                                                   id="role_@i" />
+
+                                            <label class="form-check-label fw-bold ms-2" for="role_@i">
+                                                🎭 @Model.Roles[i].DisplayName
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning rounded-3">
+                        😕 لا توجد صلاحيات متاحة لهذا المستخدم.
+                    </div>
+                }
+
+                <div asp-validation-summary="All" class="text-danger mt-3 fw-bold"></div>
+            </div>
+
+            <!-- Card Footer -->
+            <div class="card-footer bg-light text-center py-3 rounded-bottom-4">
+                <button type="submit" class="btn btn-success btn-lg rounded-pill px-4 fw-bold">
+                    💾 حفظ
                 </button>
-                |
-                <a asp-action="Index" class="btn btn-primary">
-                    <i class="fas fa-arrow-alt-circle-left"></i>
-                    الغاء
+
+                <a asp-action="Index" class="btn btn-outline-secondary btn-lg rounded-pill px-4 fw-bold ms-2">
+                    ❌ إلغاء
                 </a>
             </div>
         </div>
+    </form>
+</div>
 
-    </div>
-</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

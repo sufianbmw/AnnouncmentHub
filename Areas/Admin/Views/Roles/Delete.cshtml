@@ -1,5 +1,82 @@
 ﻿@model RoleViewModel
 
+@{
+    ViewData["Title"] = "حذف الأدوار";
+}
+
+<div class="container py-4">
+
+    <!-- Header -->
+    <div class="card shadow-sm border-0 rounded-4 mb-4">
+        <div class="card-body text-center">
+            <h2 class="fw-bold text-danger mb-1">🗑️ حذف الدور</h2>
+            <p class="text-muted mb-0">يرجى مراجعة البيانات جيدًا قبل تأكيد الحذف ⚠️</p>
+        </div>
+    </div>
+
+    <!-- Delete Card -->
+    <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-header bg-danger text-white fw-bold rounded-top-4">
+            ⚠️ تأكيد حذف الدور / الصلاحية
+        </div>
+
+        <div class="card-body p-4">
+
+            <div class="alert alert-warning rounded-3 text-center fw-bold">
+                هل أنت متأكد من حذف هذا الدور؟ 🚨
+            </div>
+
+            <div class="row g-3 mt-2">
+
+                <div class="col-md-6">
+                    <div class="p-3 bg-light rounded-4 border h-100">
+                        <label class="text-muted small mb-1">🛡️ اسم الدور</label>
+                        <div class="fw-bold fs-5 text-dark">
+                            @Html.DisplayFor(model => model.RoleName)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="p-3 bg-light rounded-4 border h-100">
+                        <label class="text-muted small mb-1">📝 وصف الصلاحية</label>
+                        <div class="fw-bold fs-5 text-dark">
+                            @Html.DisplayFor(model => model.DisplayName)
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <form asp-action="Delete" method="post" class="mt-4">
+                <input type="hidden" asp-for="RoleId" />
+
+                @if (TempData["ErorrMessage"] != null)
+                {
+                    <div id="alert" class="alert alert-danger alert-dismissible fade show rounded-3 mb-4" role="alert">
+                        <strong>❌ @TempData["ErorrMessage"]</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <hr />
+
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <button type="submit" class="btn btn-danger btn-lg rounded-pill px-4 fw-bold">
+                        🗑️ تأكيد الحذف
+                    </button>
+
+                    <a asp-action="Index" class="btn btn-outline-primary btn-lg rounded-pill px-4 fw-bold">
+                        🔙 رجوع
+                    </a>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+@* @model RoleViewModel
+
 
 @{
     ViewData["Title"] = "حذف الادوار";
@@ -58,3 +135,4 @@
 </div>
 
 
+ *@

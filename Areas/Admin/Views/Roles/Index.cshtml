@@ -1,4 +1,102 @@
 ﻿@model IEnumerable<ApplicationRole>
+
+@{
+    ViewData["Title"] = "إدارة الأدوار / الصلاحيات";
+}
+
+<div class="container py-4">
+
+    <!-- Page Header -->
+    <div class="card shadow-sm border-0 rounded-4 mb-1">
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h4 class="fw-bold text-primary mb-1">🔐 إدارة الأدوار / الصلاحيات</h4>
+            </div>
+            <div class="mt-2 mt-md-0">
+                <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill">
+                    👥 عدد الأدوار: @Model.Count()
+                </span>
+            </div>
+        </div>
+        <hr />
+        <partial name="_RoleForm" model="new RoleFormViewModel()" />
+
+    </div>
+
+ 
+
+    <!-- Roles Table -->
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-header bg-primary text-white fw-bold">
+            📋 قائمة الأدوار والصلاحيات
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="fw-bold">🛡️ الدور / الصلاحية</th>
+                            <th class="fw-bold">📝 وصف الصلاحية</th>
+                            <th class="fw-bold">⚙️ العمليات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var role in Model)
+                            {
+                                <tr class="shadow-sm">
+                                    <td>
+                                        <span class="badge bg-info text-dark px-3 py-2 rounded-pill fs-6">
+                                            @role.Name
+                                        </span>
+                                    </td>
+                                    <td class="text-muted fw-semibold">
+                                        @role.DisplayName
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                            <a class="btn btn-outline-primary rounded-pill px-3"
+                                               asp-controller="Roles"
+                                               asp-action="Edit"
+                                               asp-route-roleId="@role.Id">
+                                                ✏️ تعديل
+                                            </a>
+
+                                            <a class="btn btn-outline-danger rounded-pill px-3"
+                                               asp-controller="Roles"
+                                               asp-action="Delete"
+                                               asp-route-roleId="@role.Id"
+                                               @* onclick="return confirm('⚠️ هل أنت متأكد من حذف هذه الصلاحية؟');" *@>
+                                                🗑️ حذف
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="3">
+                                    <div class="alert alert-warning rounded-3 mb-0">
+                                        😕 لا توجد أدوار مضافة حالياً
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+@* @model IEnumerable<ApplicationRole>
 @{
     ViewData["Title"] = "أدارة الادوار/الصلاحيات";
 }
@@ -8,11 +106,9 @@
 <hr />
 <partial name="_RoleForm" model="new RoleFormViewModel()" />
 <hr />
-@*<div id="partialZone"></div>*@
 <table class="table table-striped mt-5">
     <thead>
         <tr class="bg-primary text-white">
-            @*<th>معرف</th>*@
             <th>الدور /الصلاحية</th>
             <th>وصف الصلاحية</th>
             <th class="text-center">العمليات</th>
@@ -23,7 +119,6 @@
         @foreach (var role in Model)
         {
             <tr>
-                @*<td>@role.Id </td>*@
                 <td>@role.Name </td>
                 <td>@role.DisplayName </td>
                 <td class="text-center">
@@ -40,11 +135,4 @@
         }
     </tbody>
 </table>
-@section Scripts {
-@*<script>
-    $('#partialZone').load('/Roles/GetRole');
-
-</script>
-    <partial name="_ValidationScriptsPartial" />
-}*@
-}
+ *@

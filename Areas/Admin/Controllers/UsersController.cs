@@ -210,17 +210,16 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
             if (!ModelState.IsValid)
             {
                 var allErrors = ModelState
-           .Where(ms => ms.Value?.Errors.Count > 0)
-           .SelectMany(kvp => kvp.Value!.Errors
-               .Select(e => $"{kvp.Key}: {e.ErrorMessage}"))
-           .ToList();
+                    .Where(ms => ms.Value?.Errors.Count > 0)
+                    .SelectMany(kvp => kvp.Value!.Errors
+                        .Select(e => $"{kvp.Key}: {e.ErrorMessage}"))
+                    .ToList();
 
                 System.Diagnostics.Debug.WriteLine("❌ ModelState Errors:");
                 System.Diagnostics.Debug.WriteLine(string.Join("\n", allErrors));
-                // Step 1: get roles from DB (materialize them first)
+
                 var allRoles = await _rolemanager.Roles.ToListAsync();
 
-                // Step 2: build model roles in memory
                 model.Roles = allRoles.Select(r => new EditRoleViewModel
                 {
                     RoleId = r.Id,
@@ -233,28 +232,45 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
                 return View(model);
             }
 
-
             var user = await _usermanager.FindByIdAsync(model.Id);
             if (user == null)
                 return NotFound();
 
-            // Check duplicates
+            // Check duplicate email
             var userWithSameEmail = await _usermanager.FindByEmailAsync(model.Email);
             if (userWithSameEmail != null && userWithSameEmail.Id != model.Id)
             {
                 ModelState.AddModelError(nameof(model.Email), "هذا البريد الإلكتروني مستخدم بالفعل.");
-                return View(model);
             }
 
+            // Check duplicate username
             var userWithSameUserName = await _usermanager.FindByNameAsync(model.UserName);
             if (userWithSameUserName != null && userWithSameUserName.Id != model.Id)
             {
                 ModelState.AddModelError(nameof(model.UserName), "اسم المستخدم موجود مسبقًا.");
-                return View(model);
             }
+
+            // Check roles
             if (model.Roles == null || !model.Roles.Any(r => r.IsSelected))
             {
                 ModelState.AddModelError("Roles", "يجب اختيار صلاحية واحدة على الأقل للمستخدم!");
+            }
+
+            // If any validation failed after custom checks
+            if (!ModelState.IsValid)
+            {
+                var allRoles = await _rolemanager.Roles.ToListAsync();
+
+                model.Roles = allRoles.Select(r => new EditRoleViewModel
+                {
+                    RoleId = r.Id,
+                    RoleName = r.Name,
+                    DisplayName = r.DisplayName,
+                    IsSelected = model.Roles != null &&
+                                 model.Roles.Any(x => x.RoleName == r.Name && x.IsSelected)
+                }).ToList();
+
+                return View(model);
             }
 
             // Update basic info
@@ -270,10 +286,46 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
             {
                 foreach (var error in result.Errors)
                     ModelState.AddModelError(string.Empty, error.Description);
+
+                var allRoles = await _rolemanager.Roles.ToListAsync();
+                model.Roles = allRoles.Select(r => new EditRoleViewModel
+                {
+                    RoleId = r.Id,
+                    RoleName = r.Name,
+                    DisplayName = r.DisplayName,
+                    IsSelected = model.Roles != null &&
+                                 model.Roles.Any(x => x.RoleName == r.Name && x.IsSelected)
+                }).ToList();
+
                 return View(model);
             }
 
-            // ✅ Update user roles
+            // Change password if entered
+            if (!string.IsNullOrWhiteSpace(model.NewPassword))
+            {
+                var token = await _usermanager.GeneratePasswordResetTokenAsync(user);
+                var passwordResult = await _usermanager.ResetPasswordAsync(user, token, model.NewPassword);
+
+                if (!passwordResult.Succeeded)
+                {
+                    foreach (var error in passwordResult.Errors)
+                        ModelState.AddModelError(string.Empty, error.Description);
+
+                    var allRoles = await _rolemanager.Roles.ToListAsync();
+                    model.Roles = allRoles.Select(r => new EditRoleViewModel
+                    {
+                        RoleId = r.Id,
+                        RoleName = r.Name,
+                        DisplayName = r.DisplayName,
+                        IsSelected = model.Roles != null &&
+                                     model.Roles.Any(x => x.RoleName == r.Name && x.IsSelected)
+                    }).ToList();
+
+                    return View(model);
+                }
+            }
+
+            // Update user roles
             var userRoles = await _usermanager.GetRolesAsync(user);
             var selectedRoles = model.Roles.Where(r => r.IsSelected).Select(r => r.RoleName).ToList();
 
@@ -289,57 +341,59 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
             TempData["SuccessMessage"] = "✅ تم تعديل بيانات المستخدم والأدوار بنجاح.";
             return RedirectToAction(nameof(Index));
         }
-
-        //public async Task<IActionResult> Edit(string UserId)
-        //{
-        //    var user = await _usermanager.FindByIdAsync(UserId);
-        //    if (user == null)
-        //        return NotFound();
-        //    var ViewModel = new ProfileFormViewModel
-        //    {
-        //        Id = user.Id,
-        //        FName = user.FName,
-        //        LName = user.LName,
-        //        UserName = user.UserName,
-        //        Email = user.Email,
-        //        UserStatus = (bool)user.UserStatus
-        //    };
-
-        //    return View(ViewModel);
-        //}
-
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
         //public async Task<IActionResult> Edit(ProfileFormViewModel model)
         //{
-        //    //var branchslst = _context.Branches.ToList();
-        //    //branchslst.Insert(0, new Branches
-        //    //{
-        //    //    Id = Guid.Empty,
-        //    //    BranchName = "-- أختر --"
-        //    //});
-        //    //ViewBag.BrancheId = new SelectList(branchslst, "Id", "BranchName",model.BrancheId);
         //    if (!ModelState.IsValid)
+        //    {
+        //        var allErrors = ModelState
+        //   .Where(ms => ms.Value?.Errors.Count > 0)
+        //   .SelectMany(kvp => kvp.Value!.Errors
+        //       .Select(e => $"{kvp.Key}: {e.ErrorMessage}"))
+        //   .ToList();
+
+        //        System.Diagnostics.Debug.WriteLine("❌ ModelState Errors:");
+        //        System.Diagnostics.Debug.WriteLine(string.Join("\n", allErrors));
+        //        // Step 1: get roles from DB (materialize them first)
+        //        var allRoles = await _rolemanager.Roles.ToListAsync();
+
+        //        // Step 2: build model roles in memory
+        //        model.Roles = allRoles.Select(r => new EditRoleViewModel
+        //        {
+        //            RoleId = r.Id,
+        //            RoleName = r.Name,
+        //            DisplayName = r.DisplayName,
+        //            IsSelected = model.Roles != null &&
+        //                         model.Roles.Any(x => x.RoleName == r.Name && x.IsSelected)
+        //        }).ToList();
+
         //        return View(model);
+        //    }
 
 
         //    var user = await _usermanager.FindByIdAsync(model.Id);
         //    if (user == null)
         //        return NotFound();
 
-        //    var UserWithSameEmail = await _usermanager.FindByEmailAsync(model.Email);
-        //    if (UserWithSameEmail != null && UserWithSameEmail.Id != model.Id)
+        //    // Check duplicates
+        //    var userWithSameEmail = await _usermanager.FindByEmailAsync(model.Email);
+        //    if (userWithSameEmail != null && userWithSameEmail.Id != model.Id)
         //    {
-        //        ModelState.AddModelError("Email", "هذا البريد الالكتروني موجود مسبقا!...");
-        //        return View(model);
-        //    } 
-
-        //    var UserWithSameUserName = await _usermanager.FindByNameAsync(model.UserName);
-        //    if (UserWithSameUserName != null && UserWithSameUserName.Id != model.Id)
-        //    {
-        //        ModelState.AddModelError("UserName", "اسم المستخدم موجود مسبقا !...");
+        //        ModelState.AddModelError(nameof(model.Email), "هذا البريد الإلكتروني مستخدم بالفعل.");
         //        return View(model);
         //    }
+
+        //    var userWithSameUserName = await _usermanager.FindByNameAsync(model.UserName);
+        //    if (userWithSameUserName != null && userWithSameUserName.Id != model.Id)
+        //    {
+        //        ModelState.AddModelError(nameof(model.UserName), "اسم المستخدم موجود مسبقًا.");
+        //        return View(model);
+        //    }
+        //    if (model.Roles == null || !model.Roles.Any(r => r.IsSelected))
+        //    {
+        //        ModelState.AddModelError("Roles", "يجب اختيار صلاحية واحدة على الأقل للمستخدم!");
+        //    }
+
+        //    // Update basic info
         //    user.FName = model.FName;
         //    user.LName = model.LName;
         //    user.Email = model.Email;
@@ -347,10 +401,32 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
         //    user.UserStatus = model.UserStatus;
         //    user.EmailConfirmed = true;
 
-        //    await _usermanager.UpdateAsync(user);
+        //    var result = await _usermanager.UpdateAsync(user);
+        //    if (!result.Succeeded)
+        //    {
+        //        foreach (var error in result.Errors)
+        //            ModelState.AddModelError(string.Empty, error.Description);
+        //        return View(model);
+        //    }
 
+        //    // ✅ Update user roles
+        //    var userRoles = await _usermanager.GetRolesAsync(user);
+        //    var selectedRoles = model.Roles.Where(r => r.IsSelected).Select(r => r.RoleName).ToList();
+
+        //    var rolesToAdd = selectedRoles.Except(userRoles).ToList();
+        //    var rolesToRemove = userRoles.Except(selectedRoles).ToList();
+
+        //    if (rolesToAdd.Any())
+        //        await _usermanager.AddToRolesAsync(user, rolesToAdd);
+
+        //    if (rolesToRemove.Any())
+        //        await _usermanager.RemoveFromRolesAsync(user, rolesToRemove);
+
+        //    TempData["SuccessMessage"] = "✅ تم تعديل بيانات المستخدم والأدوار بنجاح.";
         //    return RedirectToAction(nameof(Index));
         //}
+
+
 
 
         public async Task<IActionResult> Delete(string UserId)
@@ -383,17 +459,19 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(ProfileFormViewModel model)
         {
+            if (string.IsNullOrWhiteSpace(model.Id))
+                return BadRequest();
+
             var user = await _usermanager.FindByIdAsync(model.Id);
             if (user == null)
                 return NotFound();
 
-            var UserName = User.Identity.Name;
-            var CurrentUser = await _usermanager.FindByNameAsync(UserName);
-            //var CurrentUser1 = _usermanager.GetUserId(User);
-            if (CurrentUser.Id == user.Id)
+            var currentUserId = _usermanager.GetUserId(User);
+            if (currentUserId == user.Id)
             {
-                TempData["ErorrMessage"] = " لا يمكن إزالة المستخدم الحالي الذي قام بتسجيل الدخول. عمليات غير صالحة ... ";
-                var ViewModel = new ProfileFormViewModel
+                TempData["ErorrMessage"] = "لا يمكن حذف المستخدم الحالي الذي قام بتسجيل الدخول.";
+
+                return View(new ProfileFormViewModel
                 {
                     Id = user.Id,
                     FName = user.FName,
@@ -401,25 +479,70 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
                     UserName = user.UserName,
                     Email = user.Email,
                     UserStatus = user.UserStatus
-                   //,BrancheId = (user.BranchesId != null ? (Guid)user.BranchesId : Guid.Empty)
-                };
-                //var branchslst = _context.Branches.ToList();
-                //branchslst.Insert(0, new Branches
-                //{
-                //    Id = Guid.Empty,
-                //    BranchName = "-- أختر --"
-                //});
-                //ViewBag.BrancheId = new SelectList(branchslst, "Id", "BranchName", model.BrancheId);
-                return View(ViewModel);
+                });
             }
+
             var result = await _usermanager.DeleteAsync(user);
+
             if (!result.Succeeded)
             {
-                throw new Exception();
-            }
-            return RedirectToAction(nameof(Index));
+                TempData["ErorrMessage"] = string.Join(" | ", result.Errors.Select(e => e.Description));
 
+                return View(new ProfileFormViewModel
+                {
+                    Id = user.Id,
+                    FName = user.FName,
+                    LName = user.LName,
+                    UserName = user.UserName,
+                    Email = user.Email,
+                    UserStatus = user.UserStatus
+                });
+            }
+
+            TempData["SuccessMessage"] = "تم حذف المستخدم بنجاح.";
+            return RedirectToAction(nameof(Index));
         }
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Delete(ProfileFormViewModel model)
+        //{
+        //    var user = await _usermanager.FindByIdAsync(model.Id);
+        //    if (user == null)
+        //        return NotFound();
+
+        //    var UserName = User.Identity.Name;
+        //    var CurrentUser = await _usermanager.FindByNameAsync(UserName);
+        //    //var CurrentUser1 = _usermanager.GetUserId(User);
+        //    if (CurrentUser.Id == user.Id)
+        //    {
+        //        TempData["ErorrMessage"] = " لا يمكن إزالة المستخدم الحالي الذي قام بتسجيل الدخول. عمليات غير صالحة ... ";
+        //        var ViewModel = new ProfileFormViewModel
+        //        {
+        //            Id = user.Id,
+        //            FName = user.FName,
+        //            LName = user.LName,
+        //            UserName = user.UserName,
+        //            Email = user.Email,
+        //            UserStatus = user.UserStatus
+        //           //,BrancheId = (user.BranchesId != null ? (Guid)user.BranchesId : Guid.Empty)
+        //        };
+        //        //var branchslst = _context.Branches.ToList();
+        //        //branchslst.Insert(0, new Branches
+        //        //{
+        //        //    Id = Guid.Empty,
+        //        //    BranchName = "-- أختر --"
+        //        //});
+        //        //ViewBag.BrancheId = new SelectList(branchslst, "Id", "BranchName", model.BrancheId);
+        //        return View(ViewModel);
+        //    }
+        //    var result = await _usermanager.DeleteAsync(user);
+        //    if (!result.Succeeded)
+        //    {
+        //        throw new Exception();
+        //    }
+        //    return RedirectToAction(nameof(Index));
+
+        //}
 
 
         public async Task<IActionResult> ManageRoles(string UserId)
