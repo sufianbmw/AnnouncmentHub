@@ -1,6 +1,8 @@
 ﻿using AnnouncmentHub.Data;
 using AnnouncmentHub.Models;
+using AnnouncmentHub.Service;
 using AnnouncmentHub.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -8,10 +10,10 @@ using NuGet.Protocol.Core.Types;
 using X.PagedList;
 using X.PagedList.Extensions;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-using AnnouncmentHub.Service;
 namespace AnnouncmentHub.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin")]
     public class AnnouncementsController : Controller
     {
         private readonly ApplicationDbContext _context;

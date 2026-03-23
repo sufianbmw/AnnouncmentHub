@@ -1,6 +1,7 @@
 ﻿using AnnouncmentHub.Data;
 using AnnouncmentHub.Models;
 using AnnouncmentHub.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ using X.PagedList.Extensions; // ✅ Add this namespace
 namespace AnnouncmentHub.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin")]
     public class CategoriesController : Controller
     {
         private readonly ApplicationDbContext _context;

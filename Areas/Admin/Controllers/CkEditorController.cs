@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using System.Linq;
@@ -6,6 +7,7 @@ using System.Linq;
 namespace AnnouncmentHub.Areas.Admin.Controllers
 {
     //[Route("[controller]/[action]")]
+    [Authorize(Roles = "Admin")]
     public class CkEditorController : Controller
     {
         private readonly IWebHostEnvironment _env;
