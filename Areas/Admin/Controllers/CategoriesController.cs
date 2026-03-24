@@ -10,7 +10,7 @@ using X.PagedList.Extensions; // ✅ Add this namespace
 namespace AnnouncmentHub.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,NormalUser")]
     public class CategoriesController : Controller
     {
         private readonly ApplicationDbContext _context;

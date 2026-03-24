@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AnnouncmentHub.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,NormalUser")]
     public class DashboardController : Controller
     {
         private readonly ApplicationDbContext _context;

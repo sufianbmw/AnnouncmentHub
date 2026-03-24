@@ -7,7 +7,7 @@ using System.Linq;
 namespace AnnouncmentHub.Areas.Admin.Controllers
 {
     //[Route("[controller]/[action]")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,NormalUser")]
     public class CkEditorController : Controller
     {
         private readonly IWebHostEnvironment _env;
