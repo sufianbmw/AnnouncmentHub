@@ -40,8 +40,6 @@ namespace AnnouncmentHub.Service
 
             var dp = new DynamicParameters();
             dp.Add("Title", title);
-            //dp.Add("CategoryIds", categoryIdsCsv);
-           // var categoriesTable = BuildIntTable(categoryIds);
             var categoriesTable = BuildIntTable(categoryIds ?? new List<int>());
             dp.Add("CategoryIds", categoriesTable.AsTableValuedParameter("IntList"));
 
@@ -54,13 +52,7 @@ namespace AnnouncmentHub.Service
             dp.Add("PageSize", pageSize);
             dp.Add("IsRandom", isRandom); 
 
-            using var multi = await conn.QueryMultipleAsync(
-                "SearchAnnouncementsDynamic",
-                //"SearchAnnouncementsDynamic9999",
-                dp,
-                commandType: CommandType.StoredProcedure,
-                commandTimeout: 30
-            );
+            using var multi = await conn.QueryMultipleAsync("SearchAnnouncementsDynamic",dp,commandType: CommandType.StoredProcedure,commandTimeout: 30);
 
             // 👇 Multi-mapping: AnnouncementDto + Client -> AnnouncementDto
             var announcements =  multi.Read<AnnouncementDto, Client, AnnouncementDto>(
@@ -68,17 +60,7 @@ namespace AnnouncmentHub.Service
                 splitOn: "Client_Id" // MUST match the alias in the SP
             ).ToList();
 
-            //foreach (var a in announcements)
-            //{
-            //    if (!string.IsNullOrEmpty(a.CategoriesJson))
-            //    {
-            //        a.Categories = JsonConvert.DeserializeObject<List<CategoryJsonLink>>(a.CategoriesJson);
-            //    }
-            //    else
-            //    {
-            //        a.Categories = new List<CategoryJsonLink>();
-            //    }
-            //}
+          
             foreach (var a in announcements)
             {
                 // Categories
