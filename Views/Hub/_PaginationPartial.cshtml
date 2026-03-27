@@ -1,4 +1,47 @@
-﻿@model AnnouncmentHub.ViewModels.CategoryAnnouncementsViewModel
+﻿@model AnnouncmentHub.ViewModels.AnnouncementSearchResult
+
+@if (Model.TotalPages > 1)
+{
+    <nav class="mt-4" aria-label="التنقل بين الصفحات">
+        <ul class="pagination justify-content-center flex-wrap">
+
+            <!-- Previous -->
+            <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
+                <a class="page-link" href="javascript:void(0)"
+                   onclick="loadPage(@(Model.PageNumber - 1))">
+                    &raquo; السابق
+                </a>
+            </li>
+
+            <!-- Page Numbers -->
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                    <a class="page-link" href="javascript:void(0)"
+                       onclick="loadPage(@i)">
+                        @i
+                    </a>
+                </li>
+            }
+
+            <!-- Next -->
+            <li class="page-item @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")">
+                <a class="page-link" href="javascript:void(0)"
+                   onclick="loadPage(@(Model.PageNumber + 1))">
+                    التالي &laquo;
+                </a>
+            </li>
+
+        </ul>
+
+        <p class="text-center text-muted small mt-1">
+            عرض صفحة @Model.PageNumber من @Model.TotalPages
+            (إجمالي @Model.TotalCount إعلان)
+        </p>
+    </nav>
+}
+
+@* @model AnnouncmentHub.ViewModels.CategoryAnnouncementsViewModel
 
 @if (Model.TotalPages > 1)
 {
@@ -15,3 +58,4 @@
         </ul>
     </nav>
 }
+ *@

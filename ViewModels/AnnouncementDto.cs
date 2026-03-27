@@ -26,8 +26,6 @@ namespace AnnouncmentHub.ViewModels
         public string? ImagesJson { get; set; }
         public List<AnnouncementImageVm> Images { get; set; } = new();
 
-
-
         // ✅ Optional: just IDs extracted from Categories list
         public List<int> CategoryIds => Categories?.Select(c => c.CategoryId).ToList() ?? new();
 

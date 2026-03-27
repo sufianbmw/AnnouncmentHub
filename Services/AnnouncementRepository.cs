@@ -55,7 +55,7 @@ namespace AnnouncmentHub.Service
             dp.Add("IsRandom", isRandom); 
 
             using var multi = await conn.QueryMultipleAsync(
-                "SearchAnnouncementsDynamic9999_Optimized",
+                "SearchAnnouncementsDynamic",
                 //"SearchAnnouncementsDynamic9999",
                 dp,
                 commandType: CommandType.StoredProcedure,
