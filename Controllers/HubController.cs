@@ -4,6 +4,7 @@ using AnnouncmentHub.Service;
 using AnnouncmentHub.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Protocol.Plugins;
 
 namespace AnnouncmentHub.Controllers
 {
@@ -988,6 +989,29 @@ namespace AnnouncmentHub.Controllers
 
             return View(vm);
         }
+
+        [Route("Hub/Page/{id}")]
+        public async Task<IActionResult> Page(int id)
+        {
+            var page = await _context.Pages
+                .Include(p => p.pageCategory)
+                .FirstOrDefaultAsync(p => p.Id == id && p.Active);
+
+            if (page == null) return NotFound();
+
+            // صفحات من نفس التصنيف
+            var relatedPages = await _context.Pages
+                .Where(p => p.PageCategoryId == page.PageCategoryId
+                         && p.Active
+                         && p.Id != id)
+                .OrderBy(p => p.Ordering)
+                .ToListAsync();
+
+            ViewBag.RelatedPages = relatedPages;
+
+            return View(page);
+        }
+
 
     }
 }

@@ -54,8 +54,8 @@
             <tr>
                 <th>#</th>
                 <th>@Html.DisplayNameFor(model => model.PageTitle)</th>
-                <th>@Html.DisplayNameFor(model => model.pagecategories)</th>
-                <th>@Html.DisplayNameFor(model => model.Ordring)</th>
+                <th>@Html.DisplayNameFor(model => model.PageCategory)</th>
+                <th>@Html.DisplayNameFor(model => model.Ordering)</th>
                 <th>@Html.DisplayNameFor(model => model.Active)</th>
                 <th>الإجراءات ⚙️</th>
             </tr>
@@ -76,12 +76,12 @@
                     </td>
                     <td>
                         <div class="w-100 d-flex justify-content-center">
-                            <span>@(page.value.pagecategories.CatName)</span>
+                            <span>@(page.value.PageCategory.CatName)</span>
                         </div>
                     </td>
                     <td>
                         <div class="w-100 d-flex justify-content-center">
-                            <span>@(page.value.Ordring)</span>
+                            <span>@(page.value.Ordering)</span>
                         </div>
                     </td>
                     <td>

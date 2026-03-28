@@ -21,7 +21,7 @@ namespace AnnouncmentHub.Data
         public DbSet<AnnouncementCategory> AnnouncementCategories { get; set; }
         public DbSet<AnnouncementImage> AnnouncementImage { get; set; }
         public DbSet<Page> Pages { get; set; }
-        public DbSet<PageCategorie> PageCategories { get; set; }
+        public DbSet<PageCategory> PageCategory { get; set; }
 
         //public DbSet<AnnouncementDto> AnnouncementDtos { get; set; }  // Not mapped to a table
 

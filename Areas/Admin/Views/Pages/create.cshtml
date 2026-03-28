@@ -30,15 +30,15 @@
 
     <!-- Ordering -->
     <div class="form-group mb-3">
-        <label asp-for="Ordring" class="control-label">ترتيب الصفحة 🔢</label>
-        <input asp-for="Ordring" class="form-control w-25" type="number" value="0" step="1" min="0" style="text-align: right;" />
-        <span asp-validation-for="Ordring" class="text-danger"></span>
+        <label asp-for="Ordering" class="control-label">ترتيب الصفحة 🔢</label>
+        <input asp-for="Ordering" class="form-control w-25" type="number" value="0" step="1" min="0" style="text-align: right;" />
+        <span asp-validation-for="Ordering" class="text-danger"></span>
     </div>
 
     <!-- Page Categories Dropdown -->
     <div class="form-group mb-3">
-        <label asp-for="PageCategoriesId" class="control-label">تصنيف الصفحة 📂</label>
-        <select asp-for="PageCategoriesId" class="form-control" asp-items="ViewBag.CategoriesId"></select>
+        <label asp-for="PageCategoryId" class="control-label">تصنيف الصفحة 📂</label>
+        <select asp-for="PageCategoryId" class="form-control" asp-items="ViewBag.CategoriesId"></select>
     </div>
 
     <!-- Active Checkbox -->

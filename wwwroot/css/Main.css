@@ -434,49 +434,197 @@
     }
 }
 /* Footer Container */
+
 .jo-footer {
-    background-color: var(--jo-footer-bg);
-    color: var(--jo-text);
-    border-top: 1px solid var(--jo-divider);
-    justify-content: center;
-    border-top: 5px solid #58b79c;
+    background-color: #0f1923;
+    color: #a0aab4;
+    font-size: 0.875rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-    /* Titles */
-    .jo-footer h4 {
-        color: var(--jo-primary-dark);
-        font-weight: 700;
-        margin-bottom: 12px;
+.footer-top {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Brand */
+.footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.brand-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #2ecc71, #1abc9c);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    color: #fff;
+}
+
+.brand-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.5px;
+}
+
+.footer-desc {
+    line-height: 1.8;
+    color: #6b7a8d;
+    max-width: 300px;
+}
+
+/* Social */
+.social-links {
+    display: flex;
+    gap: 10px;
+}
+
+.social-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #a0aab4;
+    text-decoration: none;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+}
+
+    .social-btn:hover {
+        background: #2ecc71;
+        border-color: #2ecc71;
+        color: #fff;
+        transform: translateY(-2px);
     }
 
-    /* Text */
-    .jo-footer p,
-    .jo-footer li,
-    .jo-footer a {
-        color: var(--jo-text);
-        font-size: 14px;
+/* Headings */
+.footer-heading {
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #2ecc71;
+    display: inline-block;
+}
+
+/* Links */
+.footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+    .footer-links li {
+        margin-bottom: 0.6rem;
     }
 
-    /* Links */
-    .jo-footer a {
+    .footer-links a {
+        color: #6b7a8d;
         text-decoration: none;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
     }
 
-        .jo-footer a:hover {
-            color: var(--jo-primary);
+        .footer-links a::before {
+            content: '';
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: #2ecc71;
+            opacity: 0;
+            transition: opacity 0.2s;
         }
 
-    /* Divider */
-    .jo-footer hr {
-        border-color: var(--jo-divider);
-        margin: 20px 0;
+        .footer-links a:hover {
+            color: #fff;
+            padding-right: 4px;
+        }
+
+            .footer-links a:hover::before {
+                opacity: 1;
+            }
+
+/* Contact */
+.footer-contact {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+    .footer-contact li {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 0.9rem;
+        color: #6b7a8d;
     }
 
-    /* Contact icons inline */
-    .jo-footer i {
-        color: var(--jo-primary);
+.contact-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(46, 204, 113, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2ecc71;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+.footer-contact a {
+    color: #6b7a8d;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+    .footer-contact a:hover {
+        color: #2ecc71;
     }
 
+/* Bottom Bar */
+.footer-bottom {
+    background: rgba(0,0,0,0.2);
+    font-size: 0.8rem;
+    color: #4a5568;
+}
+
+.footer-bottom-links {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+    .footer-bottom-links a {
+        color: #4a5568;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+        .footer-bottom-links a:hover {
+            color: #2ecc71;
+        }
+
+.divider {
+    color: #2d3748;
+}
+
+
+/* end Footer Container */
 /* Social Icons */
 .social-icon {
     width: 34px;

@@ -9,8 +9,8 @@ namespace AnnouncmentHub.Models
         [Required]
         public string PageDetails { get; set; }
         public bool Active { get; set; } = false;
-        public int? Ordring { get; set; } = -1;
-        public int PageCategorieId { get; set; }
-        public virtual PageCategorie pagecategorie { get; set; }
+        public int? Ordering { get; set; } = -1;
+        public int PageCategoryId { get; set; }
+        public virtual PageCategory pageCategory { get; set; }
     }
 }

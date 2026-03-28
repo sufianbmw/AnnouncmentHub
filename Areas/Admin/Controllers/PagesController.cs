@@ -16,41 +16,41 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
     {
         private readonly ApplicationDbContext _context = context;
         private readonly IWebHostEnvironment _webHostEnvironment = webHostEnvironment;
-        [HttpGet]
-        public async Task<IActionResult> Seeding()
-        {
+       // [HttpGet]
+      //  public async Task<IActionResult> Seeding()
+      //  {
            // await UserAndRoleDataInitializer.SeedDataAsync(_userManager, _roleManager);
-            await DataSeeder.SeedCategoriesAsync(_context);
+           // await DataSeeder.SeedCategoriesAsync(_context);
 
-            return new JsonResult(new { message = "✅ Seeding completed successfully" });
-        }
+          //  return new JsonResult(new { message = "✅ Seeding completed successfully" });
+      //  }
         [HttpGet]
         public async Task<IActionResult> Index(int? CategoriesId)
         {
             var pages = _context.Pages
-                .Include(p => p.pagecategorie)
+                .Include(p => p.pageCategory)
                 .Select(p => new PageViewModel
                 {
                     Id = p.Id,
                     PageTitle = p.PageTitle,
-                    Ordring = p.Ordring,
+                    Ordering = p.Ordering,
                     Active = p.Active,
-                    PageCategoriesId = p.PageCategorieId,
-                    pagecategories = p.pagecategorie
+                    PageCategoryId = p.PageCategoryId,
+                    PageCategory = p.pageCategory
                 });
 
             if (CategoriesId is > 0)
-                pages = pages.Where(p => p.PageCategoriesId == CategoriesId);
+                pages = pages.Where(p => p.PageCategoryId == CategoriesId);
 
             ViewData["CategoriesId"] = new SelectList(GetCategoriesFltr(), "Id", "CatName");
             return View(await pages.ToListAsync());
         }
 
         // ✅ Category Filter List
-        private List<PageCategorie> GetCategoriesFltr()
+        private List<PageCategory> GetCategoriesFltr()
         {
-            var cate = _context.PageCategories.ToList();
-            cate.Insert(0, new PageCategorie
+            var cate = _context.PageCategory.ToList();
+            cate.Insert(0, new PageCategory
             {
                 Id = -1,
                 CatName = "-- اختر التصنيف --"
@@ -66,16 +66,16 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
                 return NotFound();
 
             var page = await _context.Pages
-                .Include(p => p.pagecategorie)
+                .Include(p => p.pageCategory)
                 .Select(p => new PageViewModel
                 {
                     Id = p.Id,
                     PageTitle = p.PageTitle,
                     PageDetails = p.PageDetails,
-                    Ordring = p.Ordring,
+                    Ordering = p.Ordering,
                     Active = p.Active,
-                    PageCategoriesId = p.PageCategorieId,
-                    pagecategories = p.pagecategorie
+                    PageCategoryId = p.PageCategoryId,
+                    PageCategory = p.pageCategory
                 })
                 .FirstOrDefaultAsync(p => p.Id == id);
 
@@ -86,7 +86,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            ViewData["CategoriesId"] = new SelectList(_context.PageCategories, "Id", "CatName");
+            ViewData["CategoriesId"] = new SelectList(_context.PageCategory, "Id", "CatName");
             return View();
         }
 
@@ -96,7 +96,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewData["CategoriesId"] = new SelectList(_context.PageCategories, "Id", "CatName", model.PageCategoriesId);
+                ViewData["CategoriesId"] = new SelectList(_context.PageCategory, "Id", "CatName", model.PageCategoryId);
                 return View(model);
             }
 
@@ -104,9 +104,9 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
             {
                 PageTitle = model.PageTitle,
                 PageDetails = model.PageDetails,
-                Ordring = model.Ordring,
+                Ordering = model.Ordering,
                 Active = model.Active,
-                PageCategorieId = model.PageCategoriesId
+                PageCategoryId = model.PageCategoryId
             };
 
             _context.Add(page);
@@ -129,16 +129,16 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
                     Id = p.Id,
                     PageTitle = p.PageTitle,
                     PageDetails = p.PageDetails,
-                    Ordring = p.Ordring,
+                    Ordering = p.Ordering,
                     Active = p.Active,
-                    PageCategoriesId = p.PageCategorieId
+                    PageCategoryId = p.PageCategoryId
                 })
                 .FirstOrDefaultAsync();
 
             if (page == null)
                 return NotFound();
 
-            ViewData["CategoriesId"] = new SelectList(_context.PageCategories, "Id", "CatName", page.PageCategoriesId);
+            ViewData["CategoriesId"] = new SelectList(_context.PageCategory, "Id", "CatName", page.PageCategoryId);
             return View(page);
         }
 
@@ -151,7 +151,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
 
             if (!ModelState.IsValid)
             {
-                ViewData["CategoriesId"] = new SelectList(_context.PageCategories, "Id", "CatName", model.PageCategoriesId);
+                ViewData["CategoriesId"] = new SelectList(_context.PageCategory, "Id", "CatName", model.PageCategoryId);
                 return View(model);
             }
 
@@ -161,9 +161,9 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
 
             page.PageTitle = model.PageTitle;
             page.PageDetails = model.PageDetails;
-            page.Ordring = model.Ordring;
+            page.Ordering = model.Ordering;
             page.Active = model.Active;
-            page.PageCategorieId = model.PageCategoriesId;
+            page.PageCategoryId = model.PageCategoryId;
 
             _context.Update(page);
             await _context.SaveChangesAsync();

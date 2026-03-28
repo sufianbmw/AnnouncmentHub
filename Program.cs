@@ -45,6 +45,7 @@ builder.Services.AddScoped<AnnouncementRepository>();
 builder.Services.AddScoped<BreadcrumbService>();
 // Register the class without interface
 builder.Services.AddTransient<UserAndRoleDataInitializer>();
+builder.Services.AddTransient<PageDataInitializer>();
 
 var app = builder.Build();
 
@@ -53,6 +54,9 @@ using (var scope = app.Services.CreateScope())
 {
     var initializer = scope.ServiceProvider.GetRequiredService<UserAndRoleDataInitializer>();
     await initializer.SeedDataAsync(); // or your method name
+
+    var pageInitializer = scope.ServiceProvider.GetRequiredService<PageDataInitializer>();
+    await pageInitializer.SeedDataAsync();
 }
 if (app.Environment.IsDevelopment())
 {

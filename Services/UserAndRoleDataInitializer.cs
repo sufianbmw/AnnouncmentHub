@@ -24,25 +24,42 @@ namespace AnnouncmentHub.Services
 
         private async Task SeedRolesAsync()
         {
-            if (!await _roleManager.RoleExistsAsync("Admin"))
+            var roles = new[]
+              {
+                  new ApplicationRole { Name = "Admin", DisplayName = "مدير النظام" },
+                  new ApplicationRole { Name = "NormalUser", DisplayName = "مستخدم عادي" }
+              };
+
+            foreach (var role in roles)
             {
-                var adminRole = new ApplicationRole
+                if (!await _roleManager.RoleExistsAsync(role.Name))
                 {
-                    Name = "Admin",
-                    DisplayName = "مدير النظام"
-                };
-                await _roleManager.CreateAsync(adminRole);
+                    var result = await _roleManager.CreateAsync(role);
+                    if (!result.Succeeded)
+                        foreach (var error in result.Errors)
+                            Console.WriteLine($"فشل إنشاء الدور: {error.Description}");
+                }
             }
 
-            if (!await _roleManager.RoleExistsAsync("NormalUser"))
-            {
-                var userRole = new ApplicationRole
-                {
-                    Name = "NormalUser",
-                    DisplayName = "مستخدم عادي"
-                };
-                await _roleManager.CreateAsync(userRole);
-            }
+            //if (!await _roleManager.RoleExistsAsync("Admin"))
+            //{
+            //    var adminRole = new ApplicationRole
+            //    {
+            //        Name = "Admin",
+            //        DisplayName = "مدير النظام"
+            //    };
+            //    await _roleManager.CreateAsync(adminRole);
+            //}
+
+            //if (!await _roleManager.RoleExistsAsync("NormalUser"))
+            //{
+            //    var userRole = new ApplicationRole
+            //    {
+            //        Name = "NormalUser",
+            //        DisplayName = "مستخدم عادي"
+            //    };
+            //    await _roleManager.CreateAsync(userRole);
+            //}
         }
 
         private async Task SeedUsersAsync()
@@ -53,7 +70,7 @@ namespace AnnouncmentHub.Services
             {
                 var user = new ApplicationUser
                 {
-                    UserName = "wcpjordan",
+                    UserName = "prog.man.jo",
                     Email = "sufianbmw@gmail.com",
                     FName = "Sufian",
                     LName = "Shwayat",
@@ -61,7 +78,7 @@ namespace AnnouncmentHub.Services
                     UserStatus = true
                 };
 
-                var result = await _userManager.CreateAsync(user, "Wcpadmin2023!");
+                var result = await _userManager.CreateAsync(user, "Admin@2026!");
 
                 if (result.Succeeded)
                 {

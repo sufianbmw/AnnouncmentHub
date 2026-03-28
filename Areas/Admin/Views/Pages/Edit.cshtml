@@ -28,18 +28,18 @@
 
     <!-- Category Dropdown -->
     <div class="form-group mb-3">
-        <label asp-for="PageCategoriesId" class="control-label">التصنيف 📂</label>
-        <select asp-for="PageCategoriesId" class="form-control" asp-items="ViewBag.CategoriesId">
+        <label asp-for="PageCategoryId" class="control-label">التصنيف 📂</label>
+        <select asp-for="PageCategoryId" class="form-control" asp-items="ViewBag.CategoriesId">
             <option value="-1">اختر التصنيف 📂</option>
         </select>
-        <span asp-validation-for="PageCategoriesId" class="text-danger"></span>
+        <span asp-validation-for="PageCategoryId" class="text-danger"></span>
     </div>
 
     <!-- Ordering -->
     <div class="form-group mb-3">
-        <label asp-for="Ordring" class="control-label">ترتيب الصفحة 🔢</label>
-        <input asp-for="Ordring" class="form-control w-25" type="number" value="0" step="1" min="0" style="text-align: right;" />
-        <span asp-validation-for="Ordring" class="text-danger"></span>
+        <label asp-for="Ordering" class="control-label">ترتيب الصفحة 🔢</label>
+        <input asp-for="Ordering" class="form-control w-25" type="number" value="0" step="1" min="0" style="text-align: right;" />
+        <span asp-validation-for="Ordering" class="text-danger"></span>
     </div>
 
     <!-- Active Checkbox -->
@@ -51,7 +51,7 @@
 
     <!-- Hidden Fields -->
     <input type="hidden" asp-for="Id" />
-    <input type="hidden" asp-for="PageCategoriesId" />
+    <input type="hidden" asp-for="PageCategoryId" />
 
     <!-- Submit and Cancel Buttons -->
     <div class="form-group col-md-12 p-2 text-center" style="background-color: #e9ecef">

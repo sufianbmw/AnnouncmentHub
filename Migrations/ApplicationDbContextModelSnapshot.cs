@@ -310,10 +310,10 @@ namespace AnnouncmentHub.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("Ordring")
+                    b.Property<int?>("Ordering")
                         .HasColumnType("int");
 
-                    b.Property<int>("PageCategorieId")
+                    b.Property<int>("PageCategoryId")
                         .HasColumnType("int");
 
                     b.Property<string>("PageDetails")
@@ -327,12 +327,12 @@ namespace AnnouncmentHub.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PageCategorieId");
+                    b.HasIndex("PageCategoryId");
 
                     b.ToTable("Pages");
                 });
 
-            modelBuilder.Entity("AnnouncmentHub.Models.PageCategorie", b =>
+            modelBuilder.Entity("AnnouncmentHub.Models.PageCategory", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -350,12 +350,12 @@ namespace AnnouncmentHub.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("Ordring")
+                    b.Property<int?>("Ordering")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.ToTable("PageCategories");
+                    b.ToTable("PageCategory");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -524,13 +524,13 @@ namespace AnnouncmentHub.Migrations
 
             modelBuilder.Entity("AnnouncmentHub.Models.Page", b =>
                 {
-                    b.HasOne("AnnouncmentHub.Models.PageCategorie", "pagecategorie")
+                    b.HasOne("AnnouncmentHub.Models.PageCategory", "pageCategory")
                         .WithMany("PageCategore")
-                        .HasForeignKey("PageCategorieId")
+                        .HasForeignKey("PageCategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("pagecategorie");
+                    b.Navigation("pageCategory");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -605,7 +605,7 @@ namespace AnnouncmentHub.Migrations
                     b.Navigation("Announcements");
                 });
 
-            modelBuilder.Entity("AnnouncmentHub.Models.PageCategorie", b =>
+            modelBuilder.Entity("AnnouncmentHub.Models.PageCategory", b =>
                 {
                     b.Navigation("PageCategore");
                 });
