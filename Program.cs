@@ -37,8 +37,13 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.SlidingExpiration = true;
 });
 
-builder.Services.AddControllersWithViews();
-builder.Services.AddRazorPages();
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Encoder =
+            System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+        options.JsonSerializerOptions.WriteIndented = true;
+    }); builder.Services.AddRazorPages();
 
 // Services
 builder.Services.AddScoped<AnnouncementRepository>();

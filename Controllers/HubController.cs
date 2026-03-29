@@ -1,7 +1,9 @@
 ﻿using AnnouncmentHub.Data;
 using AnnouncmentHub.Models;
 using AnnouncmentHub.Service;
+using AnnouncmentHub.Services;
 using AnnouncmentHub.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NuGet.Protocol.Plugins;
@@ -20,6 +22,30 @@ namespace AnnouncmentHub.Controllers
             _repository = repository;
             _breadcrumbService = breadcrumbService;
         }
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> SeedData(
+    [FromServices] UserAndRoleDataInitializer seeder)
+        {
+            var messages = await seeder.SeedDataAsync();
+
+            var result = new
+            {
+                success = true,
+                عدد_العمليات = messages.Count,
+                النتائج = messages
+            };
+
+            var options = new System.Text.Json.JsonSerializerOptions
+            {
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                WriteIndented = true
+            };
+
+            var json = System.Text.Json.JsonSerializer.Serialize(result, options);
+            return Content(json, "application/json; charset=utf-8");
+        }
+
         public IActionResult Index()
         {
             return View();
@@ -242,7 +268,7 @@ namespace AnnouncmentHub.Controllers
 
     //        return View(result);
     //    }
-        public async Task<IActionResult> Search2(
+        public async Task<IActionResult> Search(
             string? title,
             int? mainCategoryId,
             List<int>? subCategoryIds,
