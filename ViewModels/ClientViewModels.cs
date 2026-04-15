@@ -26,6 +26,26 @@ namespace AnnouncmentHub.ViewModels
         [Display(Name = "مفعل")]
         public bool IsActive { get; set; } = true; // Default to active
 
+        [Display(Name = "عميل VIP")]
+        public bool IsVIP { get; set; }
+
+        [Display(Name = "مغلق")]
+        public bool IsClosed { get; set; }
+
+        [Display(Name = "بداية الدوام")]
+        public TimeSpan? OpenFrom { get; set; }
+
+        [Display(Name = "نهاية الدوام")]
+        public TimeSpan? OpenTo { get; set; }
+
+        [Display(Name = "خط العرض")]
+        public double? Latitude { get; set; }
+
+        [Display(Name = "خط الطول")]
+        public double? Longitude { get; set; }
+        public string? GoogleMapsUrl => Latitude is not null && Longitude is not null ?
+                                       $"https://www.google.com/maps?q={Latitude},{Longitude}" : null;
+
         [Display(Name = "صورة الشعار")]
         public IFormFile? LogoFile { get; set; }  // This will handle file upload
 

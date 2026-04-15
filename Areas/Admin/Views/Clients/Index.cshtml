@@ -1,4 +1,282 @@
-﻿@using AnnouncmentHub.ViewModels
+﻿
+@using AnnouncmentHub.ViewModels
+@model ClientViewModel
+@{
+    ViewData["Title"] = "العملاء";
+    int totalPages = (int)Math.Ceiling((double)Model.TotalClients / (Model.PageSize == 0 ? 10 : Model.PageSize));
+}
+
+<h4 class="text-center mb-3">👥 إدارة العملاء</h4>
+
+<div class="card m-3 p-3 shadow-sm">
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>❌ خطأ!</strong> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>✅ نجاح!</strong> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Filter Form -->
+    <form method="get" asp-action="Index" class="row g-2 align-items-end mb-3 p-3 bg-light rounded border">
+        <h6 class="text-secondary mb-2">🔍 تصفية العملاء</h6>
+
+        <!-- Search by Name -->
+        <div class="col-md-3">
+            <label class="form-label fw-semibold">اسم العميل</label>
+            <input type="text" name="searchName" value="@Context.Request.Query["searchName"]"
+                   class="form-control" placeholder="ابحث باسم العميل..." />
+        </div>
+
+        <!-- IsActive Filter -->
+        <div class="col-md-2">
+            <label class="form-label fw-semibold">الحالة</label>
+            <select name="isActive" class="form-select">
+                <option value="" selected="@(string.IsNullOrEmpty(Context.Request.Query["isActive"]) ? "selected" : null)">الكل</option>
+                <option value="true" selected="@(Context.Request.Query["isActive"] == "true" ? "selected" : null)">✅ مفعل</option>
+                <option value="false" selected="@(Context.Request.Query["isActive"] == "false" ? "selected" : null)">❌ غير مفعل</option>
+            </select>
+        </div>
+
+        <!-- IsVIP Filter -->
+        <div class="col-md-2">
+            <label class="form-label fw-semibold">نوع العميل</label>
+            <select name="isVIP" class="form-select">
+                <option value="" selected="@(string.IsNullOrEmpty(Context.Request.Query["isVIP"]) ? "selected" : null)">الكل</option>
+                <option value="true" selected="@(Context.Request.Query["isVIP"] == "true" ? "selected" : null)">⭐ VIP</option>
+                <option value="false" selected="@(Context.Request.Query["isVIP"] == "false" ? "selected" : null)">عادي</option>
+            </select>
+        </div>
+
+        <!-- IsClosed Filter -->
+        <div class="col-md-2">
+            <label class="form-label fw-semibold">حالة الفتح</label>
+            <select name="isClosed" class="form-select">
+                <option value="" selected="@(string.IsNullOrEmpty(Context.Request.Query["isClosed"]) ? "selected" : null)">الكل</option>
+                <option value="false" selected="@(Context.Request.Query["isClosed"] == "false" ? "selected" : null)">🟢 مفتوح</option>
+                <option value="true" selected="@(Context.Request.Query["isClosed"] == "true" ? "selected" : null)">🔒 مغلق</option>
+            </select>
+        </div>
+
+        <!-- Page Size -->
+        <div class="col-md-1">
+            <label class="form-label fw-semibold">عدد النتائج</label>
+            <select name="pageSize" class="form-select">
+                @foreach (var size in new[] { 5, 10, 25, 50 })
+                {
+                    <option value="@size" selected="@(Model.PageSize == size ? "selected" : null)">@size</option>
+                }
+            </select>
+        </div>
+
+        <!-- Buttons -->
+        <div class="col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-fill">
+                <i class="bi bi-funnel-fill"></i> تصفية
+            </button>
+            <a href="@Url.Action("Index")" class="btn btn-outline-secondary flex-fill">
+                <i class="bi bi-arrow-counterclockwise"></i> إعادة
+            </a>
+        </div>
+    </form>
+
+    <!-- Add Button + Count -->
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="text-muted small">إجمالي النتائج: <strong>@Model.TotalClients</strong> عميل</span>
+        <a href="@Url.Action("Create")" class="btn btn-outline-success">
+            إضافة عميل جديد 👥 <i class="bi bi-person-plus-fill"></i>
+        </a>
+    </div>
+
+    <!-- Table -->
+    <table class="table table-bordered table-striped table-hover table-sm align-middle text-center">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>اسم العميل</th>
+                <th>الشعار</th>
+                <th>مفعل</th>
+                <th>VIP ⭐</th>
+                <th>حالة الفتح</th>
+                <th>ساعات الدوام</th>
+                <th>الإجراءات ⚙️</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Clients == null || !Model.Clients.Any())
+            {
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">
+                        😔 لا يوجد عملاء مطابقون للبحث.
+                    </td>
+                </tr>
+            }
+            else
+            {
+                int rowStart = (Model.PageNumber - 1) * Model.PageSize + 1;
+                @foreach (var client in Model.Clients.Select((value, index) => new { value, index }))
+                {
+                    <tr>
+                        <td>@(rowStart + client.index)</td>
+                        <td class="fw-semibold">@client.value.ClientName</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(client.value.LogoUrl))
+                            {
+                                <img src="@client.value.LogoUrl" alt="Logo" style="max-width:60px;" class="img-thumbnail" />
+                            }
+                            else
+                            {
+                                <span class="text-muted small">لا يوجد</span>
+                            }
+                        </td>
+                        <td>
+                            @if (client.value.IsActive)
+                            {
+                                <span class="badge bg-success">مفعل ✅</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">غير مفعل ❌</span>
+                            }
+                        </td>
+                        <td>
+                            @if (client.value.IsVIP)
+                            {
+                                <span class="badge bg-warning text-dark">⭐ VIP</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">—</span>
+                            }
+                        </td>
+                        <td>
+                            @if (client.value.IsClosed)
+                            {
+                                <span class="badge bg-secondary">🔒 مغلق</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">🟢 مفتوح</span>
+                            }
+                        </td>
+                        <td>
+                            @if (client.value.OpenFrom.HasValue && client.value.OpenTo.HasValue)
+                            {
+                                <small>@client.value.OpenFrom.Value.ToString(@"hh\:mm") - @client.value.OpenTo.Value.ToString(@"hh\:mm")</small>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">—</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="d-flex justify-content-center gap-1 flex-wrap">
+                                <a href="@Url.Action("Details", new { id = client.value.Id })" class="btn btn-info btn-sm">
+                                    <i class="bi bi-eye-fill"></i> تفاصيل
+                                </a>
+                                <a href="@Url.Action("Edit", new { id = client.value.Id })" class="btn btn-warning btn-sm">
+                                    <i class="bi bi-pencil-fill"></i> تعديل
+                                </a>
+                                <button class="btn btn-danger btn-sm"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"
+                                        data-id="@client.value.Id">
+                                    <i class="bi bi-trash-fill"></i> حذف
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+
+    <!-- Pagination -->
+    @if (totalPages > 1)
+    {
+        <nav aria-label="Page navigation" class="mt-3">
+            <ul class="pagination justify-content-center flex-wrap">
+                <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action("Index", new {
+                        pageNumber = Model.PageNumber - 1,
+                        pageSize = Model.PageSize,
+                        searchName = Context.Request.Query["searchName"],
+                        isActive = Context.Request.Query["isActive"],
+                        isVIP = Context.Request.Query["isVIP"],
+                        isClosed = Context.Request.Query["isClosed"]
+                    })">‹ السابق</a>
+                </li>
+
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("Index", new {
+                            pageNumber = i,
+                            pageSize = Model.PageSize,
+                            searchName = Context.Request.Query["searchName"],
+                            isActive = Context.Request.Query["isActive"],
+                            isVIP = Context.Request.Query["isVIP"],
+                            isClosed = Context.Request.Query["isClosed"]
+                        })">@i</a>
+                    </li>
+                }
+
+                <li class="page-item @(Model.PageNumber >= totalPages ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action("Index", new {
+                        pageNumber = Model.PageNumber + 1,
+                        pageSize = Model.PageSize,
+                        searchName = Context.Request.Query["searchName"],
+                        isActive = Context.Request.Query["isActive"],
+                        isVIP = Context.Request.Query["isVIP"],
+                        isClosed = Context.Request.Query["isClosed"]
+                    })">التالي ›</a>
+                </li>
+            </ul>
+        </nav>
+    }
+
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger" id="deleteModalLabel">🔔 تأكيد الحذف</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                ⚠️ هل أنت متأكد أنك تريد حذف هذا العميل؟ هذه العملية لا يمكن التراجع عنها. ❗
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <form id="deleteForm" method="post" action="@Url.Action("DeleteConfirmed", "Clients")" style="display:inline;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="deleteClientId" value="" />
+                    <button type="submit" class="btn btn-danger">حذف</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('[data-bs-toggle="modal"]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                document.getElementById('deleteClientId').value = this.getAttribute('data-id');
+            });
+        });
+    </script>
+}@* @using AnnouncmentHub.ViewModels
 
 @model IEnumerable<ClientViewModel>
 
@@ -162,3 +440,4 @@
 
 
     }
+ *@

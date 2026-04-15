@@ -279,11 +279,29 @@ namespace AnnouncmentHub.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsClosed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsVIP")
+                        .HasColumnType("bit");
+
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("float");
+
                     b.Property<string>("LogoUrl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("float");
+
                     b.Property<string>("MobileNumber")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<TimeSpan?>("OpenFrom")
+                        .HasColumnType("time");
+
+                    b.Property<TimeSpan?>("OpenTo")
+                        .HasColumnType("time");
 
                     b.Property<string>("SiteUrl")
                         .HasColumnType("nvarchar(max)");

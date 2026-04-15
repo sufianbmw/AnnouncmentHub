@@ -1,10 +1,8 @@
 ﻿@using AnnouncmentHub.ViewModels
 @model ClientViewModel
-
 @{
     ViewData["Title"] = "إضافة عميل جديد";
 }
-
 <form asp-action="Create" method="post" enctype="multipart/form-data" class="card shadow-sm rounded border border-primary p-4 bg-light">
     <h4 class="text-center mb-4">إضافة عميل جديد 🆕</h4>
 
@@ -15,31 +13,30 @@
         <span asp-validation-for="ClientName" class="text-danger"></span>
     </div>
 
+    <!-- الشعار -->
     <div class="row mb-3">
-        <!-- رفع الشعار -->
         <div class="form-group col-md-6">
-            <label asp-for="LogoFile" class="control-label">تحميل صورة الشعار 🌐</label>
-            <input asp-for="LogoFile" type="file" accept="image/*" class="form-control" />
+            <label asp-for="LogoFile" class="control-label">تحميل صورة الشعار 🖼️</label>
+            <input asp-for="LogoFile" type="file" accept="image/*" class="form-control mb-1" />
+            <input asp-for="LogoUrl" class="form-control" placeholder="أو أدخل رابط الشعار..." />
             <span asp-validation-for="LogoFile" class="text-danger"></span>
         </div>
-
-        <!-- رفع صورة الغلاف -->
+        <!-- صورة الغلاف -->
         <div class="form-group col-md-6">
             <label asp-for="CoverImageFile" class="control-label">تحميل صورة الغلاف 🖼️</label>
-            <input asp-for="CoverImageFile" type="file" accept="image/*" class="form-control" />
+            <input asp-for="CoverImageFile" type="file" accept="image/*" class="form-control mb-1" />
+            <input asp-for="CoverImageUrl" class="form-control" placeholder="أو أدخل رابط صورة الغلاف..." />
             <span asp-validation-for="CoverImageFile" class="text-danger"></span>
         </div>
     </div>
 
+    <!-- فيسبوك وواتساب -->
     <div class="row mb-3">
-        <!-- رابط فيسبوك -->
         <div class="form-group col-md-6">
             <label asp-for="FacebookLink" class="control-label">رابط فيسبوك 🌐</label>
             <input asp-for="FacebookLink" class="form-control" placeholder="https://facebook.com/username" />
             <span asp-validation-for="FacebookLink" class="text-danger"></span>
         </div>
-
-        <!-- رقم واتساب -->
         <div class="form-group col-md-6">
             <label asp-for="WhatsUp" class="control-label">رقم واتساب 📱</label>
             <input asp-for="WhatsUp" class="form-control" placeholder="+962 7xxxxxxx" />
@@ -47,15 +44,13 @@
         </div>
     </div>
 
+    <!-- جوال وموقع -->
     <div class="row mb-3">
-        <!-- رقم الجوال -->
         <div class="form-group col-md-6">
             <label asp-for="MobileNumber" class="control-label">رقم الجوال 📞</label>
             <input asp-for="MobileNumber" class="form-control" placeholder="+962 7xxxxxxx" />
             <span asp-validation-for="MobileNumber" class="text-danger"></span>
         </div>
-
-        <!-- الموقع الإلكتروني -->
         <div class="form-group col-md-6">
             <label asp-for="SiteUrl" class="control-label">الموقع الإلكتروني 🌐</label>
             <input asp-for="SiteUrl" class="form-control" placeholder="https://example.com" />
@@ -63,87 +58,132 @@
         </div>
     </div>
 
-    <!-- مفعل -->
-    <div class="form-check form-switch mb-4">
-        <label for="IsActiveCheckbox" class="form-check-label">✅ مفعل</label>
-        <input asp-for="IsActive" class="form-check-input" type="checkbox" id="IsActiveCheckbox" checked />
+    <!-- أوقات الدوام -->
+    <div class="row mb-3">
+        <div class="form-group col-md-6">
+            <label asp-for="OpenFrom" class="control-label">بداية الدوام 🕗</label>
+            <input asp-for="OpenFrom" type="time" class="form-control" />
+            <span asp-validation-for="OpenFrom" class="text-danger"></span>
+        </div>
+        <div class="form-group col-md-6">
+            <label asp-for="OpenTo" class="control-label">نهاية الدوام 🕔</label>
+            <input asp-for="OpenTo" type="time" class="form-control" />
+            <span asp-validation-for="OpenTo" class="text-danger"></span>
+        </div>
+    </div>
+
+@*     <!-- الموقع الجغرافي -->
+    <div class="row mb-3">
+        <div class="form-group col-md-6">
+            <label asp-for="Latitude" class="control-label">خط العرض 📍</label>
+            <input asp-for="Latitude" type="number" step="any" class="form-control" placeholder="31.9539" />
+            <span asp-validation-for="Latitude" class="text-danger"></span>
+        </div>
+        <div class="form-group col-md-6">
+            <label asp-for="Longitude" class="control-label">خط الطول 📍</label>
+            <input asp-for="Longitude" type="number" step="any" class="form-control" placeholder="35.9106" />
+            <span asp-validation-for="Longitude" class="text-danger"></span>
+        </div>
+    </div> *@
+    <!-- الموقع الجغرافي -->
+    <div class="card border-secondary mb-4 p-3">
+        <h6 class="mb-3 text-secondary">📍 الموقع الجغرافي</h6>
+
+        <!-- Buttons -->
+        <div class="d-flex gap-2 mb-3">
+            <button type="button" class="btn btn-outline-primary btn-sm" onclick="getCurrentLocation()">
+                <i class="bi bi-crosshair"></i> تحديد موقعي تلقائياً
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetMap()">
+                <i class="bi bi-arrow-counterclockwise"></i> إعادة تعيين
+            </button>
+        </div>
+        <!-- استيراد الموقع من رابط -->
+        <div class="input-group mb-3">
+            <span class="input-group-text bg-white">🔗</span>
+            <input type="text" id="locationLinkInput" class="form-control"
+                   placeholder="الصق رابط الموقع هنا (Google Maps, WhatsApp, ...)" />
+            <button type="button" class="btn btn-outline-primary" onclick="extractFromLink()">
+                <i class="bi bi-geo-fill"></i> استخراج الموقع
+            </button>
+        </div>
+        <div id="linkError" class="text-danger small mb-2" style="display:none;">
+            ⚠️ تعذر استخراج الإحداثيات من هذا الرابط. تأكد من صحته.
+        </div>
+        <!-- Map -->
+        <div id="map" style="height: 350px; width: 100%; border-radius: 8px; border: 1px solid #dee2e6;" class="mb-3"></div>
+
+        <!-- Coordinates (auto-filled) -->
+        <div class="row">
+            <div class="form-group col-md-6">
+                <label asp-for="Latitude" class="control-label">خط العرض 📍</label>
+                <input asp-for="Latitude" id="Latitude" type="number" step="any"
+                       class="form-control" placeholder="سيتم تعبئته تلقائياً" readonly />
+                <span asp-validation-for="Latitude" class="text-danger"></span>
+            </div>
+            <div class="form-group col-md-6">
+                <label asp-for="Longitude" class="control-label">خط الطول 📍</label>
+                <input asp-for="Longitude" id="Longitude" type="number" step="any"
+                       class="form-control" placeholder="سيتم تعبئته تلقائياً" readonly />
+                <span asp-validation-for="Longitude" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Show existing map link in Edit -->
+        @if (Model.GoogleMapsUrl != null)
+        {
+            <div class="mt-2">
+                <a href="@Model.GoogleMapsUrl" target="_blank" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-map-fill"></i> عرض الموقع الحالي على خرائط جوجل
+                </a>
+            </div>
+        }
+    </div>
+    <!-- خيارات الحالة -->
+    <div class="card border-secondary mb-4 p-3">
+        <h6 class="mb-3 text-secondary">⚙️ إعدادات الحالة</h6>
+        <div class="d-flex flex-wrap gap-4">
+            <div class="form-check form-switch">
+                <input asp-for="IsActive" class="form-check-input" type="checkbox" id="IsActiveCheckbox" />
+                <label class="form-check-label" for="IsActiveCheckbox">✅ مفعل</label>
+            </div>
+            <div class="form-check form-switch">
+                <input asp-for="IsVIP" class="form-check-input" type="checkbox" id="IsVIPCheckbox" />
+                <label class="form-check-label" for="IsVIPCheckbox">⭐ عميل VIP</label>
+            </div>
+            <div class="form-check form-switch">
+                <input asp-for="IsClosed" class="form-check-input" type="checkbox" id="IsClosedCheckbox" />
+                <label class="form-check-label" for="IsClosedCheckbox">🔒 مغلق</label>
+            </div>
+        </div>
     </div>
 
     <hr />
-
     <div class="col d-flex justify-content-center gap-3">
         <button type="submit" class="btn btn-success w-25">
             <i class="bi bi-check-circle-fill"></i> حفظ ✅
         </button>
-
         <a href="@Url.Action("Index")" class="btn btn-secondary w-25">
             <i class="bi bi-x-circle-fill"></i> إلغاء ❌
         </a>
     </div>
 </form>
 
-@section Scripts {
-@{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}
-
-@* @using AnnouncmentHub.ViewModels
-@model ClientViewModel
-
-@{
-    ViewData["Title"] = "إضافة عميل جديد";
-}
-
-
-<form asp-action="Create" method="post" enctype="multipart/form-data" class="card shadow-sm rounded border border-primary p-4 bg-light">
-    <h4 class="text-center">إضافة عميل جديد 🆕</h4>
-
-    <div class="form-group mb-3">
-        <label asp-for="ClientName" class="control-label">اسم العميل 🏢</label>
-        <input asp-for="ClientName" class="form-control" />
-        <span asp-validation-for="ClientName" class="text-danger"></span>
-    </div>
-    <div class="row mb-3">
-        <!-- File upload for Logo (Client Logo) -->
-        <div class="form-group col-md-6">
-            <label asp-for="LogoFile" class="control-label">تحميل صورة الشعار 🌐</label>
-            <input asp-for="LogoFile" type="file" class="form-control" />
-            <span asp-validation-for="LogoFile" class="text-danger"></span>
-        </div>
-
-        <!-- Cover Upload -->
-        <div class="form-group col-md-6">
-            <label asp-for="CoverImageFile" class="control-label">تحميل صورة الغلاف 🖼️</label>
-            <input asp-for="CoverImageFile" type="file" class="form-control" />
-            <span asp-validation-for="CoverImageFile" class="text-danger"></span>
-        </div>
-    </div>
- 
-
-    <div class="form-check form-switch mb-4">
-        <label for="IsActiveCheckbox" class="form-check-label">✅ مفعل</label>    
-        <input asp-for="IsActive" class="form-check-input" type="checkbox" id="IsActiveCheckbox" checked />
-
-    </div>
-    <hr />
-    <div class="col d-flex justify-content-center">
-        <!-- Submit button to create the client -->
-        <button type="submit" class="btn btn-success me-2 w-25">
-            <i class="bi bi-check-circle-fill"></i> حفظ ✅
-        </button>
-
-        <!-- Cancel button that returns to the Index view -->
-        <a href="@Url.Action("Index")" class="btn btn-secondary w-25">
-            <i class="bi bi-x-circle-fill"></i> إلغاء ❌
-        </a>
-        </div>
-
-</form>
-
+-->
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        var existingLat = @Json.Serialize(Model.Latitude ?? 31.9539);
+        var existingLng = @Json.Serialize(Model.Longitude ?? 35.9106);
+        var hasExisting = @Json.Serialize(Model.Latitude.HasValue);
+    </script>
+
+    <script src="~/js/map-picker.js"></script>
 }
- *@
+}

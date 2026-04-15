@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace AnnouncmentHub.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin,NormalUser")]
+   // [Authorize(Roles = "Admin,NormalUser")]
     public class ClientsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -67,45 +67,81 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
         }
 
         // GET: Clients
-        public async Task<IActionResult> Index()
+        //public async Task<IActionResult> Index()
+        //{
+        //    var clients = await _context.Clients.Select(c=>new ClientViewModel
+        //    {
+        //        Id=c.Id,
+        //        ClientName=c.ClientName,
+        //        LogoUrl=c.LogoUrl,
+        //        IsActive=c.IsActive
+        //    }).ToListAsync();
+        //    return View(clients);
+        //}
+        public async Task<IActionResult> Index(
+                                                string? searchName,
+                                                bool? isActive,
+                                                bool? isVIP,
+                                                bool? isClosed,
+                                                int pageNumber = 1,
+                                                int pageSize = 10)
         {
-            var clients = await _context.Clients.Select(c=>new ClientViewModel
-            {
-                Id=c.Id,
-                ClientName=c.ClientName,
-                LogoUrl=c.LogoUrl,
-                IsActive=c.IsActive
-            }).ToListAsync();
-            return View(clients);
-        }
+            var query = _context.Clients.AsQueryable();
 
+            if (!string.IsNullOrEmpty(searchName))
+                query = query.Where(c => c.ClientName.Contains(searchName));
+
+            if (isActive.HasValue)
+                query = query.Where(c => c.IsActive == isActive.Value);
+
+            if (isVIP.HasValue)
+                query = query.Where(c => c.IsVIP == isVIP.Value);
+
+            if (isClosed.HasValue)
+                query = query.Where(c => c.IsClosed == isClosed.Value);
+
+            int totalClients = await query.CountAsync();
+
+            var clients = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var viewModel = new ClientViewModel
+            {
+                Clients = clients,
+                TotalClients = totalClients,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+
+            return View(viewModel);
+        }
         // GET: Clients/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var client = await _context.Clients.Select(c=>new ClientViewModel
+            var client = await _context.Clients.Select(c => new ClientViewModel
             {
-                Id=c.Id,
-                ClientName=c.ClientName,
-                CoverImageUrl=c.CoverImageUrl,
-                LogoUrl=c.LogoUrl,
+                Id = c.Id,
+                ClientName = c.ClientName,
+                CoverImageUrl = c.CoverImageUrl,
+                LogoUrl = c.LogoUrl,
                 IsActive = c.IsActive,
-                WhatsUp=c.WhatsUp,
-                FacebookLink=c.FacebookLink,
-                SiteUrl=c.SiteUrl,
-                MobileNumber=c.MobileNumber
-                
+                IsVIP = c.IsVIP,
+                IsClosed = c.IsClosed,
+                WhatsUp = c.WhatsUp,
+                FacebookLink = c.FacebookLink,
+                SiteUrl = c.SiteUrl,
+                MobileNumber = c.MobileNumber,
+                OpenFrom = c.OpenFrom,
+                OpenTo = c.OpenTo,
+                Latitude = c.Latitude,
+                Longitude = c.Longitude
+            }).FirstOrDefaultAsync(m => m.Id == id);
 
-            })
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (client == null)
-            {
-                return NotFound();
-            }
+            if (client == null) return NotFound();
 
             return View(client);
         }
@@ -113,7 +149,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
         // GET: Clients/Create
         public IActionResult Create()
         {
-            return View();
+            return View(new ClientViewModel());
         }
 
            // POST: Clients/Create
@@ -121,17 +157,17 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ClientViewModel model)
         {
-            //if (!ModelState.IsValid)
-            //{
-            //    // لمعرفة سبب الخطأ
-            //    var errors = ModelState.Values.SelectMany(v => v.Errors);
-            //    foreach (var error in errors)
-            //    {
-            //        Console.WriteLine(error.ErrorMessage);
-            //    }
+            if (!ModelState.IsValid)
+            {
+                // لمعرفة سبب الخطأ
+                var errors = ModelState.Values.SelectMany(v => v.Errors);
+                foreach (var error in errors)
+                {
+                    Console.WriteLine(error.ErrorMessage);
+                }
 
-            //    return View(model);
-            //}
+                return View(model);
+            }
             if (ModelState.IsValid)
             {
 
@@ -169,143 +205,104 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
                     MobileNumber = model.MobileNumber,
                     LogoUrl = logoUrl,
                     CoverImageUrl = coverUrl,
-                    IsActive = model.IsActive
+                    IsActive = model.IsActive,
+                    IsVIP = model.IsVIP,        // ✅ added
+                    IsClosed = model.IsClosed,     // ✅ added
+                    OpenFrom = model.OpenFrom,     // ✅ added
+                    OpenTo = model.OpenTo,       // ✅ added
+                    Latitude = model.Latitude,     // ✅ added
+                    Longitude = model.Longitude     // ✅ added
                 };
 
                 await _context.Clients.AddAsync(client);
                 await _context.SaveChangesAsync();
-
+                TempData["Success"] = "تم إضافة العميل بنجاح ✅";
                 return RedirectToAction(nameof(Index));
+
+         
             }
 
             // Return the view with validation errors
             return View(model);
         }
 
-        //public async Task<IActionResult> Create(ClientViewModel model)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        string logoUrl = null;
 
-        //        // Handle file upload (if a file is selected)
-        //        if (model.LogoFile != null && model.LogoFile.Length > 0)
-        //        {
-        //            // Save the uploaded file using the SaveFileAsync method
-        //            logoUrl = await SaveFileAsync("Create", model.LogoFile, null);  // No old path on Create
-        //        }
-        //        else if (!string.IsNullOrEmpty(model.LogoUrl))  // If URL is provided instead of file upload
-        //        {
-        //            logoUrl = model.LogoUrl;
-        //        }
-
-        //        // Create a new client with the logo URL (either from the file upload or URL)
-        //        var client = new Client
-        //        {
-        //            ClientName = model.ClientName,
-        //            LogoUrl = logoUrl,
-        //            IsActive = model.IsActive // You can set IsActive here as needed
-        //        };
-
-        //        _context.Add(client);  // Add the new client to the context
-        //        await _context.SaveChangesAsync();  // Save the client to the database
-
-        //        // Redirect to the Index action (or wherever you want to go after creating the client)
-        //        return RedirectToAction(nameof(Index));
-        //    }
-
-        //    // If validation fails, return the view with the model to display errors
-        //    return View(model);
-        //}
-
-
-        // GET: Clients/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var client = await _context.Clients.FindAsync(id);
-            if (client == null)
-            {
-                return NotFound();
-            }
+            if (client == null) return NotFound();
 
-            // Map the existing client data to the ViewModel for editing
             var model = new ClientViewModel
             {
                 Id = client.Id,
                 ClientName = client.ClientName,
-                WhatsUp=client.WhatsUp,
-                SiteUrl=client.SiteUrl,
-                MobileNumber=client.MobileNumber,
-                FacebookLink=client.FacebookLink,
-                IsActive=client.IsActive,
-                LogoUrl = client.LogoUrl, // Set existing Logo URL if available
-                CoverImageUrl=client.CoverImageUrl
+                WhatsUp = client.WhatsUp,
+                SiteUrl = client.SiteUrl,
+                MobileNumber = client.MobileNumber,
+                FacebookLink = client.FacebookLink,
+                IsActive = client.IsActive,
+                IsVIP = client.IsVIP,
+                IsClosed = client.IsClosed,
+                OpenFrom = client.OpenFrom,
+                OpenTo = client.OpenTo,
+                Latitude = client.Latitude,
+                Longitude = client.Longitude,
+                LogoUrl = client.LogoUrl,
+                CoverImageUrl = client.CoverImageUrl
             };
 
             return View(model);
         }
-
 
         // POST: Clients/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, ClientViewModel model)
         {
-            if (id != model.Id)
-            {
-                return NotFound();
-            }
+            if (id != model.Id) return NotFound();
 
             if (ModelState.IsValid)
             {
                 var client = await _context.Clients.FindAsync(id);
-                if (client == null)
-                {
-                    return NotFound();
-                }
-
-                string logoUrl = client.LogoUrl;
-                string coverUrl = client.CoverImageUrl;
+                if (client == null) return NotFound();
 
                 // ✅ Handle logo
+                string logoUrl = client.LogoUrl;
                 if (model.LogoFile != null && model.LogoFile.Length > 0)
-                {
                     logoUrl = await SaveFileAsync("Edit", model.LogoFile, client.LogoUrl);
-                }
                 else if (!string.IsNullOrEmpty(model.LogoUrl))
-                {
                     logoUrl = model.LogoUrl;
-                }
 
                 // ✅ Handle cover
+                string coverUrl = client.CoverImageUrl;
                 if (model.CoverImageFile != null && model.CoverImageFile.Length > 0)
-                {
                     coverUrl = await SaveFileAsync("Edit", model.CoverImageFile, client.CoverImageUrl);
-                }
                 else if (!string.IsNullOrEmpty(model.CoverImageUrl))
-                {
                     coverUrl = model.CoverImageUrl;
-                }
 
-                // ✅ Update fields
+                // ✅ Update all fields
                 client.ClientName = model.ClientName;
-                    client.WhatsUp = model.WhatsUp;
+                client.WhatsUp = model.WhatsUp;
                 client.FacebookLink = model.FacebookLink;
                 client.SiteUrl = model.SiteUrl;
                 client.MobileNumber = model.MobileNumber;
+                client.IsActive = model.IsActive;
+                client.IsVIP = model.IsVIP;
+                client.IsClosed = model.IsClosed;
+                client.OpenFrom = model.OpenFrom;
+                client.OpenTo = model.OpenTo;
+                client.Latitude = model.Latitude;
+                client.Longitude = model.Longitude;
                 client.LogoUrl = logoUrl;
                 client.CoverImageUrl = coverUrl;
-                client.IsActive = model.IsActive;
 
                 try
                 {
                     _context.Update(client);
                     await _context.SaveChangesAsync();
+                    TempData["Success"] = "تم تعديل بيانات العميل بنجاح ✅";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -320,66 +317,6 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
 
             return View(model);
         }
-
-        //public async Task<IActionResult> Edit(int id, ClientViewModel model)
-        //{
-        //    if (id != model.Id)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    if (ModelState.IsValid)
-        //    {
-        //        string logoUrl = model.LogoUrl;
-
-        //        // Handle file upload (if a new file is selected)
-        //        if (model.LogoFile != null && model.LogoFile.Length > 0)
-        //        {
-        //            // Get the old logo URL for deletion (if updating the logo)
-        //            var oldLogoUrl = await _context.Clients
-        //                .Where(c => c.Id == id)
-        //                .Select(c => c.LogoUrl)
-        //                .FirstOrDefaultAsync();
-
-        //            // Call SaveFileAsync to save the uploaded logo file and get the new logo URL
-        //            logoUrl = await SaveFileAsync("Edit", model.LogoFile, oldLogoUrl);
-        //        }
-
-        //        // Find and update the client
-        //        var client = await _context.Clients.FindAsync(id);
-        //        if (client == null)
-        //        {
-        //            return NotFound();
-        //        }
-
-        //        // Update client with the new logo URL and name
-        //        client.ClientName = model.ClientName;
-        //        client.LogoUrl = logoUrl;
-        //        client.IsActive = model.IsActive;
-
-        //        try
-        //        {
-        //            _context.Update(client);
-        //            await _context.SaveChangesAsync();
-        //        }
-        //        catch (DbUpdateConcurrencyException)
-        //        {
-        //            if (!ClientExists(client.Id))
-        //            {
-        //                return NotFound();
-        //            }
-        //            else
-        //            {
-        //                throw;
-        //            }
-        //        }
-
-        //        // Redirect to the Index action (or wherever you want to go after editing)
-        //        return RedirectToAction(nameof(Index));
-        //    }
-
-        //    return View(model); // Return to the form if validation fails
-        //}
 
         [HttpPost, ActionName("DeleteConfirmed")]
         [ValidateAntiForgeryToken]

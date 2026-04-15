@@ -1,7 +1,5 @@
 ﻿@using AnnouncmentHub.ViewModels
 @model ClientViewModel
-
-
 @{
     ViewData["Title"] = "تفاصيل العميل";
 }
@@ -10,28 +8,28 @@
     <div class="row">
         <div class="col-md-8 offset-md-2">
             <div class="card shadow-lg border-0 rounded-3">
-                <!-- 🔹 Header -->
+
+                <!-- Header -->
                 <div class="card-header bg-primary text-white text-center">
-                    <h4 class="mb-0">
-                        👤 تفاصيل العميل
-                    </h4>
+                    <h4 class="mb-0">👤 تفاصيل العميل</h4>
                 </div>
 
-                <!-- 🔹 Body -->
+                <!-- Body -->
                 <div class="card-body bg-light">
                     <dl class="row mb-4">
+
                         <!-- اسم العميل -->
-                        <dt class="col-sm-3 fw-bold text-secondary">اسم العميل:</dt>
-                        <dd class="col-sm-9">@Model.ClientName</dd>
+                        <dt class="col-sm-4 fw-bold text-secondary">🏢 اسم العميل:</dt>
+                        <dd class="col-sm-8">@Model.ClientName</dd>
 
                         <!-- الشعار -->
-                        <dt class="col-sm-3 fw-bold text-secondary">الشعار:</dt>
-                        <dd class="col-sm-9">
+                        <dt class="col-sm-4 fw-bold text-secondary">🖼️ الشعار:</dt>
+                        <dd class="col-sm-8">
                             @if (!string.IsNullOrEmpty(Model.LogoUrl))
                             {
                                 <img src="@Model.LogoUrl" alt="Logo"
-                                     class="img-thumbnail shadow-sm border border-2"
-                                     style="max-width: 150px; border-radius: 8px;" />
+                                     class="img-thumbnail shadow-sm"
+                                     style="max-width:150px; border-radius:8px;" />
                             }
                             else
                             {
@@ -40,52 +38,55 @@
                         </dd>
 
                         <!-- الغلاف -->
-                        <dt class="col-sm-3 fw-bold text-secondary">الغلاف:</dt>
-                        <dd class="col-sm-9">
+                        <dt class="col-sm-4 fw-bold text-secondary">🖼️ الغلاف:</dt>
+                        <dd class="col-sm-8">
                             @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
                             {
                                 <img src="@Model.CoverImageUrl" alt="Cover"
-                                     class="img-thumbnail shadow-sm border border-2"
-                                     style="max-width: 250px; border-radius: 8px;" />
+                                     class="img-thumbnail shadow-sm"
+                                     style="max-width:250px; border-radius:8px;" />
                             }
                             else
                             {
                                 <span class="text-muted fst-italic">لا يوجد غلاف</span>
                             }
                         </dd>
+
                         <!-- فيسبوك -->
-                        <dt class="col-sm-3 fw-bold text-secondary">📘 فيسبوك:</dt>
-                        <dd class="col-sm-9">
+                        <dt class="col-sm-4 fw-bold text-secondary">📘 فيسبوك:</dt>
+                        <dd class="col-sm-8">
                             @if (!string.IsNullOrEmpty(Model.FacebookLink))
                             {
                                 <a href="@Model.FacebookLink" target="_blank" class="text-decoration-none">
-                                    زيارة الصفحة
+                                    زيارة الصفحة 🔗
                                 </a>
                             }
                             else
                             {
+
                                 <span class="text-muted fst-italic">غير متوفر</span>
                             }
                         </dd>
 
                         <!-- واتساب -->
-                        <dt class="col-sm-3 fw-bold text-secondary">💬 واتساب:</dt>
-                        <dd class="col-sm-9">
+                        <dt class="col-sm-4 fw-bold text-secondary">💬 واتساب:</dt>
+                        <dd class="col-sm-8">
                             @if (!string.IsNullOrEmpty(Model.WhatsUp))
                             {
                                 <a href="https://wa.me/@Model.WhatsUp" target="_blank" class="text-decoration-none">
-                                    مراسلة واتساب
+                                    @Model.WhatsUp 🔗
                                 </a>
                             }
                             else
                             {
+
                                 <span class="text-muted fst-italic">غير متوفر</span>
                             }
                         </dd>
 
-                        <!-- رقم الهاتف -->
-                        <dt class="col-sm-3 fw-bold text-secondary">📞 الهاتف:</dt>
-                        <dd class="col-sm-9">
+                        <!-- الهاتف -->
+                        <dt class="col-sm-4 fw-bold text-secondary">📞 الهاتف:</dt>
+                        <dd class="col-sm-8">
                             @if (!string.IsNullOrEmpty(Model.MobileNumber))
                             {
                                 <a href="tel:@Model.MobileNumber" class="text-decoration-none">
@@ -94,43 +95,105 @@
                             }
                             else
                             {
+
                                 <span class="text-muted fst-italic">غير متوفر</span>
                             }
                         </dd>
 
                         <!-- الموقع الإلكتروني -->
-                        <dt class="col-sm-3 fw-bold text-secondary">🌐 الموقع:</dt>
-                        <dd class="col-sm-9">
+                        <dt class="col-sm-4 fw-bold text-secondary">🌐 الموقع:</dt>
+                        <dd class="col-sm-8">
                             @if (!string.IsNullOrEmpty(Model.SiteUrl))
                             {
                                 <a href="@Model.SiteUrl" target="_blank" class="text-decoration-none">
-                                    زيارة الموقع
+                                    زيارة الموقع 🔗
+                                </a>
+                            }
+                            else
+                            {
+
+                                <span class="text-muted fst-italic">غير متوفر</span>
+                            }
+                        </dd>
+
+                        <!-- أوقات الدوام -->
+                        <dt class="col-sm-4 fw-bold text-secondary">🕗 بداية الدوام:</dt>
+                        <dd class="col-sm-8">
+                            @(Model.OpenFrom.HasValue? Model.OpenFrom.Value.ToString(@"hh\:mm") : "—")
+                        </dd>
+
+                        <dt class="col-sm-4 fw-bold text-secondary">🕔 نهاية الدوام:</dt>
+                        <dd class="col-sm-8">
+                            @(Model.OpenTo.HasValue? Model.OpenTo.Value.ToString(@"hh\:mm") : "—")
+                        </dd>
+
+                   @*      <!-- الموقع الجغرافي -->
+                        <dt class="col-sm-4 fw-bold text-secondary">📍 الموقع الجغرافي:</dt>
+                        <dd class="col-sm-8">
+                            @if (Model.GoogleMapsUrl != null)
+                            {
+                                <a href="@Model.GoogleMapsUrl" target="_blank" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-map-fill"></i> عرض على خرائط جوجل
                                 </a>
                             }
                             else
                             {
                                 <span class="text-muted fst-italic">غير متوفر</span>
                             }
-                        </dd>
-
-                        <!-- الحالة -->
-                        <dt class="col-sm-3 fw-bold text-secondary">الحالة:</dt>
-                        <dd class="col-sm-9">
-                            @if (Model.IsActive)
+                        </dd> *@
+                        <!-- الموقع الجغرافي -->
+                        <dt class="col-sm-4 fw-bold text-secondary">📍 الموقع الجغرافي:</dt>
+                        <dd class="col-sm-8">
+                            @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
                             {
-                                <span class="badge bg-success px-3 py-2">✅ مفعل</span>
+                                <div id="map" style="height: 250px; width: 100%; border-radius: 8px; border: 1px solid #dee2e6;" class="mb-2"></div>
+                                <a href="@Model.GoogleMapsUrl" target="_blank" class="btn btn-outline-success btn-sm">
+                                    <i class="bi bi-map-fill"></i> فتح في خرائط جوجل
+                                </a>
+                                <small class="text-muted d-block mt-1">
+                                    @Model.Latitude?.ToString("F6") , @Model.Longitude?.ToString("F6")
+                                </small>
                             }
                             else
                             {
-                                <span class="badge bg-danger px-3 py-2">❌ غير مفعل</span>
+                                <span class="text-muted fst-italic">غير متوفر</span>
                             }
                         </dd>
+                        <!-- الحالة -->
+                        <dt class="col-sm-4 fw-bold text-secondary">الحالة:</dt>
+                        <dd class="col-sm-8">
+                            <div class="d-flex flex-wrap gap-2">
+                                @if (Model.IsActive)
+                                {
+                                    <span class="badge bg-success px-3 py-2">✅ مفعل</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger px-3 py-2">❌ غير مفعل</span>
+                                }
+
+                                @if (Model.IsVIP)
+                                {
+                                    <span class="badge bg-warning text-dark px-3 py-2">⭐ VIP</span>
+                                }
+
+                                @if (Model.IsClosed)
+                                {
+                                    <span class="badge bg-secondary px-3 py-2">🔒 مغلق</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success px-3 py-2">🟢 مفتوح</span>
+                                }
+                            </div>
+                        </dd>
+
                     </dl>
 
-                    <!-- 🔹 Buttons -->
-                    <div class="d-flex justify-content-center mt-4">
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-center gap-3 mt-4">
                         <a href="@Url.Action("Edit", "Clients", new { id = Model.Id })"
-                           class="btn btn-warning me-2 px-4">
+                           class="btn btn-warning px-4">
                             ✏️ تعديل
                         </a>
                         <a href="@Url.Action("Index", "Clients")"
@@ -143,3 +206,31 @@
         </div>
     </div>
 </div>
+@section Scripts {
+    @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
+    {
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+        <script>
+            var existingLat = @Json.Serialize(Model.Latitude.Value);
+            var existingLng = @Json.Serialize(Model.Longitude.Value);
+        </script>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                var map = L.map("map", { zoomControl: true, dragging: true, scrollWheelZoom: false })
+                           .setView([existingLat, existingLng], 15);
+
+                L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                    attribution: "© OpenStreetMap contributors"
+                }).addTo(map);
+
+                L.marker([existingLat, existingLng])
+                 .addTo(map)
+                 .bindPopup("@Html.Raw(Model.ClientName)")
+                 .openPopup();
+            });
+        </script>
+    }
+}
