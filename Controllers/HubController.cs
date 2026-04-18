@@ -16,7 +16,7 @@ namespace AnnouncmentHub.Controllers
         private readonly AnnouncementRepository _repository;
         private readonly BreadcrumbService _breadcrumbService;
 
-        public HubController(ApplicationDbContext context, AnnouncementRepository repository, BreadcrumbService breadcrumbService)
+        public HubController(ApplicationDbContext context,  AnnouncementRepository repository, BreadcrumbService breadcrumbService)
         {
             _context = context;
             _repository = repository;
