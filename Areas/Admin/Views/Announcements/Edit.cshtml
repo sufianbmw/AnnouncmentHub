@@ -40,12 +40,6 @@
                                 <div class="position-relative border rounded p-2 h-100 text-center bg-light">
                                 <img src="@img.ImageUrl" class="img-thumbnail mb-2" style="height:120px">
 
-                             @*    <button type="button"
-                                        class="btn btn-sm btn-danger"
-                                        onclick="deleteImage(@img.Id, this)">
-                                    🗑 حذف
-                                </button> *@
-
                                 <button type="button"
                                         class="btn btn-sm btn-danger"
                                         onclick="deleteImage(@img.Id)">
@@ -137,10 +131,23 @@
     </div>
 
 
-    <div class="form-check form-switch mb-4">
-        <input asp-for="IsActive" class="form-check-input" type="checkbox" id="IsActiveCheckbox" />
-        <label asp-for="IsActive" class="form-check-label">✅ مفعل</label>
-    </div>
+
+        <!-- خيارات الحالة -->
+        <div class="card border-secondary mb-4 p-3">
+            <h6 class="mb-3 text-secondary">⚙️ إعدادات الحالة</h6>
+            <div class="d-flex flex-wrap gap-4">
+                <div class="form-check form-switch mb-4">
+                    <input asp-for="IsActive" class="form-check-input" type="checkbox" id="IsActiveCheckbox" />
+                    <label for="IsActiveCheckbox" class="form-check-label">✅ تفعيل الاعلان ؟</label>
+                </div>
+                <div class="form-check form-switch mb-4">
+                    <input asp-for="IsVIP" class="form-check-input" type="checkbox" id="IsVIPCheckbox" />
+                    <label for="IsVIPCheckbox" class="form-check-label">اعلان Vip ؟ </label>
+                </div>
+            </div>
+        </div>
+
+ 
         <div class="col d-flex justify-content-center">
             <button type="submit" class="btn btn-success me-2 w-25">💾 حفظ التعديلات</button>
             <a asp-action="Index" class="btn btn-secondary w-25">↩️ إلغاء</a>

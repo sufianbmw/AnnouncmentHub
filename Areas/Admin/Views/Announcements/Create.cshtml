@@ -128,11 +128,20 @@
 
  
         </div>
+        <!-- خيارات الحالة -->
+        <div class="card border-secondary mb-4 p-3">
+            <h6 class="mb-3 text-secondary">⚙️ إعدادات الحالة</h6>
+            <div class="d-flex flex-wrap gap-4">
         <div class="form-check form-switch mb-4">
             <input asp-for="IsActive" class="form-check-input" type="checkbox" id="IsActiveCheckbox" checked />
-            <label for="IsActiveCheckbox" class="form-check-label">✅ مفعل</label>
+            <label for="IsActiveCheckbox" class="form-check-label">✅ تفعيل الاعلان ؟</label>
         </div>
-
+        <div class="form-check form-switch mb-4">
+            <input asp-for="IsVIP" class="form-check-input" type="checkbox" id="IsVIPCheckbox" checked />
+            <label for="IsVIPCheckbox" class="form-check-label">اعلان Vip ؟ </label>
+        </div>
+            </div>
+        </div>
         <hr />
 
         <div class="col d-flex justify-content-center">

@@ -87,6 +87,8 @@
                     <th>📂 التصنيفات الفرعية</th>
                     <th>📅 التاريخ</th>
                     <th>📎 الملف</th>
+                    <th>مفعل</th>
+                    <th>VIP ⭐</th>
                     <th>⚙️ العمليات</th>
                 </tr>
             </thead>
@@ -160,7 +162,26 @@
                                 }
                             }
                         </td>
-
+                        <td>
+                            @if (item.IsActive)
+                            {
+                                <span class="badge bg-success">مفعل ✅</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">غير مفعل ❌</span>
+                            }
+                        </td>
+                        <td>
+                            @if (item.IsVIP)
+                            {
+                                <span class="badge bg-warning text-dark">⭐ VIP</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">—</span>
+                            }
+                        </td>
                         <td>
                             <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">✏️ تعديل</a>
                             @* <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline">

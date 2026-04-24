@@ -7,6 +7,7 @@
         public bool IsParent { get; set; } = false;
         public string? IconUrl { get; set; }
 
+        public bool IsInMainPage { get; set; } = false;
         public ICollection<CategoryParentMapping> ParentMappings { get; set; } = new List<CategoryParentMapping>();
         public ICollection<CategoryParentMapping> SubCategoryMappings { get; set; } = new List<CategoryParentMapping>();
 

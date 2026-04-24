@@ -9,6 +9,8 @@
         public DateTime? DateFrom { get; set; }
         public DateTime? DateTo { get; set; }
 
+        public bool IsVIP { get; set; } = false;
+
         // Optional relationship to Client
         public int? ClientId { get; set; }
         public Client? Client { get; set; }

@@ -18,6 +18,8 @@ namespace AnnouncmentHub.ViewModels
         [Display(Name = "مفعل")]
         public bool IsActive { get; set; } = true; // Default to active
 
+        [Display(Name = "اعلان  VIP")]
+        public bool IsVIP { get; set; } = false;
 
         // Add this list to capture selected subcategories
         [Display(Name = "التصنيفات الفرعية")]
@@ -38,6 +40,8 @@ namespace AnnouncmentHub.ViewModels
         [Display(Name = "العميل")]
         public int? ClientId { get; set; }  // Reference to Client ID (optional)
         public Client? Client { get; set; }
+
+
 
         //[Display(Name = "اسم العميل")]
         //public string? ClientName { get; set; }  // Optional: To display the name of the client if needed

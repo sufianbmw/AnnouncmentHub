@@ -92,6 +92,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
                     FilePath = a.FilePath,
                     AddedDate = a.AddedDate,
                     IsActive = a.IsActive,
+                    IsVIP=a.IsVIP,
                     SubCategoryNames = a.AnnouncementCategories
                         .Select(ac => ac.Category.CatName)
                         .Distinct()
@@ -361,6 +362,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
                 FilePath = announcement.FilePath,
                 AddedDate = announcement.AddedDate,
                 IsActive = announcement.IsActive,
+                IsVIP = announcement.IsVIP,
                 DateFrom = announcement.DateFrom, // Nullable DateTime, can be null
                 DateTo = announcement.DateTo,     // Nullable DateTime, can be null
                 ClientId = announcement.ClientId, // Associate client if selected
@@ -436,6 +438,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
             announcement.Title = model.Title;
             announcement.Description = model.Description;
             announcement.IsActive = model.IsActive;
+            announcement.IsVIP = model.IsVIP;
             announcement.DateFrom = model.DateFrom; // Nullable DateTime, can be null
             announcement.DateTo = model.DateTo;    // Nullable DateTime, can be null
             announcement.ClientId = model.ClientId; // Associate client if selected
