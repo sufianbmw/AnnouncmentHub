@@ -66,19 +66,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
             }
         }
 
-        // GET: Clients
-        //public async Task<IActionResult> Index()
-        //{
-        //    var clients = await _context.Clients.Select(c=>new ClientViewModel
-        //    {
-        //        Id=c.Id,
-        //        ClientName=c.ClientName,
-        //        LogoUrl=c.LogoUrl,
-        //        IsActive=c.IsActive
-        //    }).ToListAsync();
-        //    return View(clients);
-        //}
-        public async Task<IActionResult> Index(
+           public async Task<IActionResult> Index(
                                                 string? searchName,
                                                 bool? isActive,
                                                 bool? isVIP,

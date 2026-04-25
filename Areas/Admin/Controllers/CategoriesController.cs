@@ -63,27 +63,6 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
         }
 
 
-
-        //private List<SelectListItem> GetParentCategoriesBasic()
-        //    {
-        //        var parentCategories = _context.Categories
-        //            .Where(c => c.IsParent && c.IsActive)
-        //            .AsNoTracking()
-        //            .Select(c => new SelectListItem
-        //            {
-        //                Value = c.Id.ToString(),
-        //                Text = c.CatName
-        //            }).ToList();
-
-        //        parentCategories.Insert(0, new SelectListItem
-        //        {
-        //            Value = "-1",
-        //            Text = "-- حسب التصنيف الرئيسي --"
-        //        });
-
-        //        return parentCategories;
-        //    }
-
         // GET: Categories/Create
         public IActionResult Create()
         {
@@ -140,6 +119,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
                 CatName = model.CatName?.Trim(),
                 IsParent = model.IsParent,
                 IsActive = model.IsActive,
+                IsVIP = model.IsVIP,
                 IconUrl = iconPath
             };
 
@@ -194,6 +174,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
                     CatName = c.CatName,
                     IsParent = c.IsParent,
                     IsActive = c.IsActive,
+                    IsVIP = c.IsVIP,
                     IconUrl=c.IconUrl,
                     ParentCategoryIds = c.ParentMappings.Select(pm => pm.ParentCategoryId).ToList(),
                     ParentCategories = _context.Categories
@@ -211,83 +192,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
 
             return View(category);
         }
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Edit(int id, CategoryViewModel model)
-        //{
-        //    if (id != model.Id)
-        //        return NotFound();
-
-        //    if (!model.IsParent && (model.ParentCategoryIds == null || !model.ParentCategoryIds.Any()))
-        //    {
-        //        ModelState.AddModelError("ParentCategoryIds", "يجب ربط هذا التصنيف بتصنيف رئيسي واحد على الأقل.");
-        //    }
-
-        //    if (ModelState.IsValid)
-        //    {
-        //        try
-        //        {
-        //            // Update category basic properties
-        //            var category = await _context.Categories
-        //                .Include(c => c.ParentMappings)
-        //                .FirstOrDefaultAsync(c => c.Id == id);
-
-        //            if (category == null)
-        //                return NotFound();
-
-        //            category.CatName = model.CatName;
-        //            category.IsParent = model.IsParent;
-        //            category.IsActive = model.IsActive;
-
-        //            // Update parent mappings only if not a parent category
-        //            if (model.IsParent)
-        //            {
-        //                // If now a parent, remove all parent mappings
-        //                _context.CategoryParentMappings.RemoveRange(category.ParentMappings);
-        //            }
-        //            else
-        //            {
-        //                // Remove existing mappings not in new list
-        //                var toRemove = category.ParentMappings
-        //                    .Where(pm => !model.ParentCategoryIds.Contains(pm.ParentCategoryId))
-        //                    .ToList();
-        //                _context.CategoryParentMappings.RemoveRange(toRemove);
-
-        //                // Add new mappings that don’t exist yet
-        //                var existingParentIds = category.ParentMappings.Select(pm => pm.ParentCategoryId).ToList();
-        //                var toAdd = model.ParentCategoryIds
-        //                    .Where(pid => !existingParentIds.Contains(pid))
-        //                    .Select(pid => new CategoryParentMapping
-        //                    {
-        //                        ParentCategoryId = pid,
-        //                        SubCategoryId = id
-        //                    });
-        //                await _context.CategoryParentMappings.AddRangeAsync(toAdd);
-        //            }
-
-        //            await _context.SaveChangesAsync();
-        //            return RedirectToAction(nameof(Index));
-        //        }
-        //        catch (DbUpdateConcurrencyException)
-        //        {
-        //            if (!_context.Categories.Any(c => c.Id == id))
-        //                return NotFound();
-        //            else
-        //                throw;
-        //        }
-        //    }
-
-        //    // Repopulate ParentCategories for redisplay if validation failed
-        //    model.ParentCategories = _context.Categories
-        //        .Where(pc => pc.IsParent && pc.IsActive)
-        //        .Select(pc => new SelectListItem
-        //        {
-        //            Value = pc.Id.ToString(),
-        //            Text = pc.CatName
-        //        }).ToList();
-
-        //    return View(model);
-        //}
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, CategoryViewModel model)
@@ -316,6 +221,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
                     category.CatName = model.CatName?.Trim();
                     category.IsParent = model.IsParent;
                     category.IsActive = model.IsActive;
+                    category.IsVIP = model.IsVIP;
 
                     // ✅ Handle icon file upload
                     if (model.IconFile != null && model.IconFile.Length > 0)

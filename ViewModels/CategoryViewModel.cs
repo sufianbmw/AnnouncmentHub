@@ -28,6 +28,8 @@ namespace AnnouncmentHub.ViewModels
         [Display(Name = "مفعل")]
         public bool IsActive { get; set; }
 
+        [Display(Name = "التصنيف VIP")]
+        public bool IsVIP { get; set; }
         // Remove ParentCategoryName property, or keep it if you want to show something in edit view (optional)
 
         // For dropdown list of parent categories

@@ -238,10 +238,10 @@ namespace AnnouncmentHub.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsInMainPage")
+                    b.Property<bool>("IsParent")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsParent")
+                    b.Property<bool>("IsVIP")
                         .HasColumnType("bit");
 
                     b.HasKey("Id");

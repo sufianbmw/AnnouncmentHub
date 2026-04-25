@@ -85,6 +85,8 @@
             <th>📛 اسم التصنيف</th>
             <th>👑 رئيسي؟</th>
             <th>📂 التصنيفات التابعة (الأب)</th>
+            <th>مفعل ✅</th>
+            <th>VIP ⭐</th>
             <th style="width: 150px;">⚙️ الإجراءات</th>
         </tr>
     </thead>
@@ -124,6 +126,26 @@
                             <span class="text-muted fst-italic">— لا يوجد —</span>
                         }
                     </td>
+                                            <td>
+                            @if (@cat.IsActive)
+                            {
+                                <span class="badge bg-success">مفعل ✅</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">غير مفعل ❌</span>
+                            }
+                        </td>
+                        <td>
+                            @if (@cat.IsVIP)
+                            {
+                                <span class="badge bg-warning text-dark">⭐ VIP</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">—</span>
+                            }
+                        </td>
                     <td class="text-center">
                         <a asp-action="Edit" asp-route-id="@cat.Id" class="btn btn-sm btn-warning" title="تعديل">✏️</a>
                         <a asp-action="Delete" asp-route-id="@cat.Id" class="btn btn-sm btn-danger ms-1" title="حذف"

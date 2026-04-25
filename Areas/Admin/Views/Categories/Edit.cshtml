@@ -49,10 +49,10 @@
                     <span asp-validation-for="ParentCategoryIds" class="text-danger"></span>
                 </div>
 
-                <div class="form-check form-switch mb-5">
+             @*    <div class="form-check form-switch mb-5">
                     <input asp-for="IsActive" class="form-check-input" type="checkbox" id="IsActiveCheckbox" />
                     <label asp-for="IsActive" for="IsActiveCheckbox" class="form-check-label fs-5">✅ مفعل</label>
-                </div>
+                </div> *@
 
                 <div class="mb-4">
                     <label asp-for="IconFile" class="form-label fs-5 fw-semibold">🖼️ تحميل أيقونة التصنيف</label>
@@ -74,7 +74,21 @@
 
                 </div>
 
+                <!-- خيارات الحالة -->
+                <div class="card border-secondary mb-4 p-3">
+                    <h6 class="mb-3 text-secondary">⚙️ إعدادات الحالة</h6>
+                    <div class="d-flex flex-wrap gap-4">
+                        <div class="form-check form-switch">
+                            <input asp-for="IsActive" class="form-check-input" type="checkbox" id="IsActiveCheckbox" />
+                            <label class="form-check-label" for="IsActiveCheckbox">✅ تصنيف مفعل ؟</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input asp-for="IsVIP" class="form-check-input" type="checkbox" id="IsVIPCheckbox" />
+                            <label class="form-check-label" for="IsVIPCheckbox">⭐   تصنيف VIP ؟</label>
+                        </div>
 
+                    </div>
+                </div>
                 <hr />
 
                 <div class="d-flex justify-content-end gap-3">
