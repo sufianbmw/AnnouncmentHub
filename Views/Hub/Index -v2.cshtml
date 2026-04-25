@@ -1,0 +1,20 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div id="random-announcements" class="my-4">
+    <div class="text-center text-muted">⏳ جاري تحميل الإعلانات...</div>
+</div>
+
+<div id="random-clients" class="my-4">
+    <div class="text-center text-muted">⏳ جاري تحميل العملاء...</div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $("#random-announcements").load("/Hub/RandomAnnouncementsTop30");
+            $("#random-clients").load("/Hub/Top30RandomClients");
+        });
+    </script>
+}

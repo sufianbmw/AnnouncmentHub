@@ -1,60 +1,379 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - AnnouncmentHub</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <title>@ViewData["Title"] - جو أوفر</title>
+
+    @* Tailwind (CDN for dev — swap for npm build in prod) *@
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Cairo', 'sans-serif'],
+                        headline: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#1a1a1a',
+                        secondary: '#0d9488',
+                        accent: '#f59e0b',
+                        'surface': '#f7f4ee',
+                        'surface-variant': '#edeae0',
+                        'on-surface': '#1a1a1a',
+                        'on-surface-variant': '#4b5563',
+                        'outline': '#9ca3af',
+                        'outline-variant': '#d6d0c4',
+                    },
+                    animation: {
+                        'marquee': 'marquee 30s linear infinite',
+                        'marquee-slow': 'marquee 50s linear infinite',
+                        'fade-up': 'fadeUp 0.6s ease forwards',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        marquee: {
+                            '0%': { transform: 'translateX(0%)' },
+                            '100%': { transform: 'translateX(-50%)' },
+                        },
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(24px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    @* Fonts *@
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet" />
+
+    @* Lucide Icons *@
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    @* Font Awesome (kept for existing views that use it) *@
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" />
+
+    @* Your existing CSS (site.css contains the design's custom styles + your original styles) *@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/AnnouncmentHub.styles.css" asp-append-version="true" />
+
+    @await RenderSectionAsync("Styles", required: false)
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">AnnouncmentHub</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>    
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Categories" asp-action="Index">Categories</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                    <partial name="_LoginPartial" />
+<body class="bg-[#f0ede4] font-sans text-on-surface selection:bg-secondary/20 selection:text-secondary pb-20 md:pb-0">
+
+    <!-- ═══════════════════════ NAVBAR ═══════════════════════ -->
+    <nav id="navbar" class="glass-nav fixed top-0 w-full z-50">
+        <div class="max-w-7xl mx-auto px-4 md:px-8">
+            <div class="flex justify-between items-center py-3.5">
+
+                <!-- Logo -->
+                <div class="flex items-center gap-4 md:gap-8">
+                    <a asp-area="" asp-controller="Hub" asp-action="Index" class="flex items-center gap-3 group">
+                        <div class="relative">
+                            <img src="~/images/joofferslogo.png"
+                                 alt="جو أوفر"
+                                 class="h-10 w-10 md:h-11 md:w-11 object-contain rounded-xl shadow-md transition-transform duration-300 group-hover:scale-105" />
+                            <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-white shadow-sm"></div>
+                        </div>
+                        <div class="flex flex-col leading-tight">
+                            <span class="text-lg md:text-xl font-black text-secondary tracking-tighter">جو أوفر</span>
+                            <span class="text-[8px] md:text-[9px] font-bold text-outline uppercase tracking-widest">منصة الإعلانات الأردنية</span>
+                        </div>
+                    </a>
+
+                    @* Desktop search bar *@
+                    <form asp-area="" asp-controller="Hub" asp-action="Search" method="get" class="hidden lg:flex relative group w-96">
+                        <i data-lucide="search" class="absolute right-4 top-1/2 -translate-y-1/2 text-outline w-4 h-4 transition-colors group-focus-within:text-secondary"></i>
+                        <input type="text" name="title" placeholder="ابحث عن إعلانات، عروض، متاجر..."
+                               class="w-full bg-[#e8e4d8] border border-transparent rounded-full pr-10 pl-4 py-2.5 text-sm font-medium transition-all duration-300 focus:ring-2 focus:ring-secondary/30 focus:bg-[#f7f4ee] focus:border-secondary/20 outline-none" />
+                    </form>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-center gap-2 md:gap-3">
+                    <button class="bell-btn p-2.5 bg-[#e8e4d8] rounded-xl relative">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                    </button>
+
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <!-- Logged-in: show username + logout -->
+                        <a asp-area="Identity" asp-page="/Account/Manage/Index"
+                           class="hidden md:block px-4 py-2.5 text-sm font-bold text-secondary hover:bg-secondary/5 rounded-xl transition-all duration-250">
+                            👤 @User.Identity?.Name
+                        </a>
+                        <form asp-area="Identity" asp-page="/Account/Logout"
+                              asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })"
+                              method="post" class="hidden md:block">
+                            <button type="submit"
+                                    class="px-5 py-2.5 border-2 border-outline-variant rounded-xl text-sm font-bold transition-all duration-250 hover:border-red-400 hover:text-red-500 hover:bg-red-50">
+                                تسجيل الخروج
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <!-- Guest: login + register buttons -->
+                        <a asp-area="Identity" asp-page="/Account/Login"
+                           class="hidden md:block px-5 py-2.5 border-2 border-outline-variant rounded-xl text-sm font-bold transition-all duration-250 hover:border-secondary hover:text-secondary hover:bg-secondary/5">
+                            تسجيل الدخول
+                        </a>
+                        <a asp-area="Identity" asp-page="/Account/Register"
+                           class="hidden md:block px-4 py-2.5 border-2 border-outline-variant rounded-xl text-sm font-bold transition-all duration-250 hover:border-secondary hover:text-secondary hover:bg-secondary/5">
+                            إنشاء حساب
+                        </a>
+                    }
+
+                    <a asp-area="" asp-controller="Hub" asp-action="Search"
+                       class="micro-gradient-primary text-white px-4 md:px-6 py-2.5 rounded-xl text-xs md:text-sm font-black flex items-center gap-2">
+                        <i data-lucide="search" class="w-4 h-4"></i> تصفّح الإعلانات
+                    </a>
                 </div>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            <!-- 🔹 Breadcrumbs appear here -->
-            @if (ViewBag.Breadcrumb != null)
-            {
-                @await Html.PartialAsync("_Breadcrumb", ViewBag.Breadcrumb as List<AnnouncmentHub.ViewModels.BreadcrumbItem>)
-            }
-            @RenderBody()
-        </main>
+
+            <!-- Category strip -->
+            <div class="border-t border-outline-variant/60 overflow-x-auto no-scrollbar py-2.5">
+                <div class="flex gap-6 whitespace-nowrap items-center">
+                    <a asp-area="" asp-controller="Home" asp-action="Index"
+                       class="nav-cat text-xs font-bold text-secondary pb-1">الكل</a>
+                    <a asp-area="" asp-controller="Hub" asp-action="Search"
+                       class="nav-cat text-xs font-bold text-red-600 animate-pulse">آخر الإعلانات 🔥</a>
+                    <a asp-area="" asp-controller="Hub" asp-action="LoadingHub"
+                       class="nav-cat text-xs font-bold text-on-surface-variant hover:text-secondary">تصفّح بالتصنيف</a>
+                    <a asp-area="" asp-controller="Hub" asp-action="Clients"
+                       class="nav-cat text-xs font-bold text-on-surface-variant hover:text-secondary">المتاجر الموثّقة</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ═══════════════════════ MARQUEE TICKER ═══════════════════════ -->
+    <div class="bg-[#1a1a1a] py-2.5 overflow-hidden border-y border-white/10 relative mt-24 md:mt-[6.5rem]">
+        <div class="flex whitespace-nowrap animate-marquee w-max">
+            <div class="flex items-center gap-16 px-8">
+                <span class="flex items-center gap-2 text-white text-[10px] font-black uppercase tracking-widest">
+                    <span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse inline-block"></span>
+                    منصة الإعلانات الأردنية الأولى
+                </span>
+                <span class="flex items-center gap-2 text-white text-[10px] font-black uppercase tracking-widest">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-300 animate-pulse inline-block"></span>
+                    أضف إعلانك مجاناً
+                </span>
+                <span class="flex items-center gap-2 text-white text-[10px] font-black uppercase tracking-widest">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-300 animate-pulse inline-block"></span>
+                    عقارات · سيارات · إلكترونيات · خدمات
+                </span>
+                <span class="flex items-center gap-2 text-white text-[10px] font-black uppercase tracking-widest">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-300 animate-pulse inline-block"></span>
+                    تواصل مباشرة مع البائع
+                </span>
+                <span class="flex items-center gap-2 text-white text-[10px] font-black uppercase tracking-widest">
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse inline-block"></span>
+                    متاجر موثّقة وعروض يومية
+                </span>
+            </div>
+            @* Duplicate for seamless loop *@
+            <div class="flex items-center gap-16 px-8" aria-hidden="true">
+                <span class="flex items-center gap-2 text-white text-[10px] font-black uppercase tracking-widest">
+                    <span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse inline-block"></span>
+                    منصة الإعلانات الأردنية الأولى
+                </span>
+                <span class="flex items-center gap-2 text-white text-[10px] font-black uppercase tracking-widest">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-300 animate-pulse inline-block"></span>
+                    أضف إعلانك مجاناً
+                </span>
+                <span class="flex items-center gap-2 text-white text-[10px] font-black uppercase tracking-widest">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-300 animate-pulse inline-block"></span>
+                    عقارات · سيارات · إلكترونيات · خدمات
+                </span>
+                <span class="flex items-center gap-2 text-white text-[10px] font-black uppercase tracking-widest">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-300 animate-pulse inline-block"></span>
+                    تواصل مباشرة مع البائع
+                </span>
+                <span class="flex items-center gap-2 text-white text-[10px] font-black uppercase tracking-widest">
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse inline-block"></span>
+                    متاجر موثّقة وعروض يومية
+                </span>
+            </div>
+        </div>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; @DateTime.Now.Year - AnnouncementHub
-            <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <!-- ═══════════════════════ PAGE CONTENT ═══════════════════════ -->
+    <main role="main">
+        @if (ViewBag.Breadcrumb != null)
+        {
+            <div class="max-w-7xl mx-auto px-4 md:px-8 pt-4">
+                @await Html.PartialAsync("_Breadcrumb", ViewBag.Breadcrumb as List<AnnouncmentHub.ViewModels.BreadcrumbItem>)
+            </div>
+        }
+        @RenderBody()
+    </main>
+
+    <!-- ═══════════════════════ FOOTER ═══════════════════════ -->
+    <footer class="bg-[#e4e0d6] py-16 px-4 md:px-8 text-right">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 font-headline">
+
+            <!-- Brand -->
+            <div class="space-y-6">
+                <div class="flex items-center gap-3 justify-end">
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-xl font-black text-secondary tracking-tighter">جو أوفر</span>
+                        <span class="text-[9px] font-bold text-outline uppercase tracking-widest">منصة الإعلانات الأردنية</span>
+                    </div>
+                    <img src="~/images/joofferslogo.png" alt="جو أوفر" class="h-12 w-12 object-contain rounded-xl" />
+                </div>
+                <p class="text-xs font-medium text-on-surface-variant leading-relaxed uppercase tracking-widest">
+                    منصة إلكترونية موثوقة لعرض الإعلانات والعروض التجارية في الأردن.
+                </p>
+                <div class="flex gap-3 justify-end">
+                    <div class="social-btn w-10 h-10 rounded-xl bg-[#f7f4ee] flex items-center justify-center cursor-pointer shadow-sm">
+                        <i data-lucide="globe" class="w-5 h-5"></i>
+                    </div>
+                    <div class="social-btn w-10 h-10 rounded-xl bg-[#f7f4ee] flex items-center justify-center cursor-pointer shadow-sm">
+                        <i data-lucide="mail" class="w-5 h-5"></i>
+                    </div>
+                    <div class="social-btn w-10 h-10 rounded-xl bg-[#f7f4ee] flex items-center justify-center cursor-pointer shadow-sm">
+                        <i data-lucide="phone" class="w-5 h-5"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick links -->
+            <div class="space-y-4">
+                <h4 class="text-xs font-black uppercase tracking-widest text-secondary">روابط سريعة</h4>
+                <ul class="space-y-3">
+                    <li><a asp-area="" asp-controller="Hub" asp-action="Index" class="footer-link text-xs font-bold text-on-surface-variant">الرئيسية</a></li>
+                    <li><a asp-area="" asp-controller="Hub" asp-action="Search" class="footer-link text-xs font-bold text-on-surface-variant">الإعلانات</a></li>
+                    <li><a asp-area="" asp-controller="Hub" asp-action="Clients" class="footer-link text-xs font-bold text-on-surface-variant">المتاجر</a></li>
+                    <li><a asp-area="" asp-controller="Hub" asp-action="LoadingHub" class="footer-link text-xs font-bold text-on-surface-variant">تصفّح بالتصنيف</a></li>
+                </ul>
+            </div>
+
+            <!-- Pages -->
+            <div class="space-y-4">
+                <h4 class="text-xs font-black uppercase tracking-widest text-secondary">صفحات</h4>
+                <ul class="space-y-3">
+                    <li><a asp-area="" asp-controller="Home" asp-action="Privacy" class="footer-link text-xs font-bold text-on-surface-variant">سياسة الخصوصية</a></li>
+                    @if (!SignInManager.IsSignedIn(User))
+                    {
+                        <li><a asp-area="Identity" asp-page="/Account/Login" class="footer-link text-xs font-bold text-on-surface-variant">تسجيل الدخول</a></li>
+                        <li><a asp-area="Identity" asp-page="/Account/Register" class="footer-link text-xs font-bold text-on-surface-variant">إنشاء حساب</a></li>
+                    }
+                    else
+                    {
+                        <li><a asp-area="Identity" asp-page="/Account/Manage/Index" class="footer-link text-xs font-bold text-on-surface-variant">حسابي</a></li>
+                    }
+                </ul>
+            </div>
+
+            <!-- Contact -->
+            <div class="space-y-4">
+                <h4 class="text-xs font-black uppercase tracking-widest text-secondary">تواصل معنا</h4>
+                <ul class="space-y-3">
+                    <li class="text-xs font-bold text-on-surface-variant">عمّان — الأردن</li>
+                    <li class="text-xs font-bold text-on-surface-variant">هاتف: 1080 7547 7 962+</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto mt-16 pt-8 border-t border-[#ccc8be] flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-[10px] font-black text-outline uppercase tracking-widest">
+                © @DateTime.Now.Year جو أوفر — جميع الحقوق محفوظة.
+            </p>
+            <div class="flex gap-6">
+                <a asp-area="" asp-controller="Home" asp-action="Privacy"
+                   class="footer-link text-[10px] font-black text-outline uppercase tracking-widest">الخصوصية</a>
+            </div>
         </div>
     </footer>
+
+    <!-- ═══════════════════════ MOBILE BOTTOM NAV ═══════════════════════ -->
+    <div class="md:hidden fixed bottom-0 left-0 w-full bg-[#f0ede4]/95 backdrop-blur-xl border-t border-outline-variant/60 z-50 px-6 py-3 flex justify-between items-center shadow-[0_-8px_32px_rgba(0,0,0,0.08)]">
+        <a asp-area="" asp-controller="Hub" asp-action="Index"
+           class="mob-nav-btn flex flex-col items-center gap-1 text-secondary">
+            <i data-lucide="home" class="w-6 h-6"></i>
+            <span class="text-[10px] font-black">الرئيسية</span>
+        </a>
+        <a asp-area="" asp-controller="Hub" asp-action="Search"
+           class="mob-nav-btn text-outline flex flex-col items-center gap-1">
+            <i data-lucide="search" class="w-6 h-6"></i>
+            <span class="text-[10px] font-black">بحث</span>
+        </a>
+        <div class="relative -top-6">
+            <a asp-area="" asp-controller="Hub" asp-action="LoadingHub"
+               class="w-14 h-14 micro-gradient-primary rounded-full flex items-center justify-center text-white border-4 border-[#f0ede4] active:scale-90 transition-transform">
+                <i data-lucide="layout-grid" class="w-7 h-7"></i>
+            </a>
+        </div>
+        <a asp-area="" asp-controller="Hub" asp-action="Clients"
+           class="mob-nav-btn text-outline flex flex-col items-center gap-1">
+            <i data-lucide="store" class="w-6 h-6"></i>
+            <span class="text-[10px] font-black">المتاجر</span>
+        </a>
+        @if (SignInManager.IsSignedIn(User))
+        {
+            <a asp-area="Identity" asp-page="/Account/Manage/Index"
+               class="mob-nav-btn text-outline flex flex-col items-center gap-1">
+                <i data-lucide="user" class="w-6 h-6"></i>
+                <span class="text-[10px] font-black">حسابي</span>
+            </a>
+        }
+        else
+        {
+            <a asp-area="Identity" asp-page="/Account/Login"
+               class="mob-nav-btn text-outline flex flex-col items-center gap-1">
+                <i data-lucide="user" class="w-6 h-6"></i>
+                <span class="text-[10px] font-black">دخول</span>
+            </a>
+        }
+    </div>
+
+    <!-- ═══════════════════════ SCRIPTS ═══════════════════════ -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+
+    <script>
+        // Init Lucide icons
+        lucide.createIcons();
+
+        // Navbar shadow on scroll
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            navbar.classList.toggle('scrolled', window.scrollY > 20);
+        }, { passive: true });
+
+        // Scroll reveal
+        const revealEls = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    e.target.classList.add('visible');
+                    observer.unobserve(e.target);
+                }
+            });
+        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+        revealEls.forEach(el => observer.observe(el));
+
+        // Nav category active state
+        document.querySelectorAll('.nav-cat').forEach(link => {
+            link.addEventListener('click', () => {
+                document.querySelectorAll('.nav-cat').forEach(l => l.classList.remove('active', 'text-secondary'));
+                link.classList.add('active', 'text-secondary');
+            });
+        });
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

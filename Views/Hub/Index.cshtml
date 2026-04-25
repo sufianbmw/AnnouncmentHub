@@ -1,20 +1,256 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@using AnnouncmentHub.Models
+@{
+    ViewData["Title"] = "جو أوفر — منصة الإعلانات الأردنية";
+
+    var announcementCount = ViewBag.AnnouncementCount as int? ?? 0;
+    var clientCount = ViewBag.ClientCount as int? ?? 0;
+    var parentCategories = ViewBag.ParentCategories as List<Category> ?? new List<Category>();
+
+    // Format counts for display  e.g. 12500 → "12.5k+"
+    string FormatCount(int n)
+    {
+        if (n >= 1000) return $"{n / 1000.0:0.#}k+";
+        return n.ToString() + "+";
+    }
 }
 
-<div id="random-announcements" class="my-4">
-    <div class="text-center text-muted">⏳ جاري تحميل الإعلانات...</div>
-</div>
+@* ═══════════════════════ HERO ═══════════════════════ *@
+<header class="relative py-16 md:py-24 px-4 md:px-8 overflow-hidden bg-[#f0ede4]">
 
-<div id="random-clients" class="my-4">
-    <div class="text-center text-muted">⏳ جاري تحميل العملاء...</div>
-</div>
+    @* Animated background rings *@
+    <div class="hero-bg">
+        <div class="ring ring1"></div>
+        <div class="ring ring2"></div>
+        <div class="ring ring3"></div>
+        <!-- Floating logo orbs -->
+        <div class="orb orb-xl"><img src="https://offersjo.com/images/joofferslogo.png" alt="جو أوفر"></div>
+        <div class="orb orb-lg"><img src="https://offersjo.com/images/joofferslogo.png" alt="جو أوفر"></div>
+        <div class="orb orb-md"><img src="https://offersjo.com/images/joofferslogo.png" alt="جو أوفر"></div>
+        <div class="orb orb-sm"><img src="https://offersjo.com/images/joofferslogo.png" alt="جو أوفر"></div>
+        <div class="orb orb-xs"><img src="https://offersjo.com/images/joofferslogo.png" alt="جو أوفر"></div>
+        <!-- Gold spark particles -->
+        <div class="spark" style="right:22%;bottom:18%;--d:4.8s;--dl:0s"></div>
+        <div class="spark" style="right:35%;bottom:30%;--d:6.2s;--dl:1.2s"></div>
+        <div class="spark" style="left:28%;bottom:22%;--d:5.5s;--dl:0.7s"></div>
+        <div class="spark" style="left:42%;bottom:40%;--d:7s;--dl:2s"></div>
+        <div class="spark" style="right:18%;top:55%;--d:5s;--dl:1.8s"></div>
+        <!-- 6 Billiard balls — left side -->
+        <div class="ball ball-1 ball-pos-1" data-num="1">
+        </div>
+        <div class="ball ball-2 ball-pos-2" data-num="2"></div>
+        <div class="ball ball-3 ball-pos-3" data-num="3"></div>
+        <div class="ball ball-4 ball-pos-4" data-num="4"></div>
+        <div class="ball ball-5 ball-pos-5" data-num="5"></div>
+        <div class="ball ball-6 ball-pos-6" data-num="6"></div>
+    </div>
+    <!-- XO Number Grid — right side, 2×5, western digits -->
+    <div class="xo-grid">
+        <div class="xo-board">
+            <div class="xo-cell" data-digit="0">0</div>
+            <div class="xo-cell" data-digit="1">1</div>
+            <div class="xo-cell" data-digit="2">2</div>
+            <div class="xo-cell" data-digit="3">3</div>
+            <div class="xo-cell" data-digit="4">4</div>
+            <div class="xo-cell" data-digit="5">5</div>
+            <div class="xo-cell" data-digit="6">6</div>
+            <div class="xo-cell" data-digit="7">7</div>
+            <div class="xo-cell" data-digit="8">8</div>
+            <div class="xo-cell" data-digit="9">9</div>
+        </div>
+    </div>
+    <div class="max-w-7xl mx-auto flex flex-col items-center text-center relative z-10">
+
+        @* Badge *@
+        <div class="reveal inline-flex items-center gap-2 px-4 py-1.5 bg-secondary/10 border border-secondary/20 rounded-full text-[10px] font-black text-secondary uppercase tracking-[0.2em] mb-8">
+            <span class="w-2 h-2 rounded-full bg-secondary animate-pulse inline-block"></span>
+            المنصة الأولى للإعلانات في الأردن
+        </div>
+
+        @* Headline *@
+        <div class="hero-headline reveal reveal-delay-1">
+            <span class="line-top">✦ منصة جو أوفر ✦</span>
+            <span class="word-discover">
+                اكتشف
+                <span class="stroke-text">أفضل</span>
+            </span>
+            <div class="line-mid">
+                <span class="divider"></span>
+                <span class="word-offers">العروض</span>
+                <span class="divider rev"></span>
+            </div>
+            <span class="line-bot">
+                في <span class="highlight-jordan">الأردن</span>
+                &nbsp;<span class="word-now">الآن</span>
+            </span>
+        </div>
+
+        @* Subtitle *@
+        <p class="reveal reveal-delay-2 text-base md:text-lg text-on-surface-variant max-w-2xl mb-12 leading-relaxed font-light">
+            منصة موثوقة تربط البائعين بالمشترين — عقارات، سيارات، خدمات وأكثر بكل سهولة وأمان
+        </p>
+
+        @* ═══ Search Box ═══ *@
+        <div class="reveal reveal-delay-3 w-full max-w-3xl relative">
+            <div class="absolute -inset-3 bg-gradient-to-r from-secondary/15 to-primary/15 rounded-[2rem] blur-2xl opacity-60 pointer-events-none"></div>
+
+            <form asp-area="" asp-controller="Hub" asp-action="Search" method="get"
+                  class="hero-search relative flex flex-col md:flex-row items-center bg-[#f7f4ee] p-2 rounded-[1.5rem] border border-outline/15">
+
+                <div class="flex-1 flex items-center w-full px-4">
+                    <i data-lucide="search" class="text-secondary w-5 h-5 flex-shrink-0"></i>
+                    <input type="text" name="title"
+                           class="w-full bg-transparent border-none focus:ring-0 text-on-surface px-4 py-4 placeholder:text-outline/50 font-black text-right outline-none"
+                           placeholder="ماذا تبحث عن؟" />
+                </div>
+
+                <div class="hidden md:block w-px h-10 bg-outline-variant mx-2"></div>
+
+                @* Category dropdown built from real DB data *@
+                <select name="mainCategoryId"
+                        class="hidden md:block bg-transparent border-none focus:ring-0 text-sm font-bold text-on-surface px-6 cursor-pointer outline-none">
+                    <option value="">كل الفئات</option>
+                    @foreach (var cat in parentCategories)
+                    {
+                        <option value="@cat.Id">@cat.CatName</option>
+                    }
+                </select>
+
+                <button type="submit"
+                        class="w-full md:w-auto micro-gradient-primary text-white px-10 py-4 rounded-2xl font-black text-lg">
+                    بحث
+                </button>
+            </form>
+
+            @* Quick-filter pills *@
+            <div class="mt-5 flex flex-wrap justify-center gap-2.5">
+                <a asp-area="" asp-controller="Hub" asp-action="Search"
+                   class="search-pill px-4 py-2 bg-[#e8e4d8] rounded-full text-[10px] font-black text-on-surface-variant border border-outline-variant/30">
+                    آخر الإعلانات
+                </a>
+                <a asp-area="" asp-controller="Hub" asp-action="Search" asp-route-title="سيارات"
+                   class="search-pill px-4 py-2 bg-[#e8e4d8] rounded-full text-[10px] font-black text-on-surface-variant border border-outline-variant/30">
+                    سيارات
+                </a>
+                <a asp-area="" asp-controller="Hub" asp-action="Search" asp-route-title="عقارات"
+                   class="search-pill px-4 py-2 bg-[#e8e4d8] rounded-full text-[10px] font-black text-on-surface-variant border border-outline-variant/30">
+                    عقارات
+                </a>
+                <a asp-area="" asp-controller="Hub" asp-action="LoadingHub"
+                   class="search-pill px-4 py-2 bg-[#e8e4d8] rounded-full text-[10px] font-black text-on-surface-variant border border-outline-variant/30">
+                    تصفّح بالتصنيف
+                </a>
+                <a asp-area="" asp-controller="Hub" asp-action="Clients"
+                   class="search-pill px-4 py-2 bg-[#e8e4d8] rounded-full text-[10px] font-black text-on-surface-variant border border-outline-variant/30">
+                    المتاجر الموثّقة
+                </a>
+            </div>
+        </div>
+
+        @* ═══ Live Stats ═══ *@
+        <div class="reveal reveal-delay-4 mt-16 grid grid-cols-3 gap-8 md:gap-24">
+            <div class="text-center">
+                <div class="text-2xl md:text-4xl font-black stat-num tracking-tighter">
+                    @FormatCount(announcementCount)
+                </div>
+                <div class="text-[8px] md:text-[10px] font-bold text-outline uppercase tracking-widest mt-1">إعلان نشط</div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl md:text-4xl font-black stat-num tracking-tighter">
+                    @FormatCount(clientCount)
+                </div>
+                <div class="text-[8px] md:text-[10px] font-bold text-outline uppercase tracking-widest mt-1">متجر موثّق</div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl md:text-4xl font-black stat-num tracking-tighter">الأردن</div>
+                <div class="text-[8px] md:text-[10px] font-bold text-outline uppercase tracking-widest mt-1">خدمتنا</div>
+            </div>
+        </div>
+
+    </div>
+
+    @* Decorative blobs *@
+    <div class="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-secondary/6 rounded-full blur-[130px] pointer-events-none animate-float"></div>
+    <div class="absolute top-1/4 right-0 translate-x-1/3 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[110px] pointer-events-none"></div>
+    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[300px] h-[200px] bg-accent/8 rounded-full blur-[80px] pointer-events-none"></div>
+</header>
+
+@* ═══════════════════════ ANNOUNCEMENTS (AJAX partial, same as before) ═══════════════════════ *@
+<section class="py-12 md:py-16 bg-[#f0ede4]">
+    <div class="max-w-7xl mx-auto px-4 md:px-8">
+
+        <div class="flex justify-between items-end mb-10 reveal">
+            <div>
+                <span class="text-secondary font-bold text-sm tracking-[0.2em] uppercase mb-2 block">أحدث ما نُشر</span>
+                <h2 class="text-3xl md:text-4xl font-black font-headline tracking-tighter">آخر الإعلانات</h2>
+            </div>
+            <a asp-area="" asp-controller="Hub" asp-action="Search"
+               class="text-secondary font-bold flex items-center gap-2 hover:-translate-x-2 transition-transform duration-300 text-sm">
+                عرض الكل <i data-lucide="chevron-left" class="w-5 h-5"></i>
+            </a>
+        </div>
+
+        <div id="random-announcements">
+            <div class="text-center py-12 text-on-surface-variant">
+                <i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto mb-3 text-secondary"></i>
+                <p class="text-sm font-bold">جاري تحميل الإعلانات...</p>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+@* ═══════════════════════ CLIENTS (AJAX partial, same as before) ═══════════════════════ *@
+<section class="py-12 md:py-16 bg-[#eae7de]">
+    <div class="max-w-7xl mx-auto px-4 md:px-8">
+
+        <div class="flex justify-between items-end mb-10 reveal">
+            <div>
+                <span class="text-secondary font-bold text-sm tracking-[0.2em] uppercase mb-2 block">شركاء النجاح</span>
+                <h2 class="text-3xl md:text-4xl font-black font-headline tracking-tighter">عملاؤنا الموثّقون</h2>
+            </div>
+            <a asp-area="" asp-controller="Hub" asp-action="Clients"
+               class="text-secondary font-bold flex items-center gap-2 hover:-translate-x-2 transition-transform duration-300 text-sm">
+                عرض الكل <i data-lucide="chevron-left" class="w-5 h-5"></i>
+            </a>
+        </div>
+
+        <div id="random-clients">
+            <div class="text-center py-12 text-on-surface-variant">
+                <i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto mb-3 text-secondary"></i>
+                <p class="text-sm font-bold">جاري تحميل المتاجر...</p>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+@* ═══════════════════════ CTA STRIP ═══════════════════════ *@
+<section class="cta-section py-20 px-4 md:px-8 text-center text-white relative z-10">
+    <div class="max-w-3xl mx-auto reveal">
+        <h2 class="text-3xl md:text-5xl font-black font-headline tracking-tighter mb-6">
+            هل لديك شيء تبيعه؟
+        </h2>
+        <p class="text-white/70 mb-10 font-medium text-lg">
+            انضم إلى آلاف البائعين وأضف إعلانك الآن مجاناً
+        </p>
+        <a asp-area="" asp-controller="Hub" asp-action="Search"
+           class="inline-flex items-center gap-3 micro-gradient-primary text-white px-10 py-5 rounded-2xl font-black text-lg">
+            <i data-lucide="plus-circle" class="w-6 h-6"></i>
+            تصفّح الإعلانات
+        </a>
+    </div>
+</section>
 
 @section Scripts {
     <script>
         $(document).ready(function () {
-            $("#random-announcements").load("/Hub/RandomAnnouncementsTop30");
-            $("#random-clients").load("/Hub/Top30RandomClients");
+            // Same AJAX calls as before — untouched
+            $("#random-announcements").load("/Hub/RandomAnnouncementsTop30", function () {
+                lucide.createIcons();   // re-init icons injected by partial
+            });
+            $("#random-clients").load("/Hub/Top30RandomClients", function () {
+                lucide.createIcons();
+            });
         });
     </script>
 }

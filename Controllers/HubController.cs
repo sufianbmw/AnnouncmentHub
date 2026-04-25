@@ -46,8 +46,20 @@ namespace AnnouncmentHub.Controllers
             return Content(json, "application/json; charset=utf-8");
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            ViewBag.AnnouncementCount = await _context.Announcements
+                .CountAsync(a => a.IsActive);
+
+            ViewBag.ClientCount = await _context.Clients
+                .CountAsync(c => c.IsActive);
+
+            // Parent categories for the hero search dropdown
+            ViewBag.ParentCategories = await _context.Categories
+                .Where(c => c.IsParent)
+                .AsNoTracking()
+                .ToListAsync();
+
             return View();
         }
         private string RenderPartial(string partialName, object model)
