@@ -10,13 +10,13 @@ using NuGet.Protocol.Plugins;
 
 namespace AnnouncmentHub.Controllers
 {
-    public class HubController : Controller
+    public class HubControllerold : Controller
     {
         private readonly ApplicationDbContext _context;
         private readonly AnnouncementRepository _repository;
         private readonly BreadcrumbService _breadcrumbService;
 
-        public HubController(ApplicationDbContext context, AnnouncementRepository repository, BreadcrumbService breadcrumbService)
+        public HubControllerold(ApplicationDbContext context,  AnnouncementRepository repository, BreadcrumbService breadcrumbService)
         {
             _context = context;
             _repository = repository;
@@ -54,21 +54,11 @@ namespace AnnouncmentHub.Controllers
             ViewBag.ClientCount = await _context.Clients
                 .CountAsync(c => c.IsActive);
 
-            // Parent categories for the hero search dropdown + category cards
-            var parentCategories = await _context.Categories
+            // Parent categories for the hero search dropdown
+            ViewBag.ParentCategories = await _context.Categories
                 .Where(c => c.IsParent)
                 .AsNoTracking()
                 .ToListAsync();
-
-            ViewBag.ParentCategories = parentCategories;
-
-            // Count of active announcements per parent category (for category cards)
-            var categoryIds = parentCategories.Select(c => c.Id).ToList();
-            ViewBag.CategoryCounts = await _context.AnnouncementCategories
-                .Where(ac => ac.Announcement.IsActive && categoryIds.Contains(ac.CategoryId))
-                .GroupBy(ac => ac.CategoryId)
-                .Select(g => new { CategoryId = g.Key, Count = g.Count() })
-                .ToDictionaryAsync(x => x.CategoryId, x => x.Count);
 
             return View();
         }
@@ -261,35 +251,35 @@ namespace AnnouncmentHub.Controllers
 
             return PartialView("_Top30RandomClients", clients);
 
-
+           
         }
 
 
-        //    public async Task<IActionResult> Search(
-        //string title,
-        //List<int>? categoryIds,
-        //int? clientId,
-        //DateTime? dateFrom,
-        //DateTime? dateTo,
-        //int page = 1,
-        //int pageSize = 10)
-        //    {
-        //        var result = await _repository.GetAnnouncementsDynamic(
-        //            title,
-        //            categoryIds,
-        //            clientId,
-        //            dateFrom,
-        //            dateTo,
-        //            page,
-        //            pageSize
-        //        );
+    //    public async Task<IActionResult> Search(
+    //string title,
+    //List<int>? categoryIds,
+    //int? clientId,
+    //DateTime? dateFrom,
+    //DateTime? dateTo,
+    //int page = 1,
+    //int pageSize = 10)
+    //    {
+    //        var result = await _repository.GetAnnouncementsDynamic(
+    //            title,
+    //            categoryIds,
+    //            clientId,
+    //            dateFrom,
+    //            dateTo,
+    //            page,
+    //            pageSize
+    //        );
 
-        //        ViewBag.TotalCount = result.TotalCount;
-        //        ViewBag.AllCategories = await GetAllCategories();
-        //        ViewBag.SelectedCategories = categoryIds ?? new List<int>();
+    //        ViewBag.TotalCount = result.TotalCount;
+    //        ViewBag.AllCategories = await GetAllCategories();
+    //        ViewBag.SelectedCategories = categoryIds ?? new List<int>();
 
-        //        return View(result);
-        //    }
+    //        return View(result);
+    //    }
         public async Task<IActionResult> Search(
             string? title,
             int? mainCategoryId,
@@ -469,7 +459,7 @@ namespace AnnouncmentHub.Controllers
                     CategoryName = c.CatName
                 })
                 .AsNoTracking().ToListAsync();
-
+      
         }
         public async Task<IActionResult> Clients(int page = 1, int pageSize = 10)
         {
@@ -991,7 +981,7 @@ namespace AnnouncmentHub.Controllers
                 return NotFound();
 
             var breadcrumb = new List<BreadcrumbItem>();
-
+            
 
             if (clientId.HasValue && announcement.Client != null)
             {
