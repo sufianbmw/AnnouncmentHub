@@ -1,81 +1,82 @@
 ﻿@model List<AnnouncmentHub.ViewModels.ClientViewModel>
 
-<div class="container my-4">
-
-    <div class="section-separator my-2">
-        <div class="container">
-            <h3 class="section-title mb-0">
-                🌟 عملاؤنا المميزون
-            </h3>
-        </div>
-    </div>
-
-    <div class="row g-4">
+@if (Model != null && Model.Any())
+{
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
         @foreach (var client in Model)
         {
-            <div class="col-lg-3 col-md-4 col-sm-6">
-                <div class="card h-100 shadow-sm border-0 rounded-4 text-center">
+            var logoUrl = string.IsNullOrEmpty(client.LogoUrl)
+            ? "/images/no-logo.png"
+            : client.LogoUrl;
 
-                    <!-- Logo -->
-                    <div class="p-3">
-                        <a href="hub/ClientProfile/@client.Id" class="text-decoration-none">
+            <div class="client-card bg-[#f7f4ee] rounded-2xl p-5 flex flex-col items-center text-center group">
 
-                        <img src="@(string.IsNullOrEmpty(client.LogoUrl)
-                                                         ? Url.Content("~/images/no-logo.png")
-                                                         : client.LogoUrl)"
-                         class="img-fluid rounded-circle shadow-sm border"
-                         style="width:90px;height:90px;object-fit:contain;" />
-                         </a>
-
-                </div>
-
-                    <!-- Name -->
-                    <div class="card-body pt-0">
-                        <h6 class="fw-bold text-dark mb-3">
-                            <a href="hub/ClientProfile/@client.Id" class="text-decoration-none">
-                            @client.ClientName
-                            </a>
-                        </h6>
-
-                        <!-- Links -->
-                        <div class="d-flex justify-content-center gap-2 flex-wrap">
-
-                        @if (!string.IsNullOrEmpty(client.FacebookLink))
-                            {
-                                <a href="@client.FacebookLink" target="_blank"
-                                   class="btn btn-sm btn-outline-primary">
-                                    📘
-                                </a>
-                            }
-
-                            @if (!string.IsNullOrEmpty(client.WhatsUp))
-                            {
-                                <a href="https://wa.me/@client.WhatsUp" target="_blank"
-                                   class="btn btn-sm btn-outline-success">
-                                    💬
-                                </a>
-                            }
-
-                            @if (!string.IsNullOrEmpty(client.MobileNumber))
-                            {
-                                <a href="tel:@client.MobileNumber"
-                                   class="btn btn-sm btn-outline-secondary">
-                                    📞
-                                </a>
-                            }
-
-                            @if (!string.IsNullOrEmpty(client.SiteUrl))
-                            {
-                                <a href="@client.SiteUrl" target="_blank"
-                                   class="btn btn-sm btn-outline-dark">
-                                    🌐
-                                </a>
-                            }
-                        </div>
+                @* Logo *@
+                <a href="/hub/ClientProfile/@client.Id" class="block mb-4">
+                    <div class="w-20 h-20 rounded-2xl overflow-hidden border-2 border-outline-variant/40 shadow-sm group-hover:border-secondary/40 transition-colors mx-auto">
+                        <img src="@logoUrl"
+                             alt="@client.ClientName"
+                             class="w-full h-full object-contain"
+                             onerror="this.onerror=null;this.src='/images/no-logo.png';" />
                     </div>
+                </a>
 
+                @* Name *@
+                <a href="/hub/ClientProfile/@client.Id"
+                   class="font-black text-sm text-on-surface hover:text-secondary transition-colors mb-3 leading-tight line-clamp-2">
+                    @client.ClientName
+                </a>
+
+                @* Social links *@
+                <div class="flex items-center justify-center gap-2 flex-wrap mt-auto">
+
+                    @if (!string.IsNullOrEmpty(client.FacebookLink))
+                    {
+                        <a href="@client.FacebookLink" target="_blank"
+                           class="w-8 h-8 rounded-xl bg-[#e8e4d8] hover:bg-blue-500 hover:text-white flex items-center justify-center transition-all text-on-surface-variant text-xs font-black">
+                            f
+                        </a>
+                    }
+
+                    @if (!string.IsNullOrEmpty(client.WhatsUp))
+                    {
+                        <a href="https://wa.me/@client.WhatsUp" target="_blank"
+                           class="w-8 h-8 rounded-xl bg-[#e8e4d8] hover:bg-green-500 hover:text-white flex items-center justify-center transition-all">
+                            <i data-lucide="message-circle" class="w-4 h-4"></i>
+                        </a>
+                    }
+
+                    @if (!string.IsNullOrEmpty(client.MobileNumber))
+                    {
+                        <a href="tel:@client.MobileNumber"
+                           class="w-8 h-8 rounded-xl bg-[#e8e4d8] hover:bg-secondary hover:text-white flex items-center justify-center transition-all">
+                            <i data-lucide="phone" class="w-4 h-4"></i>
+                        </a>
+                    }
+
+                    @if (!string.IsNullOrEmpty(client.SiteUrl))
+                    {
+                        <a href="@client.SiteUrl" target="_blank"
+                           class="w-8 h-8 rounded-xl bg-[#e8e4d8] hover:bg-primary hover:text-white flex items-center justify-center transition-all">
+                            <i data-lucide="globe" class="w-4 h-4"></i>
+                        </a>
+                    }
                 </div>
+
+                @* Profile link *@
+                <a href="/hub/ClientProfile/@client.Id"
+                   class="mt-4 text-[10px] font-black text-secondary flex items-center gap-1 hover:gap-2 transition-all">
+                    عرض الملف <i data-lucide="chevron-left" class="w-3 h-3"></i>
+                </a>
+
             </div>
         }
     </div>
-</div>
+}
+else
+{
+    <div class="text-center py-16 text-on-surface-variant">
+        <i data-lucide="store" class="w-12 h-12 mx-auto mb-4 opacity-30"></i>
+        <p class="font-bold text-sm">لا يوجد عملاء حالياً</p>
+    </div>
+}

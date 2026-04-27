@@ -1,18 +1,16 @@
 ﻿@using AnnouncmentHub.Helpers
 @model AnnouncmentHub.ViewModels.AnnouncementSearchResult
 
-@* ✅ Local function: منطق الصورة في مكان واحد *@
+@* ✅ Local function: image logic unchanged *@
 @{
     string GetDisplayPath(string filePath, List<AnnouncmentHub.Helpers.AnnouncementImageVm> images)
     {
         var extension = System.IO.Path.GetExtension(filePath ?? "").ToLower();
         var imageExts = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp" };
 
-        // 1) FilePath هو صورة → استخدمه مباشرة
         if (!string.IsNullOrEmpty(filePath) && imageExts.Contains(extension))
             return filePath;
 
-        // 2) أول صورة من جدول AnnouncementImage
         var firstDbImage = images?.FirstOrDefault()?.ImageUrl;
         if (!string.IsNullOrEmpty(firstDbImage))
         {
@@ -22,7 +20,6 @@
             return firstDbImage;
         }
 
-        // 3) Fallback حسب نوع الملف
         if (string.IsNullOrEmpty(filePath)) return "/images/file-icons/no-image.jpg";
         if (extension == ".pdf") return "/images/file-icons/pdf-icon.png";
         if (extension == ".doc" || extension == ".docx") return "/images/file-icons/word-icon.png";
@@ -31,267 +28,94 @@
     }
 }
 
-<div class="section-separator my-3">
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center">
-            <h5 class="section-title mb-0">📰 آخر الإعلانات</h5>
-            <a href="/hub/search" class="btn btn-outline-primary">🔍 البحث المتقدم</a>
-        </div>
-    </div>
-</div>
+@if (Model?.Announcements != null && Model.Announcements.Any())
+{
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        @foreach (var item in Model.Announcements)
+        {
+            var displayPath = GetDisplayPath(item.FilePath, item.Images);
 
-<div class="container">
-    @if (Model.Announcements != null && Model.Announcements.Any())
-    {
-        <div class="row g-3">
-            @foreach (var item in Model.Announcements)
-            {
-                var displayPath = GetDisplayPath(item.FilePath, item.Images);
+            <div class="listing-card group cursor-pointer">
 
-                <div class="col-md-3">
-                    <div class="card shadow-sm h-100 border-0 rounded-4 overflow-hidden announcement-card">
+                @* Image wrap *@
+                <div class="listing-img-wrap relative aspect-[4/3] mb-3">
+                    <a asp-controller="Hub" asp-action="Details" asp-route-id="@item.Id">
+                        <img src="@displayPath"
+                             alt="@item.Title"
+                             title="@item.Title"
+                             loading="lazy"
+                             class="listing-img w-full h-full object-cover"
+                             onerror="this.onerror=null;this.src='/images/file-icons/no-image.jpg';" />
+                    </a>
 
-                        <!-- 🔹 Image Top -->
-                        <div class="ratio ratio-4x3 overflow-hidden">
-                            <a asp-controller="Hub" asp-action="Details" asp-route-id="@item.Id">
-                                <img src="@displayPath"
-                                     class="w-100 h-100 announcement-img"
-                                     style="object-fit: cover;"
-                                     title="@item.Title"
-                                     alt="@item.Title"
-                                     loading="lazy"
-                                     onerror="this.onerror=null;this.src='/images/file-icons/no-image.jpg';" />
-                            </a>
-                        </div>
-
-                        <!-- 🔹 Card Body -->
-                        <div class="card-body d-flex flex-column">
-
-                            <!-- Title -->
-                            <h6 class="fw-bold mb-1">
-                                <a asp-controller="Hub"
-                                   asp-action="Details"
-                                   asp-route-id="@item.Id"
-                                   class="text-decoration-none text-primary">
-                                    @item.Title
-                                </a>
-                            </h6>
-
-                            <!-- Date -->
-                            @if (item.AddedDate.HasValue)
-                            {
-                                <small class="text-muted mb-2">
-                                    🗓️ @DateTimeHelper.FormatDateTime(item.AddedDate)
-                                </small>
-                            }
-
-                            <!-- Description -->
-                            <p class="small text-muted flex-grow-1">
-                                @if (string.IsNullOrEmpty(item.Description))
-                                {
-                                    <text>لا يوجد وصف</text>
-                                }
-                                else
-                                {
-                                    var desc = item.Description;
-                                    if (desc.Length > 80)
-                                    {
-                                        var cut = desc.Substring(0, 80);
-                                        var lastSpace = cut.LastIndexOf(' ');
-                                        @((lastSpace > 0 ? cut.Substring(0, lastSpace) : cut) + "...")
-                                    }
-                                    else
-                                    {
-                                        @desc
-                                    }
-                                }
-                            </p>
-
-                            <!-- ✅ Categories مع null check -->
-                            @if (item.Categories != null && item.Categories.Any())
-                            {
-                                <div class="mb-2">
-                                    @foreach (var cat in item.Categories)
-                                    {
-                                        <span class="badge bg-secondary me-1 mb-1">
-                                            <a asp-controller="Hub"
-                                               asp-action="SubCategoryAnnouncements"
-                                               asp-route-id="@cat.CategoryId"
-                                               class="text-decoration-none text-white small">
-                                                @cat.CategoryName
-                                            </a>
-                                        </span>
-                                    }
-                                </div>
-                            }
-
-                            <!-- File Button -->
-                            @if (!string.IsNullOrEmpty(item.FilePath))
-                            {
-                                <div class="mt-auto">
-                                    <a href="@item.FilePath" target="_blank" class="btn btn-sm btn-outline-info w-100">
-                                        📂 فتح الملف
-                                    </a>
-                                </div>
-                            }
-
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
-    }
-    else
-    {
-        <p class="text-center text-muted mt-4">لا توجد إعلانات حالياً.</p>
-    }
-</div>
-
-@* @using AnnouncmentHub.Helpers
-@model AnnouncmentHub.ViewModels.AnnouncementSearchResult
-
-<div class="section-separator my-3">
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center">
-            <h5 class="section-title mb-0">📰 آخر الإعلانات</h5>
-            <a href="/hub/search2" class="btn btn-outline-primary">🔍 البحث المتقدم</a>
-        </div>
-    </div>
-</div>
-
-<div class="container">
-    @if (Model.Announcements.Any())
-    {
-        <div class="row g-3">
-            @foreach (var item in Model.Announcements)
-            {
-                var filePath = item.FilePath;
-                var extension = System.IO.Path.GetExtension(filePath ?? "").ToLower();
-                var isFileImage = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp" }.Contains(extension);
-
-                string displayPath = (!string.IsNullOrEmpty(filePath) && isFileImage) ? filePath : null;
-
-                if (string.IsNullOrEmpty(displayPath))
-                {
-                    var firstDbImage = item.Images?.FirstOrDefault()?.ImageUrl;
-                    if (!string.IsNullOrEmpty(firstDbImage))
+                    @* Category badge *@
+                    @if (item.Categories != null && item.Categories.Any())
                     {
-                        firstDbImage = firstDbImage.Replace("\\", "/");
-                        if (!firstDbImage.StartsWith("/"))
-                            firstDbImage = "/" + firstDbImage;
-                        displayPath = firstDbImage;
-                    }
-                }
-
-                if (string.IsNullOrEmpty(displayPath))
-                {
-                    if (string.IsNullOrEmpty(filePath))
-                        displayPath = Url.Content("~/images/file-icons/no-image.jpg");
-                    else if (extension == ".pdf")
-                        displayPath = Url.Content("~/images/file-icons/pdf-icon.png");
-                    else if (extension == ".doc" || extension == ".docx")
-                        displayPath = Url.Content("~/images/file-icons/word-icon.png");
-                    else if (extension == ".xls" || extension == ".xlsx")
-                        displayPath = Url.Content("~/images/file-icons/excel-icon.png");
-                    else
-                        displayPath = Url.Content("~/images/file-icons/file-icon.png");
-                }
-
-                <div class="col-md-3">
-                    <div class="card shadow-sm h-100 border-0 rounded-4 overflow-hidden announcement-card">
-
-                        <!-- 🔹 Image Top -->
-                        <div class="ratio ratio-4x3 overflow-hidden">
-                            <a asp-controller="Hub" asp-action="Details" asp-route-id="@item.Id">
-                                <img src="@displayPath"
-                                     class="w-100 h-100 announcement-img"
-                                     style="object-fit: cover;"
-                                     loading="lazy"
-                                     onerror="this.onerror=null;this.src='@Url.Content("~/images/file-icons/no-image.jpg")';" />
+                        var firstCat = item.Categories.First();
+                        <div class="badge absolute top-3 right-3 px-2.5 py-1 bg-white/90 backdrop-blur-sm rounded-full text-[10px] font-black text-secondary shadow-sm">
+                            <a asp-controller="Hub"
+                               asp-action="SubCategoryAnnouncements"
+                               asp-route-id="@firstCat.CategoryId"
+                               class="text-secondary">
+                                @firstCat.CategoryName
                             </a>
                         </div>
+                    }
 
-                        <!-- 🔹 Card Body -->
-                        <div class="card-body d-flex flex-column">
+                    @* Wishlist button *@}
+                    <button class="wishlist-btn absolute top-3 left-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm">
+                        <i data-lucide="heart" class="w-4 h-4 text-outline"></i>
+                    </button>
 
-                            <!-- Title -->
-                            <h6 class="fw-bold mb-1">
-                                <a asp-controller="Hub"
-                                   asp-action="Details"
-                                   asp-route-id="@item.Id"
-                                   class="text-decoration-none text-primary">
-                                    @item.Title
-                                </a>
-                            </h6>
+                    @* File button if has file *@}
+                    @if (!string.IsNullOrEmpty(item.FilePath))
+                    {
+                        <a href="@item.FilePath" target="_blank"
+                           class="absolute bottom-3 left-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm">
+                            <i data-lucide="file" class="w-4 h-4 text-outline"></i>
+                        </a>
+                    }
+                </div>
 
-                            <!-- Date -->
-                            @if (item.AddedDate.HasValue)
-                            {
-                                <small class="text-muted mb-2">
-                                    🗓️ @DateTimeHelper.FormatDateTime(item.AddedDate)
-                                </small>
-                            }
+                @* Card info *@}
+                <div class="px-1">
+                    <a asp-controller="Hub" asp-action="Details" asp-route-id="@item.Id"
+                       class="block font-black text-sm text-on-surface leading-tight mb-1 hover:text-secondary transition-colors line-clamp-2">
+                        @item.Title
+                    </a>
 
-                            <!-- Description -->
-                            <p class="small text-muted flex-grow-1">
-                                @if (string.IsNullOrEmpty(item.Description))
-                                {
-                                    <text>لا يوجد وصف</text>
-                                }
-                                else
-                                {
-                                    var desc = item.Description;
-                                    if (desc.Length > 80)
-                                    {
-                                        var cut = desc.Substring(0, 80);
-                                        var lastSpace = cut.LastIndexOf(' ');
-                                        @((lastSpace > 0 ? cut.Substring(0, lastSpace) : cut) + "...")
-                                    }
-                                    else
-                                    {
-                                        @desc
-                                    }
-                                }
-                            </p>
+                    @if (!string.IsNullOrEmpty(item.Description))
+                    {
+                        <p class="text-[11px] text-on-surface-variant leading-relaxed mb-2 line-clamp-2">
+                            @(item.Description.Length > 70
+                                            ? item.Description.Substring(0, 70) + "..."
+                                            : item.Description)
+            </p>
+                        }
 
-                            <!-- Categories -->
-                            <!-- ✅ item.Categories جاهزة - بدون JsonConvert -->
-                            <div class="mb-2">
-                                @foreach (var cat in item.Categories)
-                                {
-                                    <span class="badge bg-secondary me-1 mb-1">
-                                        <a asp-controller="Hub"
-                                           asp-action="SubCategoryAnnouncements"
-                                           asp-route-id="@cat.CategoryId"
-                                           class="text-decoration-none text-white small">
-                                            @cat.CategoryName
-                                        </a>
-                                    </span>
-                                }
-                            </div>
-
-                            <!-- File Button -->
-                            @if (!string.IsNullOrEmpty(item.FilePath))
-                            {
-                                <div class="mt-auto">
-                                    <a href="@item.FilePath"
-                                       target="_blank"
-                                       class="btn btn-sm btn-outline-info w-100">
-                                        📂 فتح الملف
-                                    </a>
-                                </div>
-                            }
-
-                        </div>
+                    <div class="flex items-center justify-between mt-2">
+                        @if (item.AddedDate.HasValue)
+                        {
+                            <span class="text-[10px] font-bold text-outline flex items-center gap-1">
+                                <i data-lucide="clock" class="w-3 h-3"></i>
+                                @DateTimeHelper.FormatDateTime(item.AddedDate)
+                            </span>
+                        }
+                        <a asp-controller="Hub" asp-action="Details" asp-route-id="@item.Id"
+                           class="text-[10px] font-black text-secondary flex items-center gap-1 hover:gap-2 transition-all">
+                            عرض <i data-lucide="chevron-left" class="w-3 h-3"></i>
+                        </a>
                     </div>
                 </div>
-            }
-        </div>
-    }
-    else
-    {
-        <p class="text-center text-muted mt-4">لا توجد إعلانات حالياً.</p>
-    }
-</div>
 
- *@
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="text-center py-16 text-on-surface-variant">
+        <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-4 opacity-30"></i>
+        <p class="font-bold text-sm">لا توجد إعلانات حالياً</p>
+    </div>
+}
