@@ -462,6 +462,19 @@ namespace AnnouncmentHub.Controllers
             });
         }
 
+        /// <summary>Returns subcategories for a main category as JSON — used by search page AJAX</summary>
+        [HttpGet]
+        public async Task<IActionResult> GetSubCategoriesJson(int mainCategoryId)
+        {
+            var subs = await _context.CategoryParentMappings
+                .Where(m => m.ParentCategoryId == mainCategoryId)
+                .Select(m => new { id = m.SubCategoryId, name = m.SubCategory.CatName })
+                .AsNoTracking()
+                .ToListAsync();
+
+            return Json(subs);
+        }
+
         public async Task<List<CategoryJsonLink>> GetAllCategories()
         {
             return await _context.Categories.Where(c => c.IsParent == true)

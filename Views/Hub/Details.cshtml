@@ -1,244 +1,737 @@
 ﻿@model AnnouncmentHub.ViewModels.AnnouncementViewModel
 @using AnnouncmentHub.Helpers
 
-<!-- 🔹 Background -->
-<div class="container min-vh-100">
-        <!-- Main Card -->
-        <div class="card shadow-lg border-0 rounded-3">
-            <div class="card-body p-4">
-            <!-- Title + Sharing Row -->
-            <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap">
+@{
+    ViewBag.Title = Model.Title;
 
-                <!-- Left: Title + Date -->
-                <div class="me-3 flex-grow-1">
-                    <h4 class="text-primary fw-bold mb-1">@Model.Title</h4>
-                    <span class="text-dark small">
-                        📅 تاريخ الإضافة: @DateTimeHelper.FormatDateTime(Model.AddedDate)
+    var pageUrl = $"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}";
+    var waUrl = $"https://wa.me/?text={Uri.EscapeDataString(Model.Title + " - " + pageUrl)}";
+    var fbUrl = $"https://www.facebook.com/sharer/sharer.php?u={Uri.EscapeDataString(pageUrl)}";
+    var twUrl = $"https://twitter.com/intent/tweet?text={Uri.EscapeDataString(Model.Title)}&url={Uri.EscapeDataString(pageUrl)}";
+
+    var fileExt = System.IO.Path.GetExtension(Model.FilePath ?? "").ToLower();
+    var imageExts = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" };
+    bool hasImages = Model.ImageUrls?.Any() == true;
+    bool hasFile = !string.IsNullOrEmpty(Model.FilePath);
+    bool isImgFile = hasFile && imageExts.Contains(fileExt);
+    bool isPdfFile = hasFile && fileExt == ".pdf";
+    bool isOtherFile = hasFile && !isImgFile && !isPdfFile;
+
+    string heroImg = "";
+    if (hasImages) heroImg = Model.ImageUrls!.First();
+    else if (isImgFile) heroImg = Model.FilePath!;
+}
+
+@section Styles {
+    <style>
+        /* ── Page ── */
+        .details-page {
+            background: #f0ede4;
+            min-height: 100vh;
+        }
+
+        /* ── Hero ── */
+        .details-hero {
+            position: relative;
+            overflow: hidden;
+            min-height: 340px;
+            background: linear-gradient(160deg,#1a2e2c 0%,#0f4a44 50%,#0d3d38 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .hero-bg-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: .18;
+            filter: blur(2px) saturate(.7);
+        }
+
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(10,40,36,.95) 0%, rgba(10,40,36,.5) 60%, rgba(10,40,36,.2) 100%);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            padding: 32px 32px 36px;
+        }
+
+        /* ── Badges ── */
+        .badge-vip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            background: linear-gradient(135deg,#f59e0b,#d97706);
+            color: #fff;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 900;
+            box-shadow: 0 4px 12px rgba(245,158,11,.4);
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .badge-expiring {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            background: rgba(239,68,68,.15);
+            color: #f87171;
+            border: 1px solid rgba(239,68,68,.3);
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 900;
+        }
+
+        /* ── Share buttons ── */
+        .share-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 900;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all .2s cubic-bezier(0.34,1.56,0.64,1);
+            white-space: nowrap;
+        }
+
+            .share-btn:hover {
+                transform: translateY(-2px);
+            }
+
+        .share-btn-wa {
+            background: #22c55e;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(34,197,94,.3);
+        }
+
+        .share-btn-fb {
+            background: #3b82f6;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(59,130,246,.3);
+        }
+
+        .share-btn-tw {
+            background: #1a1a1a;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,.2);
+        }
+
+        .share-btn-copy {
+            background: #f7f4ee;
+            color: #555;
+            border: 2px solid #e8e4d8;
+            box-shadow: none;
+        }
+
+            .share-btn-copy:hover {
+                background: #e8e4d8;
+            }
+
+            .share-btn-copy.copied {
+                background: #e6f4f2;
+                color: #0d9488;
+                border-color: rgba(13,148,136,.3);
+            }
+
+        /* ── Gallery ── */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px,1fr));
+            gap: 10px;
+        }
+
+        .gallery-thumb {
+            position: relative;
+            aspect-ratio: 4/3;
+            border-radius: 14px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid #e8e4d8;
+            transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+        }
+
+            .gallery-thumb:hover {
+                transform: scale(1.03);
+                box-shadow: 0 8px 24px rgba(0,0,0,.12);
+                border-color: #0d9488;
+            }
+
+            .gallery-thumb img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .gallery-thumb .zoom-overlay {
+                position: absolute;
+                inset: 0;
+                background: rgba(13,148,136,.0);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: background .2s;
+            }
+
+            .gallery-thumb:hover .zoom-overlay {
+                background: rgba(13,148,136,.25);
+            }
+
+            .gallery-thumb .zoom-overlay svg {
+                opacity: 0;
+                transform: scale(.7);
+                transition: all .2s;
+                color: #fff;
+            }
+
+            .gallery-thumb:hover .zoom-overlay svg {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+        /* ── Featured image ── */
+        .featured-img-wrap {
+            border-radius: 20px;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+            position: relative;
+            border: 2px solid #e8e4d8;
+            box-shadow: 0 8px 32px rgba(0,0,0,.1);
+        }
+
+            .featured-img-wrap img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        /* ── Sidebar cards ── */
+        .sidebar-card {
+            background: #f7f4ee;
+            border: 1px solid #e0ddd4;
+            border-radius: 20px;
+            padding: 20px;
+            transition: box-shadow .2s;
+        }
+
+            .sidebar-card:hover {
+                box-shadow: 0 4px 20px rgba(0,0,0,.07);
+            }
+
+        /* ── Client card ── */
+        .client-logo {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            object-fit: cover;
+            border: 2px solid #e8e4d8;
+            flex-shrink: 0;
+        }
+
+        /* ── Category tags ── */
+        .cat-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            background: #e6f4f2;
+            border: 1px solid rgba(13,148,136,.2);
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 800;
+            color: #0d9488;
+            text-decoration: none;
+            transition: all .2s ease;
+        }
+
+            .cat-tag:hover {
+                background: #0d9488;
+                color: #fff;
+            }
+
+        /* ── Description prose ── */
+        .description-body {
+            line-height: 1.9;
+            font-size: 14px;
+            color: #444;
+            text-align: right;
+        }
+
+            .description-body p {
+                margin-bottom: 12px;
+            }
+
+            .description-body img {
+                max-width: 100%;
+                border-radius: 12px;
+                margin: 8px 0;
+            }
+
+        /* ── Info row ── */
+        .info-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 0;
+            border-bottom: 1px solid #e8e4d8;
+            text-align: right;
+        }
+
+            .info-row:last-child {
+                border-bottom: none;
+                padding-bottom: 0;
+            }
+
+        .info-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 9px;
+            background: #e6f4f2;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0d9488;
+            margin-top: 1px;
+        }
+
+        /* ── PDF viewer ── */
+        .pdf-viewer {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,.1);
+            border: 2px solid #e8e4d8;
+        }
+
+        /* ── Scroll reveal ── */
+        .sr {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity .55s ease, transform .55s ease;
+        }
+
+            .sr.visible {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+        /* ── Back button ── */
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 900;
+            background: #f7f4ee;
+            border: 2px solid #e8e4d8;
+            color: #555;
+            text-decoration: none;
+            transition: all .2s ease;
+            cursor: pointer;
+        }
+
+            .back-btn:hover {
+                background: #e8e4d8;
+                color: #0d9488;
+                border-color: rgba(13,148,136,.3);
+                transform: translateX(4px);
+            }
+    </style>
+}
+
+<div class="details-page" dir="rtl">
+
+    @* ═══ HERO ═══ *@
+    <div class="details-hero">
+        @if (!string.IsNullOrEmpty(heroImg))
+        {
+            <img src="@heroImg" class="hero-bg-img" alt="" aria-hidden="true" />
+        }
+        <div class="hero-overlay"></div>
+
+        <div class="hero-content max-w-7xl mx-auto w-full">
+
+            @* Breadcrumb *@
+            <nav class="flex items-center gap-1.5 text-xs font-bold mb-5 flex-wrap">
+                <a href="/" class="flex items-center gap-1 text-white/60 hover:text-white transition-colors duration-200">
+                    <i data-lucide="house" class="w-3.5 h-3.5"></i> الرئيسية
+                </a>
+                <i data-lucide="chevron-left" class="w-3 h-3 text-white/30"></i>
+                <a href="javascript:history.back()" class="text-white/60 hover:text-white transition-colors duration-200">الإعلانات</a>
+                <i data-lucide="chevron-left" class="w-3 h-3 text-white/30"></i>
+                <span class="text-white/90 font-black line-clamp-1 max-w-xs">@Model.Title</span>
+            </nav>
+
+            @* Badges *@
+            <div class="flex flex-wrap gap-2 mb-4">
+                @if (Model.IsVIP)
+                {
+                    <span class="badge-vip"><i data-lucide="star" class="w-3 h-3 fill-white"></i> إعلان مميّز</span>
+                }
+                @if (Model.DateTo.HasValue && Model.DateTo.Value < DateTime.Now.AddDays(7))
+                {
+                    <span class="badge-expiring"><i data-lucide="flame" class="w-3 h-3"></i> ينتهي قريباً</span>
+                }
+                @foreach (var cat in Model.Categories.Take(3))
+                {
+                    <a href="/Hub/SubCategoryAnnouncements/@cat.CategoryId"
+                       class="inline-flex items-center gap-1 px-3 py-1 bg-white/10 hover:bg-white/20 text-white/80 hover:text-white rounded-full text-[10px] font-black border border-white/15 transition-all duration-200">
+                        <i data-lucide="tag" class="w-3 h-3"></i> @cat.CategoryName
+                    </a>
+                }
+            </div>
+
+            @* Title *@
+            <h1 class="text-2xl md:text-3xl lg:text-4xl font-black font-headline tracking-tight text-white leading-tight mb-3 max-w-3xl">
+                @Model.Title
+            </h1>
+
+            @* Meta row *@
+            <div class="flex flex-wrap items-center gap-4 text-white/60 text-xs font-bold">
+                <span class="flex items-center gap-1.5">
+                    <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                    @DateTimeHelper.FormatDateTime(Model.AddedDate)
+                </span>
+                @if (Model.DateFrom.HasValue)
+                {
+                    <span class="flex items-center gap-1.5">
+                        <i data-lucide="calendar-check" class="w-3.5 h-3.5"></i>
+                        صالح من @Model.DateFrom.Value.ToString("yyyy-MM-dd")
                     </span>
-                </div>
-
-                <!-- Right: Sharing Buttons -->
-                <div class="d-flex flex-wrap gap-2">
-                    <a class="btn btn-success btn-sm"
-                       target="_blank"
-                       href="https://wa.me/?text=@($"{Model.Title} - {Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")">
-                        <i class="bi bi-whatsapp"></i> واتساب
-                    </a>
-
-                    <a class="btn btn-primary btn-sm"
-                       target="_blank"
-                       href="https://www.facebook.com/sharer/sharer.php?u=@($"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")">
-                        <i class="bi bi-facebook"></i> فيسبوك
-                    </a>
-
-                    <a class="btn btn-dark btn-sm"
-                       target="_blank"
-                       href="https://twitter.com/intent/tweet?text=@Model.Title&url=@($"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")">
-                        <i class="bi bi-twitter-x"></i> X
-                    </a>
-
-                    <button class="btn btn-outline-secondary btn-sm" onclick="copyAnnouncementLink()">
-                        <i class="bi bi-link-45deg"></i> نسخ الرابط
-                    </button>
-                </div>
-
-            </div>
-
-            <!-- Client Info (if exists) -->
-            @if (Model.ClientId.HasValue && !string.IsNullOrEmpty(Model.Client?.ClientName))
-            {
-                <div class="card border-0 shadow-sm mb-2 align-items-end">
-                    <div class="card-body d-flex align-items-center">
-                        <img src="@(string.IsNullOrEmpty(Model?.Client?.LogoUrl) ? Url.Content("~/images/file-icons/no-image.jpg") : Model.Client.LogoUrl)"
-                             alt="@Model.Client?.ClientName"
-                             class="rounded-circle border border-2 border-secondary me-3 shadow-sm"
-                             style="width:70px; height:70px; object-fit:cover;" />
-
-                        <div class="d-flex flex-column">
-                            <h6 class="mb-1 fw-bold">@Model.Client?.ClientName</h6>
-                            <a asp-controller="Hub" asp-action="ClientProfile" asp-route-id="@Model.ClientId"
-                               class="small text-decoration-none text-primary">
-                                👀 عرض جميع إعلانات العميل
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            }
-
-                      <!-- Title -->
-@*                 <div class="d-flex justify-content-between align-items-start mb-2">
-                <div>
-                        <h4 class="text-primary fw-bold">@Model.Title</h4>
-
-                        <span class="text-dark text-end">
-                            📅 تاريخ الإضافة: @DateTimeHelper.FormatDateTime(Model.AddedDate)
-                        </span>
-                 </div>  
-                <div class="card border-0 shadow-sm mb-4 shadow-sm d-flex align-items-end">
-                    <div class="card-body">
-                        <h6 class="fw-bold mb-3">📤 مشاركة الإعلان</h6>
-
-                        <div class="d-flex flex-wrap gap-2">
-                            <a class="btn btn-success"
-                               target="_blank"
-                               href="https://wa.me/?text=@($"{Model.Title} - {Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")">
-                                <i class="bi bi-whatsapp"></i> واتساب
-                            </a>
-
-                            <a class="btn btn-primary"
-                               target="_blank"
-                               href="https://www.facebook.com/sharer/sharer.php?u=@($"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")">
-                                <i class="bi bi-facebook"></i> فيسبوك
-                            </a>
-
-                            <a class="btn btn-dark"
-                               target="_blank"
-                               href="https://twitter.com/intent/tweet?text=@Model.Title&url=@($"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")">
-                                <i class="bi bi-twitter-x"></i> X
-                            </a>
-
-                            <button class="btn btn-outline-secondary" onclick="copyAnnouncementLink()">
-                                <i class="bi bi-link-45deg"></i> نسخ الرابط
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                    @if (Model.ClientId.HasValue && !string.IsNullOrEmpty(Model.Client?.ClientName))
-                    {
-                        <div class="card border-0 shadow-sm d-flex align-items-end">
-                            <div class="card-body d-flex align-items-center">
-                                <img src="@(string.IsNullOrEmpty(Model?.Client?.LogoUrl) ? Url.Content("~/images/file-icons/no-image.jpg") : Model.Client.LogoUrl)"
-                                     alt="@Model.Client?.ClientName" class="rounded-circle border border-2 border-secondary me-3 shadow-sm"
-                                     style="width:70px; height:70px; object-fit:cover;" />
-
-                                <h6 class="mb-0 fw-bold">@Model.Client?.ClientName</h6>
-
-                                <a asp-controller="Hub" asp-action="ClientProfile" asp-route-id="@Model.ClientId"
-                                   class="small text-decoration-none text-primary">
-                                    👀 عرض جميع إعلانات العميل
-                                </a>
-                            </div>
-                        </div>
-
-                    }
-
-              
-                </div> *@
-
-      
-            <!-- Description Box -->
-            <div class="card mb-2 border-0 shadow-lg bg-light rounded">
-                <div class="card-body">
-                    <h6 class="fw-bold text-dark mb-3">📝 تفاصيل الإعلان</h6>
-                    <hr />
-                    <p class="text-muted fs-6 mb-0">
-                        @Html.Raw(Model.Description ?? "لا يوجد وصف متاح")
-                    </p>
-                </div>
-            </div>
-
-                <hr />
-            @if (Model.ImageUrls?.Any() == true)
-            {
-                <div class="card mb-4 rounded" style="background:#cfcfd8">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="fw-bold mb-0">🖼️ معرض الصور</h6>
-                           
-                            <span class="text-black small">
-                                (@Model.ImageUrls.Count صورة)
-                            </span>
-                        </div>
-                        <hr />
-                        <div id="announcementGallery" class="row g-3">
-                            @foreach (var img in Model.ImageUrls)
-                            {
-                                <div class="col-6 col-md-4 col-lg-3">
-                                    <a href="@img"
-                                       data-pswp-width="1200"
-                                       data-pswp-height="800"
-                                       class="gallery-item">
-                                        <img src="@img"
-                                             loading="lazy"
-                                             class="img-thumbnail rounded-3 border gallery-img p-1" />
-                                        <span class="zoom-icon">🔍</span>
-                                    </a>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                </div>
-            }
-          
-
-          
-
-                <!-- Attachment -->
-                <div class="mb-4 text-center">
-                    @if (!string.IsNullOrEmpty(Model.FilePath))
-                    {
-                        var extension = System.IO.Path.GetExtension(Model.FilePath).ToLower();
-
-                        if (extension == ".pdf")
-                        {
-                            <iframe src="~/Scripts/pdfjs/web/viewer.html?file=@Model.FilePath"
-                                    width="100%" height="600px"
-                                    style="border:none;"
-                                    class="rounded shadow-sm"></iframe>
-                        }
-                        else if (new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" }.Contains(extension))
-                        {
-                            <img src="@Model.FilePath" alt="Attachment"
-                                 class="img-fluid rounded shadow-sm" style="max-height:500px;" />
-                        }
-                        else
-                        {
-                            <a href="@Model.FilePath" target="_blank" class="btn btn-outline-info">
-                                📂 تحميل المرفق
-                            </a>
-                        }
-                    }
-                    else
-                    {
-                        <span class="text-danger">❌ لا يوجد مرفق</span>
-                    }
-                </div>
-
-                <!-- Back button -->
-                <div class="mt-4">
-                    <a asp-action="Index" class="btn btn-secondary">
-                        <i class="bi bi-arrow-left-circle"></i> العودة للقائمة
-                    </a>
-                </div>
+                }
+                @if (Model.DateTo.HasValue)
+                {
+                    <span class="flex items-center gap-1.5 @(Model.DateTo.Value < DateTime.Now.AddDays(7) ? "text-red-400" : "")">
+                        <i data-lucide="calendar-x" class="w-3.5 h-3.5"></i>
+                        حتى @Model.DateTo.Value.ToString("yyyy-MM-dd")
+                    </span>
+                }
+                @if (hasImages)
+                {
+                    <span class="flex items-center gap-1.5">
+                        <i data-lucide="images" class="w-3.5 h-3.5"></i>
+                        @Model.ImageUrls!.Count صورة
+                    </span>
+                }
             </div>
         </div>
     </div>
 
+    @* ═══ MAIN CONTENT ═══ *@
+    <div class="max-w-7xl mx-auto px-4 md:px-8 py-10 flex flex-col lg:flex-row gap-8 items-start">
+
+        @* ── Left column: main content ── *@
+        <div class="flex-1 min-w-0 space-y-7">
+
+            @* Share bar *@
+            <div class="flex flex-wrap gap-2 items-center sr">
+                <span class="text-[10px] font-black text-outline uppercase tracking-widest ml-1">مشاركة</span>
+                <a href="@waUrl" target="_blank" class="share-btn share-btn-wa">
+                    <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> واتساب
+                </a>
+                <a href="@fbUrl" target="_blank" class="share-btn share-btn-fb">
+                    <i data-lucide="facebook" class="w-3.5 h-3.5"></i> فيسبوك
+                </a>
+                <a href="@twUrl" target="_blank" class="share-btn share-btn-tw">
+                    <i data-lucide="twitter" class="w-3.5 h-3.5"></i> X
+                </a>
+                <button class="share-btn share-btn-copy" id="copy-btn" onclick="copyLink()">
+                    <i data-lucide="link" class="w-3.5 h-3.5"></i> نسخ الرابط
+                </button>
+            </div>
+
+            @* Featured image (first image or image file) — clickable into gallery *@
+            @if (!string.IsNullOrEmpty(heroImg))
+            {
+                <div class="featured-img-wrap sr">
+                    <a href="@heroImg" data-pswp-width="1200" data-pswp-height="800"
+                       class="gallery-item block w-full h-full">
+                        <img src="@heroImg" alt="@Model.Title" loading="eager" />
+                    </a>
+                </div>
+            }
+
+            @* Gallery grid *@
+            @if (hasImages && Model.ImageUrls!.Count > 1)
+            {
+                <div class="sr" id="announcementGallery">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-sm font-black text-on-surface flex items-center gap-2">
+                            <i data-lucide="images" class="w-4 h-4 text-secondary"></i> معرض الصور
+                        </h2>
+                        <span class="text-[10px] font-black text-outline uppercase tracking-widest">
+                            @Model.ImageUrls.Count صورة
+                        </span>
+                    </div>
+                    <div class="gallery-grid">
+                        @foreach (var img in Model.ImageUrls)
+                        {
+                            <a href="@img" data-pswp-width="1200" data-pswp-height="800"
+                               class="gallery-thumb gallery-item">
+                                <img src="@img" loading="lazy" alt="" />
+                                <div class="zoom-overlay">
+                                    <i data-lucide="zoom-in" class="w-6 h-6"></i>
+                                </div>
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+
+            @* Description *@
+            <div class="sidebar-card sr">
+                <h2 class="text-sm font-black text-on-surface flex items-center gap-2 mb-4">
+                    <span class="w-7 h-7 rounded-lg bg-[#e6f4f2] flex items-center justify-center">
+                        <i data-lucide="file-text" class="w-3.5 h-3.5 text-secondary"></i>
+                    </span>
+                    تفاصيل الإعلان
+                </h2>
+                <div class="w-full h-px bg-[#e8e4d8] mb-4"></div>
+                <div class="description-body">
+                    @Html.Raw(Model.Description ?? "<span class='text-outline italic'>لا يوجد وصف متاح</span>")
+                </div>
+            </div>
+
+            @* File attachment *@
+            @if (hasFile)
+            {
+                <div class="sidebar-card sr">
+                    <h2 class="text-sm font-black text-on-surface flex items-center gap-2 mb-4">
+                        <span class="w-7 h-7 rounded-lg bg-[#e6f4f2] flex items-center justify-center">
+                            <i data-lucide="paperclip" class="w-3.5 h-3.5 text-secondary"></i>
+                        </span>
+                        المرفقات
+                    </h2>
+                    <div class="w-full h-px bg-[#e8e4d8] mb-4"></div>
+
+                    @if (isPdfFile)
+                    {
+                        <div class="pdf-viewer">
+                            <iframe src="~/Scripts/pdfjs/web/viewer.html?file=@Model.FilePath"
+                                    width="100%" height="620px" style="border:none; display:block;"></iframe>
+                        </div>
+                    }
+                    else if (isImgFile)
+                    {
+                        <a href="@Model.FilePath" data-pswp-width="1200" data-pswp-height="800"
+                           class="gallery-item block">
+                            <img src="@Model.FilePath" alt="@Model.Title"
+                                 class="w-full rounded-2xl border border-[#e8e4d8] object-contain max-h-[500px]" loading="lazy" />
+                        </a>
+                    }
+                    else if (isOtherFile)
+                    {
+                        <a href="@Model.FilePath" target="_blank"
+                           class="flex items-center justify-center gap-3 p-6 border-2 border-dashed border-secondary/30 rounded-2xl bg-[#e6f4f2] hover:border-secondary hover:bg-secondary/10 transition-all duration-200 group">
+                            <span class="w-12 h-12 rounded-xl bg-secondary/15 flex items-center justify-center group-hover:bg-secondary group-hover:text-white transition-all duration-200 text-secondary">
+                                <i data-lucide="download" class="w-6 h-6"></i>
+                            </span>
+                            <div class="text-right">
+                                <div class="text-sm font-black text-on-surface">تحميل الملف</div>
+                                <div class="text-[10px] font-bold text-outline uppercase">@fileExt.TrimStart('.')</div>
+                            </div>
+                        </a>
+                    }
+                </div>
+            }
+
+            @* Back button *@
+            <div class="flex justify-end sr">
+                <a href="javascript:history.back()" class="back-btn">
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i> العودة
+                </a>
+            </div>
+        </div>
+
+        @* ── Right sidebar ── *@
+        <aside class="w-full lg:w-72 flex-shrink-0 space-y-5 lg:sticky lg:top-24">
+
+            @* Client card *@
+            @if (Model.ClientId.HasValue && !string.IsNullOrEmpty(Model.Client?.ClientName))
+            {
+                <div class="sidebar-card sr">
+                    <h3 class="text-[10px] font-black text-outline uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <i data-lucide="building-2" class="w-3.5 h-3.5"></i> الجهة المُعلِنة
+                    </h3>
+                    <div class="flex items-center gap-3">
+                        <img src="@(string.IsNullOrEmpty(Model.Client?.LogoUrl) ? "/images/file-icons/no-image.jpg" : Model.Client.LogoUrl)"
+                             alt="@Model.Client?.ClientName" class="client-logo" />
+                        <div class="flex-1 text-right">
+                            <div class="font-black text-on-surface text-sm">@Model.Client?.ClientName</div>
+                            <a href="/Hub/ClientProfile/@Model.ClientId"
+                               class="text-[11px] font-bold text-secondary hover:underline flex items-center gap-1 justify-end mt-1">
+                                عرض جميع الإعلانات
+                                <i data-lucide="arrow-left" class="w-3 h-3"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @* Details card *@
+            <div class="sidebar-card sr">
+                <h3 class="text-[10px] font-black text-outline uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <i data-lucide="info" class="w-3.5 h-3.5"></i> معلومات الإعلان
+                </h3>
+
+                <div class="info-row">
+                    <div class="info-icon"><i data-lucide="calendar" class="w-3.5 h-3.5"></i></div>
+                    <div>
+                        <div class="text-[10px] font-black text-outline uppercase tracking-widest">تاريخ الإضافة</div>
+                        <div class="text-xs font-black text-on-surface mt-0.5">@DateTimeHelper.FormatDateTime(Model.AddedDate)</div>
+                    </div>
+                </div>
+
+                @if (Model.DateFrom.HasValue)
+                {
+                    <div class="info-row">
+                        <div class="info-icon"><i data-lucide="calendar-check" class="w-3.5 h-3.5"></i></div>
+                        <div>
+                            <div class="text-[10px] font-black text-outline uppercase tracking-widest">صالح من</div>
+                            <div class="text-xs font-black text-on-surface mt-0.5">@Model.DateFrom.Value.ToString("yyyy-MM-dd")</div>
+                        </div>
+                    </div>
+                }
+
+                @if (Model.DateTo.HasValue)
+                {
+                    var isExpiring = Model.DateTo.Value < DateTime.Now.AddDays(7);
+                    <div class="info-row">
+                        <div class="info-icon @(isExpiring ? "bg-red-50" : "")">
+                            <i data-lucide="calendar-x" class="w-3.5 h-3.5 @(isExpiring ? "text-red-500" : "")"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] font-black text-outline uppercase tracking-widest">صالح حتى</div>
+                            <div class="text-xs font-black @(isExpiring ? "text-red-500" : "text-on-surface") mt-0.5">
+                                @Model.DateTo.Value.ToString("yyyy-MM-dd")
+                                @if (isExpiring)
+                                {
+                                    <span class="text-[9px] font-black"> ← ينتهي قريباً</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @if (Model.IsVIP)
+                {
+                    <div class="info-row">
+                        <div class="info-icon" style="background:#fef3c7;">
+                            <i data-lucide="star" class="w-3.5 h-3.5" style="color:#d97706;"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] font-black text-outline uppercase tracking-widest">النوع</div>
+                            <div class="text-xs font-black mt-0.5" style="color:#d97706;">إعلان مميّز VIP</div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @* Categories card *@
+            @if (Model.Categories.Any())
+            {
+                <div class="sidebar-card sr">
+                    <h3 class="text-[10px] font-black text-outline uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <i data-lucide="tag" class="w-3.5 h-3.5"></i> التصنيفات
+                    </h3>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach (var cat in Model.Categories)
+                        {
+                            <a href="/Hub/SubCategoryAnnouncements/@cat.CategoryId" class="cat-tag">
+                                <i data-lucide="hash" class="w-3 h-3"></i>
+                                @cat.CategoryName
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+
+            @* Share card *@
+            <div class="sidebar-card sr">
+                <h3 class="text-[10px] font-black text-outline uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <i data-lucide="share-2" class="w-3.5 h-3.5"></i> مشاركة الإعلان
+                </h3>
+                <div class="flex flex-col gap-2">
+                    <a href="@waUrl" target="_blank" class="share-btn share-btn-wa w-full justify-center">
+                        <i data-lucide="message-circle" class="w-4 h-4"></i> مشاركة عبر واتساب
+                    </a>
+                    <a href="@fbUrl" target="_blank" class="share-btn share-btn-fb w-full justify-center">
+                        <i data-lucide="facebook" class="w-4 h-4"></i> مشاركة عبر فيسبوك
+                    </a>
+                    <a href="@twUrl" target="_blank" class="share-btn share-btn-tw w-full justify-center">
+                        <i data-lucide="twitter" class="w-4 h-4"></i> مشاركة عبر X
+                    </a>
+                    <button class="share-btn share-btn-copy w-full justify-center" id="copy-btn-2" onclick="copyLink()">
+                        <i data-lucide="link" class="w-4 h-4"></i> نسخ الرابط
+                    </button>
+                </div>
+            </div>
+
+        </aside>
+    </div>
+</div>
+
 @section Scripts {
+    <link href="~/css/photoswipe/photoswipe.css" rel="stylesheet" />
     <script src="~/js/photoswipe/photoswipe.umd.min.js"></script>
     <script src="~/js/photoswipe/photoswipe-lightbox.umd.min.js"></script>
-    <link href="~/css/photoswipe/photoswipe.css" rel="stylesheet" />
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+
+            // ── PhotoSwipe lightbox ──
             const lightbox = new PhotoSwipeLightbox({
-                gallery: '#announcementGallery',
-                children: 'a',
-                pswpModule: PhotoSwipe
+                gallery: 'body',
+                children: 'a.gallery-item',
+                pswpModule: PhotoSwipe,
+                showHideAnimationType: 'zoom'
             });
             lightbox.init();
-        });
-  
 
-        function copyAnnouncementLink() {
-            const url = window.location.href;
-            navigator.clipboard.writeText(url).then(() => {
-                alert('✅ تم نسخ رابط الإعلان');
+            // ── Scroll reveal ──
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry, i) => {
+                    if (entry.isIntersecting) {
+                        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.08 });
+
+            document.querySelectorAll('.sr').forEach(el => observer.observe(el));
+
+            lucide.createIcons();
+        });
+
+        function copyLink() {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                ['copy-btn','copy-btn-2'].forEach(id => {
+                    const btn = document.getElementById(id);
+                    if (!btn) return;
+                    btn.classList.add('copied');
+                    const icon = btn.querySelector('[data-lucide]');
+                    if (icon) { icon.setAttribute('data-lucide','check'); lucide.createIcons(); }
+                    setTimeout(() => {
+                        btn.classList.remove('copied');
+                        if (icon) { icon.setAttribute('data-lucide','link'); lucide.createIcons(); }
+                    }, 2500);
+                });
             });
         }
-  
-
     </script>
 }
-

@@ -1,0 +1,244 @@
+﻿@model AnnouncmentHub.ViewModels.AnnouncementViewModel
+@using AnnouncmentHub.Helpers
+
+<!-- 🔹 Background -->
+<div class="container min-vh-100">
+        <!-- Main Card -->
+        <div class="card shadow-lg border-0 rounded-3">
+            <div class="card-body p-4">
+            <!-- Title + Sharing Row -->
+            <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap">
+
+                <!-- Left: Title + Date -->
+                <div class="me-3 flex-grow-1">
+                    <h4 class="text-primary fw-bold mb-1">@Model.Title</h4>
+                    <span class="text-dark small">
+                        📅 تاريخ الإضافة: @DateTimeHelper.FormatDateTime(Model.AddedDate)
+                    </span>
+                </div>
+
+                <!-- Right: Sharing Buttons -->
+                <div class="d-flex flex-wrap gap-2">
+                    <a class="btn btn-success btn-sm"
+                       target="_blank"
+                       href="https://wa.me/?text=@($"{Model.Title} - {Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")">
+                        <i class="bi bi-whatsapp"></i> واتساب
+                    </a>
+
+                    <a class="btn btn-primary btn-sm"
+                       target="_blank"
+                       href="https://www.facebook.com/sharer/sharer.php?u=@($"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")">
+                        <i class="bi bi-facebook"></i> فيسبوك
+                    </a>
+
+                    <a class="btn btn-dark btn-sm"
+                       target="_blank"
+                       href="https://twitter.com/intent/tweet?text=@Model.Title&url=@($"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")">
+                        <i class="bi bi-twitter-x"></i> X
+                    </a>
+
+                    <button class="btn btn-outline-secondary btn-sm" onclick="copyAnnouncementLink()">
+                        <i class="bi bi-link-45deg"></i> نسخ الرابط
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Client Info (if exists) -->
+            @if (Model.ClientId.HasValue && !string.IsNullOrEmpty(Model.Client?.ClientName))
+            {
+                <div class="card border-0 shadow-sm mb-2 align-items-end">
+                    <div class="card-body d-flex align-items-center">
+                        <img src="@(string.IsNullOrEmpty(Model?.Client?.LogoUrl) ? Url.Content("~/images/file-icons/no-image.jpg") : Model.Client.LogoUrl)"
+                             alt="@Model.Client?.ClientName"
+                             class="rounded-circle border border-2 border-secondary me-3 shadow-sm"
+                             style="width:70px; height:70px; object-fit:cover;" />
+
+                        <div class="d-flex flex-column">
+                            <h6 class="mb-1 fw-bold">@Model.Client?.ClientName</h6>
+                            <a asp-controller="Hub" asp-action="ClientProfile" asp-route-id="@Model.ClientId"
+                               class="small text-decoration-none text-primary">
+                                👀 عرض جميع إعلانات العميل
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+
+                      <!-- Title -->
+@*                 <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                        <h4 class="text-primary fw-bold">@Model.Title</h4>
+
+                        <span class="text-dark text-end">
+                            📅 تاريخ الإضافة: @DateTimeHelper.FormatDateTime(Model.AddedDate)
+                        </span>
+                 </div>  
+                <div class="card border-0 shadow-sm mb-4 shadow-sm d-flex align-items-end">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3">📤 مشاركة الإعلان</h6>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            <a class="btn btn-success"
+                               target="_blank"
+                               href="https://wa.me/?text=@($"{Model.Title} - {Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")">
+                                <i class="bi bi-whatsapp"></i> واتساب
+                            </a>
+
+                            <a class="btn btn-primary"
+                               target="_blank"
+                               href="https://www.facebook.com/sharer/sharer.php?u=@($"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")">
+                                <i class="bi bi-facebook"></i> فيسبوك
+                            </a>
+
+                            <a class="btn btn-dark"
+                               target="_blank"
+                               href="https://twitter.com/intent/tweet?text=@Model.Title&url=@($"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")">
+                                <i class="bi bi-twitter-x"></i> X
+                            </a>
+
+                            <button class="btn btn-outline-secondary" onclick="copyAnnouncementLink()">
+                                <i class="bi bi-link-45deg"></i> نسخ الرابط
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                    @if (Model.ClientId.HasValue && !string.IsNullOrEmpty(Model.Client?.ClientName))
+                    {
+                        <div class="card border-0 shadow-sm d-flex align-items-end">
+                            <div class="card-body d-flex align-items-center">
+                                <img src="@(string.IsNullOrEmpty(Model?.Client?.LogoUrl) ? Url.Content("~/images/file-icons/no-image.jpg") : Model.Client.LogoUrl)"
+                                     alt="@Model.Client?.ClientName" class="rounded-circle border border-2 border-secondary me-3 shadow-sm"
+                                     style="width:70px; height:70px; object-fit:cover;" />
+
+                                <h6 class="mb-0 fw-bold">@Model.Client?.ClientName</h6>
+
+                                <a asp-controller="Hub" asp-action="ClientProfile" asp-route-id="@Model.ClientId"
+                                   class="small text-decoration-none text-primary">
+                                    👀 عرض جميع إعلانات العميل
+                                </a>
+                            </div>
+                        </div>
+
+                    }
+
+              
+                </div> *@
+
+      
+            <!-- Description Box -->
+            <div class="card mb-2 border-0 shadow-lg bg-light rounded">
+                <div class="card-body">
+                    <h6 class="fw-bold text-dark mb-3">📝 تفاصيل الإعلان</h6>
+                    <hr />
+                    <p class="text-muted fs-6 mb-0">
+                        @Html.Raw(Model.Description ?? "لا يوجد وصف متاح")
+                    </p>
+                </div>
+            </div>
+
+                <hr />
+            @if (Model.ImageUrls?.Any() == true)
+            {
+                <div class="card mb-4 rounded" style="background:#cfcfd8">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0">🖼️ معرض الصور</h6>
+                           
+                            <span class="text-black small">
+                                (@Model.ImageUrls.Count صورة)
+                            </span>
+                        </div>
+                        <hr />
+                        <div id="announcementGallery" class="row g-3">
+                            @foreach (var img in Model.ImageUrls)
+                            {
+                                <div class="col-6 col-md-4 col-lg-3">
+                                    <a href="@img"
+                                       data-pswp-width="1200"
+                                       data-pswp-height="800"
+                                       class="gallery-item">
+                                        <img src="@img"
+                                             loading="lazy"
+                                             class="img-thumbnail rounded-3 border gallery-img p-1" />
+                                        <span class="zoom-icon">🔍</span>
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+          
+
+          
+
+                <!-- Attachment -->
+                <div class="mb-4 text-center">
+                    @if (!string.IsNullOrEmpty(Model.FilePath))
+                    {
+                        var extension = System.IO.Path.GetExtension(Model.FilePath).ToLower();
+
+                        if (extension == ".pdf")
+                        {
+                            <iframe src="~/Scripts/pdfjs/web/viewer.html?file=@Model.FilePath"
+                                    width="100%" height="600px"
+                                    style="border:none;"
+                                    class="rounded shadow-sm"></iframe>
+                        }
+                        else if (new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" }.Contains(extension))
+                        {
+                            <img src="@Model.FilePath" alt="Attachment"
+                                 class="img-fluid rounded shadow-sm" style="max-height:500px;" />
+                        }
+                        else
+                        {
+                            <a href="@Model.FilePath" target="_blank" class="btn btn-outline-info">
+                                📂 تحميل المرفق
+                            </a>
+                        }
+                    }
+                    else
+                    {
+                        <span class="text-danger">❌ لا يوجد مرفق</span>
+                    }
+                </div>
+
+                <!-- Back button -->
+                <div class="mt-4">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left-circle"></i> العودة للقائمة
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+@section Scripts {
+    <script src="~/js/photoswipe/photoswipe.umd.min.js"></script>
+    <script src="~/js/photoswipe/photoswipe-lightbox.umd.min.js"></script>
+    <link href="~/css/photoswipe/photoswipe.css" rel="stylesheet" />
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const lightbox = new PhotoSwipeLightbox({
+                gallery: '#announcementGallery',
+                children: 'a',
+                pswpModule: PhotoSwipe
+            });
+            lightbox.init();
+        });
+  
+
+        function copyAnnouncementLink() {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('✅ تم نسخ رابط الإعلان');
+            });
+        }
+  
+
+    </script>
+}
+

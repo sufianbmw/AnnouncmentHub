@@ -4,465 +4,547 @@
 @{
     ViewBag.Title = "بحث الإعلانات";
 
-    // ✅ تحويل البيانات إلى AnnouncementSearchResult لتمريرها للـ Partials
     var searchResult = new AnnouncementSearchResult
     {
         Announcements = Model.Announcements ?? new List<AnnouncementDto>(),
-        TotalCount = Model.TotalCount,
-        PageNumber = Model.PageNumber,
-        PageSize = Model.PageSize
+        TotalCount    = Model.TotalCount,
+        PageNumber    = Model.PageNumber,
+        PageSize      = Model.PageSize
     };
 }
 
-<div class="container-fluid">
-    <div class="row">
+@section Styles {
+<style>
+    .search-page { background: #f0ede4; min-height: 100vh; }
 
-        <!-- 🟦 Sidebar (Main Categories) -->
-        <div class="col-md-2 bg-light border-end pt-3">
+    /* Hero */
+    .search-hero {
+        background: linear-gradient(160deg,#eae7de 0%,#f0ede4 60%,#e4e1d8 100%);
+        position: relative; overflow: hidden;
+    }
+    .search-hero::before {
+        content: ''; position: absolute; inset: 0; pointer-events: none;
+        background:
+            radial-gradient(circle at 75% 50%, rgba(13,148,136,.07) 0%, transparent 55%),
+            radial-gradient(circle at 10% 80%, rgba(245,158,11,.05) 0%, transparent 50%);
+    }
 
-            <h6 class="fw-bold mb-3">التصنيفات الرئيسية</h6>
+    /* Search input */
+    .search-input-wrap { position: relative; }
+    .search-input-wrap input {
+        width: 100%; height: 56px; padding: 0 52px 0 44px;
+        background: #fff; border: 2px solid transparent; border-radius: 16px;
+        font-size: 14px; font-weight: 700; color: #1a1a1a; outline: none;
+        box-shadow: 0 2px 12px rgba(0,0,0,.06); text-align: right;
+        transition: border-color .2s, box-shadow .2s;
+    }
+    .search-input-wrap input:focus {
+        border-color: #0d9488;
+        box-shadow: 0 0 0 4px rgba(13,148,136,.1), 0 2px 12px rgba(0,0,0,.06);
+    }
+    .search-icon-left  { position: absolute; right: 17px; top: 50%; transform: translateY(-50%); color: #0d9488; pointer-events: none; }
+    .search-clear-btn  {
+        position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+        width: 28px; height: 28px; border-radius: 8px; background: #f0ede4; border: none;
+        cursor: pointer; display: flex; align-items: center; justify-content: center;
+        color: #888; transition: all .2s; opacity: 0; pointer-events: none;
+    }
+    .search-input-wrap input:not(:placeholder-shown) ~ .search-clear-btn { opacity: 1; pointer-events: all; }
+    .search-clear-btn:hover { background: #e0ddd4; color: #333; }
 
-            @if (Model.MainCategories != null && Model.MainCategories.Any())
-            {
-                @foreach (var mc in Model.MainCategories)
-                {
-                    <a class="btn bgGradiantSrch bgGradiants w-100 text-start mb-2 @(Model.MainCategoryId == mc.Id ? "active" : "")"
-                       asp-action="Search"
-                       asp-route-mainCategoryId="@mc.Id">
-                        @mc.CatName
-                    </a>
-                }
-            }
-            else
-            {
-                <div class="text-muted small">لا توجد تصنيفات رئيسية.</div>
-            }
+    /* Date inputs */
+    .date-input {
+        width: 100%; height: 44px; padding: 0 14px;
+        background: #fff; border: 2px solid #e8e4d8; border-radius: 12px;
+        font-size: 12px; font-weight: 700; color: #1a1a1a;
+        outline: none; direction: ltr; text-align: right;
+        transition: border-color .2s, box-shadow .2s;
+    }
+    .date-input:focus { border-color: #0d9488; box-shadow: 0 0 0 3px rgba(13,148,136,.1); }
 
-        </div>
+    /* Buttons */
+    .search-btn {
+        height: 44px; padding: 0 22px; border-radius: 12px; border: none;
+        font-size: 12px; font-weight: 900; cursor: pointer;
+        display: inline-flex; align-items: center; gap: 7px;
+        transition: all .2s ease;
+    }
+    .search-btn-primary {
+        background: linear-gradient(135deg,#0d9488,#0f766e); color: #fff;
+        box-shadow: 0 4px 14px rgba(13,148,136,.35);
+    }
+    .search-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(13,148,136,.4); }
+    .search-btn-reset { background: #f7f4ee; color: #666; border: 2px solid #e8e4d8; }
+    .search-btn-reset:hover { background: #e8e4d8; transform: translateY(-2px); }
 
-        <!-- 🟩 Main Content -->
-        <div class="col-md-10 p-4">
+    /* Sidebar category items */
+    .cat-sidebar-item {
+        display: flex; align-items: center; gap: 9px; padding: 10px 13px;
+        border-radius: 12px; font-size: 12px; font-weight: 800;
+        color: #555; border: 2px solid transparent; background: transparent;
+        cursor: pointer; text-decoration: none; text-align: right; width: 100%;
+        transition: all .2s ease;
+    }
+    .cat-sidebar-item:hover { background: #e8e4d8; color: #0d9488; }
+    .cat-sidebar-item.active {
+        background: linear-gradient(135deg,#0d9488,#0f766e);
+        color: #fff; box-shadow: 0 4px 14px rgba(13,148,136,.3);
+    }
 
-            <!-- 🔎 Filters (Title + Date) -->
-            <form id="searchFilters" onsubmit="event.preventDefault(); triggerFilter(1);">
-                <input type="hidden" id="mainCategoryId" value="@(Model.MainCategoryId ?? 0)" />
-                <input type="hidden" id="pageSize" value="@Model.PageSize" />
+    /* Subcategory filter tabs */
+    .filter-tab {
+        display: inline-flex; align-items: center; gap: 5px; padding: 6px 14px;
+        border-radius: 10px; font-size: 11px; font-weight: 800;
+        border: 2px solid #e8e4d8; background: #f7f4ee; color: #666;
+        cursor: pointer; user-select: none; white-space: nowrap;
+        transition: all .22s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .filter-tab:hover { background: #e8e4d8; transform: translateY(-1px); }
+    .filter-tab.active {
+        background: linear-gradient(135deg,#0d9488,#0f766e); color: #fff;
+        border-color: transparent; box-shadow: 0 4px 12px rgba(13,148,136,.35);
+        transform: translateY(-2px);
+    }
 
-                <div class="row g-3 bgGradiants border rounded p-3">
+    /* Subcat tabs container animation */
+    .subcat-panel {
+        overflow: hidden;
+        transition: max-height .4s cubic-bezier(0.16,1,0.3,1), opacity .3s ease;
+        max-height: 0; opacity: 0;
+    }
+    .subcat-panel.open { max-height: 400px; opacity: 1; }
 
-                    <div class="col-md-4">
-                        <label class="form-label">كلمة البحث</label>
-                        <input type="text" id="filter-title" class="form-control" value="@Model.Title" />
-                    </div>
+    /* Subcat tab entrance */
+    .filter-tab-enter {
+        opacity: 0; transform: scale(.8) translateY(4px);
+        animation: tabPop .3s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    }
+    @for (int d = 0; d < 16; d++) {
+        @:.filter-tab-enter:nth-child(@(d+1)) { animation-delay: @(d * 0.04)s; }
+    }
+    @@keyframes tabPop { to { opacity:1; transform:scale(1) translateY(0); } }
 
-                    <div class="col-md-4">
-                        <label class="form-label">من تاريخ</label>
-                        <input type="date" id="filter-dateFrom"
-                               class="form-control"
-                               value="@(Model.DateFrom?.ToString("yyyy-MM-dd"))" />
-                    </div>
+    /* Announcements swap */
+    .announcements-wrap { transition: opacity .25s ease, transform .25s ease; }
+    .announcements-wrap.loading { opacity: 0; transform: translateY(10px); pointer-events: none; }
 
-                    <div class="col-md-4">
-                        <label class="form-label">إلى تاريخ</label>
-                        <input type="date" id="filter-dateTo"
-                               class="form-control"
-                               value="@(Model.DateTo?.ToString("yyyy-MM-dd"))" />
-                    </div>
+    /* Card entrance */
+    .ann-card-enter {
+        opacity: 0; transform: translateY(18px);
+        animation: annEnter .4s cubic-bezier(0.16,1,0.3,1) forwards;
+    }
+    @for (int d = 0; d < 12; d++) {
+        @:.ann-card-enter:nth-child(@(d+1)) { animation-delay: @(d * 0.055)s; }
+    }
+    @@keyframes annEnter { to { opacity:1; transform:translateY(0); } }
 
-                    <!-- ⭐ Subcategories as Badges -->
-                    @if (Model.SubCategories != null && Model.SubCategories.Any())
-                    {
-                        <div class="mt-3 shadow-sm p-3 rounded border">
-                            <h6 class="fw-bold text-secondary mb-2">فلتر حسب الفئات الفرعية</h6>
+    /* Active filter chips */
+    .active-chip {
+        display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px;
+        border-radius: 8px; background: #e6f4f2; border: 1px solid rgba(13,148,136,.2);
+        font-size: 10px; font-weight: 900; color: #0d9488;
+    }
 
-                            <div class="filter-badges">
+    /* Spinner */
+    .spin { animation: spin .8s linear infinite; }
+    @@keyframes spin { to { transform:rotate(360deg); } }
 
-                                <!-- عرض الكل -->
-                                <span class="filter-badge @(Model.SubCategoryIds == null || !Model.SubCategoryIds.Any() ? "active" : "")"
-                                      data-id="0">
-                                    عرض الكل
-                                </span>
+    /* Filter bar scroll */
+    .filter-scroll { scrollbar-width: none; }
+    .filter-scroll::-webkit-scrollbar { display: none; }
 
-                                @foreach (var sc in Model.SubCategories)
-                                {
-                                    var isActive = Model.SubCategoryIds != null && Model.SubCategoryIds.Contains(sc.Id);
-                                    <span class="filter-badge @(isActive ? "active" : "")"
-                                          data-id="@sc.Id">
-                                        @sc.CatName
-                                    </span>
-                                }
-                            </div>
-                        </div>
-                    }
+    /* Mobile drawer */
+    @@media (max-width: 768px) {
+        .sidebar-drawer {
+            position: fixed; inset: 0; z-index: 50;
+            background: rgba(0,0,0,.4); backdrop-filter: blur(4px);
+            opacity: 0; pointer-events: none; transition: opacity .3s ease;
+        }
+        .sidebar-drawer.open { opacity: 1; pointer-events: all; }
+        .sidebar-panel {
+            position: absolute; top: 0; right: 0; bottom: 0; width: 280px;
+            background: #f7f4ee; padding: 24px 16px; overflow-y: auto;
+            transform: translateX(100%);
+            transition: transform .35s cubic-bezier(0.16,1,0.3,1);
+        }
+        .sidebar-drawer.open .sidebar-panel { transform: translateX(0); }
+    }
 
-                    <!-- Buttons -->
-                    <div class="mt-3 d-flex justify-content-center gap-2">
-                        <button type="submit" class="btn btn-primary">بحث</button>
-                        <button type="button" class="btn btn-secondary" onclick="resetSearch()">إعادة تعيين</button>
-                    </div>
+    .pagination-btn { transition: all .2s ease; }
+    .pagination-btn:hover:not(:disabled) { transform: translateY(-1px); }
+</style>
+}
 
+@* ═══ STATE: hidden inputs tracked by JS ═══ *@
+<input type="hidden" id="state-mainCategoryId" value="@(Model.MainCategoryId?.ToString() ?? "")" />
+<input type="hidden" id="state-pageSize"        value="@Model.PageSize" />
+
+<div class="search-page" dir="rtl">
+
+    @* ─── HERO ─── *@
+    <div class="search-hero pt-6 pb-8 px-4 md:px-8">
+        <div class="max-w-7xl mx-auto">
+
+            <nav class="flex items-center gap-1.5 text-xs font-bold mb-6 flex-wrap">
+                <a href="/" class="flex items-center gap-1 text-on-surface-variant hover:text-secondary transition-colors duration-200">
+                    <i data-lucide="house" class="w-3.5 h-3.5"></i> الرئيسية
+                </a>
+                <i data-lucide="chevron-left" class="w-3 h-3 text-outline"></i>
+                <span class="text-secondary font-black">بحث الإعلانات</span>
+            </nav>
+
+            <div class="flex items-center justify-between mb-6 gap-4">
+                <div>
+                    <span class="text-secondary font-bold text-xs tracking-[.2em] uppercase mb-1 block">استكشف الإعلانات</span>
+                    <h1 class="text-2xl md:text-3xl font-black font-headline tracking-tighter text-on-surface">بحث الإعلانات</h1>
                 </div>
-            </form>
+                <button id="open-sidebar-btn"
+                        class="md:hidden flex items-center gap-2 px-4 py-2.5 bg-[#e6f4f2] border border-secondary/20 rounded-xl text-xs font-black text-secondary">
+                    <i data-lucide="layout-grid" class="w-4 h-4"></i> التصنيفات
+                </button>
+            </div>
 
-            <!-- 🔹 Announcements container -->
-            <div id="announcements-container" class="mt-4">
+            @* Search input *@
+            <div class="search-input-wrap mb-4">
+                <i data-lucide="search" class="search-icon-left w-5 h-5"></i>
+                <input type="text" id="filter-title" placeholder="ابحث عن إعلان..."
+                       value="@Model.Title" autocomplete="off"
+                       onkeydown="if(event.key==='Enter') triggerFilter(1)" />
+                <button class="search-clear-btn" type="button"
+                        onclick="document.getElementById('filter-title').value=''; triggerFilter(1);">
+                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                </button>
+            </div>
+
+            @* Date range + action buttons *@
+            <div class="flex flex-wrap gap-3 items-end">
+                <div class="flex flex-col gap-1 flex-1 min-w-[140px]">
+                    <label class="text-[10px] font-black text-outline uppercase tracking-widest">من تاريخ</label>
+                    <input type="date" id="filter-dateFrom" class="date-input"
+                           value="@(Model.DateFrom?.ToString("yyyy-MM-dd"))" />
+                </div>
+                <div class="flex flex-col gap-1 flex-1 min-w-[140px]">
+                    <label class="text-[10px] font-black text-outline uppercase tracking-widest">إلى تاريخ</label>
+                    <input type="date" id="filter-dateTo" class="date-input"
+                           value="@(Model.DateTo?.ToString("yyyy-MM-dd"))" />
+                </div>
+                <div class="flex gap-2">
+                    <button class="search-btn search-btn-primary" onclick="triggerFilter(1)">
+                        <i data-lucide="search" class="w-4 h-4"></i> بحث
+                    </button>
+                    <button class="search-btn search-btn-reset" onclick="resetSearch()">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i> إعادة تعيين
+                    </button>
+                </div>
+            </div>
+
+            @* Active filter chips *@
+            <div class="flex flex-wrap gap-2 mt-4" id="active-chips">
+                @if (!string.IsNullOrWhiteSpace(Model.Title))
+                {
+                    <span class="active-chip"><i data-lucide="type" class="w-3 h-3"></i> @Model.Title</span>
+                }
+                @if (Model.DateFrom.HasValue)
+                {
+                    <span class="active-chip"><i data-lucide="calendar" class="w-3 h-3"></i> من @Model.DateFrom.Value.ToString("yyyy-MM-dd")</span>
+                }
+                @if (Model.DateTo.HasValue)
+                {
+                    <span class="active-chip"><i data-lucide="calendar" class="w-3 h-3"></i> إلى @Model.DateTo.Value.ToString("yyyy-MM-dd")</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    @* ─── BODY: SIDEBAR + RESULTS ─── *@
+    <div class="max-w-7xl mx-auto px-4 md:px-8 py-8 flex gap-6 items-start">
+
+        @* Desktop Sidebar *@
+        <aside class="hidden md:block w-56 flex-shrink-0 sticky top-24">
+            <div class="bg-[#f7f4ee] border border-[#e0ddd4] rounded-2xl p-4">
+                <h3 class="text-[10px] font-black text-outline uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> التصنيفات
+                </h3>
+                <div class="flex flex-col gap-1" id="desktop-cat-list">
+                    <button class="cat-sidebar-item @(Model.MainCategoryId == null ? "active" : "")"
+                            data-cat-id="" onclick="selectMainCategory(this)">
+                        <span class="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0"></span>
+                        عرض الكل
+                    </button>
+                    @if (Model.MainCategories != null)
+                    {
+                        @foreach (var mc in Model.MainCategories)
+                        {
+                            <button class="cat-sidebar-item @(Model.MainCategoryId == mc.Id ? "active" : "")"
+                                    data-cat-id="@mc.Id" onclick="selectMainCategory(this)">
+                                <span class="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0"></span>
+                                @mc.CatName
+                            </button>
+                        }
+                    }
+                </div>
+            </div>
+        </aside>
+
+        @* Results column *@
+        <div class="flex-1 min-w-0">
+
+            @* Subcategory filter panel — animates open/closed *@
+            <div class="subcat-panel @(Model.SubCategories != null && Model.SubCategories.Any() ? "open" : "")" id="subcat-panel">
+                <div class="bg-[#f7f4ee] border border-[#e0ddd4] rounded-2xl p-4 mb-6">
+                    <div class="text-[10px] font-black text-outline uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <i data-lucide="filter" class="w-3.5 h-3.5"></i> فلتر حسب الفئات الفرعية
+                    </div>
+                    <div class="filter-scroll flex flex-wrap gap-2" id="filter-bar">
+                        @if (Model.SubCategories != null && Model.SubCategories.Any())
+                        {
+                            <span class="filter-tab @(Model.SubCategoryIds == null || !Model.SubCategoryIds.Any() ? "active" : "")"
+                                  data-id="0">الكل</span>
+                            @foreach (var sc in Model.SubCategories)
+                            {
+                                <span class="filter-tab @(Model.SubCategoryIds != null && Model.SubCategoryIds.Contains(sc.Id) ? "active" : "")"
+                                      data-id="@sc.Id">@sc.CatName</span>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @* Results header *@
+            <div class="flex items-center justify-between mb-6">
+                <div id="results-label" class="text-[11px] font-black text-outline uppercase tracking-widest">
+                    @Model.TotalCount نتيجة
+                </div>
+                <div id="loading-indicator" class="hidden flex items-center gap-2 text-secondary text-xs font-bold">
+                    <svg class="spin w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                    </svg>
+                    جاري البحث...
+                </div>
+            </div>
+
+            @* Announcements *@
+            <div class="announcements-wrap" id="announcements-container">
                 @await Html.PartialAsync("_AnnouncementsPartial", searchResult)
             </div>
 
-            <!-- 🔹 Pagination container -->
-            <div id="pagination-container" class="mt-2">
+            @* Pagination *@
+            <div id="pagination-container">
                 @await Html.PartialAsync("_PaginationPartial", searchResult)
             </div>
-
         </div>
     </div>
 </div>
 
-@section Scripts {
-
-    <script>
-
-        // 🔁 Reset filters
-        function resetSearch() {
-            window.location = '@Url.Action("Search", "Hub")';
-        }
-
-        // 🟣 Badge click logic
-        $(document).on("click", ".filter-badge", function () {
-
-            const id = parseInt($(this).data("id"));
-
-            if (id === 0) {
-                $(".filter-badge").removeClass("active");
-                $(this).addClass("active");
-            } else {
-                $(".filter-badge[data-id=0]").removeClass("active");
-                $(this).toggleClass("active");
-
-                if ($(".filter-badge.active").length === 0) {
-                    $(".filter-badge[data-id=0]").addClass("active");
-                }
-            }
-
-            triggerFilter(1);
-        });
-
-        // 🧠 تجميع الفلاتر
-        function collectFilters(page) {
-
-            const mainCategoryId = parseInt($("#mainCategoryId").val()) || null;
-            const pageSize       = parseInt($("#pageSize").val()) || 12;
-            const title          = $("#filter-title").val();
-            const dateFrom       = $("#filter-dateFrom").val();
-            const dateTo         = $("#filter-dateTo").val();
-
-            let subIds = [];
-            $(".filter-badge.active").each(function () {
-                const id = parseInt($(this).data("id"));
-                if (id !== 0) subIds.push(id);
-            });
-
-            return {
-                mainCategoryId: mainCategoryId,
-                subCategoryIds: subIds,
-                title:          title,
-                dateFrom:       dateFrom || null,
-                dateTo:         dateTo   || null,
-                page:           page,
-                pageSize:       pageSize
-            };
-        }
-
-        // 🔥 AJAX Filter
-        function triggerFilter(page) {
-
-            const filters = collectFilters(page);
-
-            $.ajax({
-                type:        "POST",
-                url:         '@Url.Action("Search2Ajax", "Hub")',
-                contentType: "application/json; charset=utf-8",
-                data:        JSON.stringify(filters),
-                success: function (data) {
-                    $("#announcements-container").html(data.announcements);
-                    $("#pagination-container").html(data.pagination);
-                },
-                error: function (xhr, status, error) {
-                    console.error("❌ Search2Ajax error:", error);
-                }
-            });
-        }
-
-        // 📄 Pagination
-        function loadPage(page) {
-            triggerFilter(page);
-        }
-
-    </script>
-
-    <style>
-        .filter-badges {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .filter-badge {
-            padding: 6px 14px;
-            background: #f1f1f1;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-            border: 1px solid #ddd;
-            transition: 0.2s;
-            user-select: none;
-        }
-
-            .filter-badge:hover {
-                background: #e5e5e5;
-            }
-
-            .filter-badge.active {
-                background: #0d6efd;
-                color: #fff;
-                border-color: #0d6efd;
-            }
-    </style>
-
-}
-
-@* @model Search2ViewModel
-
-@{
-    ViewBag.Title = "بحث الإعلانات";
-}
-
-<div class="container-fluid">
-    <div class="row">
-
-        <!-- 🟦 Sidebar (Main Categories) -->
-        <div class="col-md-2 bg-light border-end pt-3">
-
-            <h6 class="fw-bold mb-3">التصنيفات الرئيسية</h6>
-
-            @if (Model.MainCategories != null && Model.MainCategories.Any())
+@* ─── Mobile Categories Drawer ─── *@
+<div class="sidebar-drawer md:hidden" id="sidebar-drawer">
+    <div class="sidebar-panel">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="font-black text-on-surface">التصنيفات</h3>
+            <button id="close-sidebar-btn"
+                    class="w-8 h-8 rounded-xl bg-[#e8e4d8] flex items-center justify-center">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+        <div class="flex flex-col gap-1.5" id="mobile-cat-list">
+            <button class="cat-sidebar-item @(Model.MainCategoryId == null ? "active" : "")"
+                    data-cat-id="" onclick="selectMainCategory(this); document.getElementById('sidebar-drawer').classList.remove('open');">
+                <span class="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0"></span>
+                عرض الكل
+            </button>
+            @if (Model.MainCategories != null)
             {
                 @foreach (var mc in Model.MainCategories)
                 {
-                    <a class="btn bgGradiantSrch bgGradiants w-100 text-start mb-2 @(Model.MainCategoryId == mc.Id ? "active" : "")"
-                       asp-action="Search2"
-                       asp-route-mainCategoryId="@mc.Id">
+                    <button class="cat-sidebar-item @(Model.MainCategoryId == mc.Id ? "active" : "")"
+                            data-cat-id="@mc.Id"
+                            onclick="selectMainCategory(this); document.getElementById('sidebar-drawer').classList.remove('open');">
+                        <span class="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0"></span>
                         @mc.CatName
-                    </a>
+                    </button>
                 }
             }
-            else
-            {
-                <div class="text-muted small">لا توجد تصنيفات رئيسية.</div>
-            }
-
-        </div>
-
-        <!-- 🟩 Main Content -->
-        <div class="col-md-10 p-4">
-
-            <!-- 🔎 Filters (Title + Date) -->
-            <form id="searchFilters" onsubmit="event.preventDefault(); triggerFilter(1);">
-                <input type="hidden" id="mainCategoryId" value="@(Model.MainCategoryId ?? 0)" />
-                <input type="hidden" id="pageSize" value="@Model.PageSize" />
-
-                <div class="row g-3 bgGradiants border rounded p-3">
-
-                    <div class="col-md-4">
-                        <label class="form-label">كلمة البحث</label>
-                        <input type="text" id="filter-title" class="form-control" value="@Model.Title" />
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">من تاريخ</label>
-                        <input type="date" id="filter-dateFrom"
-                               class="form-control"
-                               value="@(Model.DateFrom?.ToString("yyyy-MM-dd"))" />
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">إلى تاريخ</label>
-                        <input type="date" id="filter-dateTo"
-                               class="form-control"
-                               value="@(Model.DateTo?.ToString("yyyy-MM-dd"))" />
-                    </div>  
-                  
-                    <!-- ⭐ Subcategories as Badges -->
-                    @if (Model.SubCategories != null && Model.SubCategories.Any())
-                    {
-                        <div class="mt-3 shadow-sm p-3 rounded border">
-                            <h6 class="fw-bold text-secondary mb-2">فلتر حسب الفئات الفرعية</h6>
-
-                            <div class="filter-badges">
-
-                                <!-- عرض الكل -->
-                                <span class="filter-badge @(Model.SubCategoryIds == null || !Model.SubCategoryIds.Any() ? "active" : "")"
-                                      data-id="0">
-                                    عرض الكل
-                                </span>
-
-                                @foreach (var sc in Model.SubCategories)
-                                {
-                                    var isActive = Model.SubCategoryIds != null && Model.SubCategoryIds.Contains(sc.Id);
-                                    <span class="filter-badge @(isActive ? "active" : "")"
-                                          data-id="@sc.Id">
-                                        @sc.CatName
-                                    </span>
-                                }
-                            </div>
-                        </div>
-                    }
-
-                    <!-- Buttons -->
-                    <div class="mt-3 d-flex justify-content-center gap-2">
-                        <button type="submit" class="btn btn-primary">بحث</button>
-                        <button type="button" class="btn btn-secondary" onclick="resetSearch()">إعادة تعيين</button>
-                    </div>
-                </div>
-
-             
-            </form>
-
-            <!-- 🔹 Announcements container (AJAX updates here) -->
-            <div id="announcements-container" class="mt-4">
-                @await Html.PartialAsync("_Search2AnnouncementsPartial", Model)
-            </div>
-
-            <!-- 🔹 Pagination container -->
-            <div id="pagination-container" class="mt-2">
-                @await Html.PartialAsync("_Search2PaginationPartial", Model)
-            </div>
-
         </div>
     </div>
 </div>
 
 @section Scripts {
+<script>
+document.addEventListener('DOMContentLoaded', function () {
 
-    <script>
-        // 🔁 Reset filters and reload page (no filters)
-        function resetSearch() {
-            // رجوع للـ GET بدون باراميتر
-            window.location = '@Url.Action("Search2", "Hub")';
+    // ── Mobile drawer ──
+    document.getElementById('open-sidebar-btn')?.addEventListener('click', () =>
+        document.getElementById('sidebar-drawer').classList.add('open'));
+
+    document.getElementById('close-sidebar-btn')?.addEventListener('click', () =>
+        document.getElementById('sidebar-drawer').classList.remove('open'));
+
+    document.getElementById('sidebar-drawer')?.addEventListener('click', function (e) {
+        if (e.target === this) this.classList.remove('open');
+    });
+
+    // ── Subcategory tab clicks (delegated — works after AJAX re-render) ──
+    document.getElementById('filter-bar').addEventListener('click', function (e) {
+        const tab = e.target.closest('.filter-tab');
+        if (!tab) return;
+
+        const id = parseInt(tab.dataset.id);
+        if (id === 0) {
+            document.querySelectorAll('#filter-bar .filter-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+        } else {
+            const allTab = document.querySelector('#filter-bar .filter-tab[data-id="0"]');
+            if (allTab) allTab.classList.remove('active');
+            tab.classList.toggle('active');
+            if (!document.querySelector('#filter-bar .filter-tab.active') && allTab)
+                allTab.classList.add('active');
         }
+        triggerFilter(1);
+    });
 
-        // 🟣 Badge click logic (subcategories)
-        $(document).on("click", ".filter-badge", function () {
+    lucide.createIcons();
+});
 
-            const id = parseInt($(this).data("id"));
+// ── Main category click (AJAX — no page reload) ──
+function selectMainCategory(btn) {
+    const catId = btn.dataset.catId; // '' = all, '5' = id
 
-            if (id === 0) {
-                // "عرض الكل"
-                $(".filter-badge").removeClass("active");
-                $(this).addClass("active");
-            } else {
-                // أي فرع آخر
-                $(".filter-badge[data-id=0]").removeClass("active");
-                $(this).toggleClass("active");
+    // Update active state in both sidebars
+    document.querySelectorAll('.cat-sidebar-item').forEach(b => b.classList.remove('active'));
+    // Highlight matching buttons in both desktop + mobile
+    document.querySelectorAll(`.cat-sidebar-item[data-cat-id="${catId}"]`)
+        .forEach(b => b.classList.add('active'));
 
-                // إذا ولا واحد مفعّل → رجّع "عرض الكل"
-                if ($(".filter-badge.active").length === 0) {
-                    $(".filter-badge[data-id=0]").addClass("active");
-                }
-            }
+    // Update tracked state
+    document.getElementById('state-mainCategoryId').value = catId;
 
-            // ممكن تخليها بدون بحث تلقائي وتخلي فقط الزر،
-            // لكن بما اخترنا AJAX، نخليه يفلتر مباشرة:
-            triggerFilter(1);
-        });
-
-
-        // 🧠 تجميع الفلاتر الحالية
-        function collectFilters(page) {
-
-            const mainCategoryId = parseInt($("#mainCategoryId").val()) || null;
-            const pageSize = parseInt($("#pageSize").val()) || 10;
-            const title = $("#filter-title").val();
-            const dateFrom = $("#filter-dateFrom").val();
-            const dateTo = $("#filter-dateTo").val();
-
-            // IDs للفئات الفرعية النشطة
-            let subIds = [];
-            $(".filter-badge.active").each(function () {
-                const id = parseInt($(this).data("id"));
-                if (id !== 0) { // 0 = عرض الكل
-                    subIds.push(id);
-                }
-            });
-
-            return {
-                mainCategoryId: mainCategoryId,
-                subCategoryIds: subIds,
-                title: title,
-                dateFrom: dateFrom || null,
-                dateTo: dateTo || null,
-                page: page,
-                pageSize: pageSize
-            };
-        }
-
-        // 🔥 Main AJAX Filter Function
-        function triggerFilter(page) {
-
-            const filters = collectFilters(page);
-
-            $.ajax({
-                type: "POST",
-                url: '@Url.Action("Search2Ajax", "Hub")',
-                contentType: "application/json; charset=utf-8",
-                data: JSON.stringify(filters),
-                beforeSend: function () {
-                    // ممكن تحط لودر بسيط هنا لو حاب
-                },
-                success: function (data) {
-                    $("#announcements-container").html(data.announcements);
-                    $("#pagination-container").html(data.pagination);
-                },
-                error: function (xhr, status, error) {
-                    console.error("❌ Search2Ajax error:", error);
-                }
-            });
-        }
-
-        // 📄 Pagination handler (called from pagination partial)
-        function loadPage(page) {
-            triggerFilter(page);
-        }
-    </script>
-
-    <style>
-        .filter-badges {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .filter-badge {
-            padding: 6px 14px;
-            background: #f1f1f1;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-            border: 1px solid #ddd;
-            transition: 0.2s;
-            user-select: none;
-        }
-
-            .filter-badge:hover {
-                background: #e5e5e5;
-            }
-
-            .filter-badge.active {
-                background: #0d6efd;
-                color: #fff;
-                border-color: #0d6efd;
-            }
-    </style>
-
+    if (catId === '') {
+        // "Show all" → clear subcategory panel
+        closeSubcatPanel();
+        triggerFilter(1);
+    } else {
+        // Load subcategories for this main cat, then trigger filter
+        loadSubcategoriesForCat(parseInt(catId));
+    }
 }
- *@
+
+// ── Fetch subcats from server, render tabs, trigger filter ──
+function loadSubcategoriesForCat(catId) {
+    const bar   = document.getElementById('filter-bar');
+    const panel = document.getElementById('subcat-panel');
+
+    // Show loading placeholder in the bar
+    bar.innerHTML = '<span class="text-[11px] font-bold text-outline">جاري التحميل...</span>';
+    panel.classList.add('open');
+
+    $.getJSON('@Url.Action("GetSubCategoriesJson", "Hub")', { mainCategoryId: catId }, function (subs) {
+        bar.innerHTML = '';
+
+        if (subs && subs.length > 0) {
+            // "All" tab
+            const allTab = document.createElement('span');
+            allTab.className = 'filter-tab active filter-tab-enter';
+            allTab.dataset.id = '0';
+            allTab.textContent = 'الكل';
+            bar.appendChild(allTab);
+
+            subs.forEach(function (s, i) {
+                const tab = document.createElement('span');
+                tab.className = 'filter-tab filter-tab-enter';
+                tab.dataset.id = s.id;
+                tab.textContent = s.name;
+                bar.appendChild(tab);
+            });
+
+            panel.classList.add('open');
+        } else {
+            closeSubcatPanel();
+        }
+
+        lucide.createIcons();
+        triggerFilter(1);
+    }).fail(function () {
+        closeSubcatPanel();
+        triggerFilter(1);
+    });
+}
+
+function closeSubcatPanel() {
+    const panel = document.getElementById('subcat-panel');
+    panel.classList.remove('open');
+    document.getElementById('filter-bar').innerHTML = '';
+}
+
+// ── Collect all active filters ──
+function collectFilters(page) {
+    const rawCatId = document.getElementById('state-mainCategoryId').value;
+    const mainCategoryId = rawCatId !== '' ? parseInt(rawCatId) : null;
+
+    const subIds = Array.from(document.querySelectorAll('#filter-bar .filter-tab.active'))
+        .map(t => parseInt(t.dataset.id))
+        .filter(id => !isNaN(id) && id !== 0);
+
+    return {
+        mainCategoryId: mainCategoryId,
+        subCategoryIds: subIds,
+        title:    document.getElementById('filter-title').value.trim(),
+        dateFrom: document.getElementById('filter-dateFrom').value || null,
+        dateTo:   document.getElementById('filter-dateTo').value   || null,
+        page:     page,
+        pageSize: parseInt(document.getElementById('state-pageSize').value) || 12
+    };
+}
+
+// ── AJAX results fetch ──
+function triggerFilter(page) {
+    const wrap    = document.getElementById('announcements-container');
+    const pgn     = document.getElementById('pagination-container');
+    const label   = document.getElementById('results-label');
+    const spinner = document.getElementById('loading-indicator');
+
+    const filters = collectFilters(page);
+
+    wrap.classList.add('loading');
+    spinner.classList.remove('hidden');
+    label.textContent = 'جاري البحث...';
+
+    $.ajax({
+        type: 'POST',
+        url: '@Url.Action("Search2Ajax", "Hub")',
+        contentType: 'application/json; charset=utf-8',
+        data: JSON.stringify(filters),
+        success: function (data) {
+            wrap.innerHTML = data.announcements;
+            pgn.innerHTML  = data.pagination;
+            lucide.createIcons();
+            requestAnimationFrame(() => {
+                wrap.classList.remove('loading');
+                spinner.classList.add('hidden');
+            });
+            const count = (data.announcements.match(/ann-card-enter/g) || []).length;
+            label.textContent = count + ' نتيجة';
+            document.getElementById('announcements-container')
+                .scrollIntoView({ behavior: 'smooth', block: 'start' });
+        },
+        error: function () {
+            wrap.classList.remove('loading');
+            spinner.classList.add('hidden');
+            label.textContent = 'حدث خطأ، حاول مرة أخرى';
+        }
+    });
+}
+
+function resetSearch() {
+    document.getElementById('filter-title').value    = '';
+    document.getElementById('filter-dateFrom').value = '';
+    document.getElementById('filter-dateTo').value   = '';
+    document.getElementById('state-mainCategoryId').value = '';
+    document.querySelectorAll('.cat-sidebar-item').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.cat-sidebar-item[data-cat-id=""]').forEach(b => b.classList.add('active'));
+    closeSubcatPanel();
+    triggerFilter(1);
+}
+
+function loadPage(page) { triggerFilter(page); }
+</script>
+}
