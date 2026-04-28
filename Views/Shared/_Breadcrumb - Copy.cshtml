@@ -1,0 +1,87 @@
+﻿@* @model List<BreadcrumbItem>
+
+@if (Model != null && Model.Any())
+{
+    <nav class="custom-breadcrumb mb-3">
+        <ol>
+            <!-- Home Icon -->
+            <li class="crumb-item">
+                <a href="/" class="crumb-link">
+                    <i class="fa fa-house"></i>
+                    الرئيسية
+                </a>
+            </li>
+
+            @foreach (var item in Model)
+            {
+                <li class="crumb-sep">
+                    <i class="fa fa-chevron-left"></i>
+                </li>
+
+                @if (item == Model.Last())
+                {
+                    <li class="crumb-item active">
+                        @item.Name
+                    </li>
+                }
+                else
+                {
+                    <li class="crumb-item">
+                        @if (!string.IsNullOrEmpty(item.Url))
+                        {
+                            <a href="@item.Url" class="crumb-link">
+                                @item.Name
+                            </a>
+                        }
+                        else
+                        {
+                            @item.Name
+                        }
+                    </li>
+                }
+            }
+        </ol>
+    </nav>
+}
+ *@
+
+ @model List<BreadcrumbItem>
+
+@if (Model != null && Model.Any())
+{
+    <nav class="custom-breadcrumb mb-3">
+        <ol>
+
+            <!-- Home Icon -->
+            <li class="crumb-item">
+                <a href="/" class="crumb-link">
+                    <i class="fa fa-house"></i>
+                    الرئيسية
+                </a>
+            </li>
+
+            @foreach (var item in Model)
+            {
+                <li class="crumb-sep">
+                    <i class="fa fa-chevron-left"></i>
+                </li>
+
+                if (item == Model.Last())
+                {
+                    <li class="crumb-item active">
+                        @item.Name
+                    </li>
+                }
+                else
+                {
+                    <li class="crumb-item">
+                        <a href="~/@(item.Url)@(item.Id)" class="crumb-link">
+                            @item.Name
+                        </a>
+                    </li>
+                }
+            }
+        </ol>
+    </nav>
+}
+ 

@@ -267,8 +267,9 @@
 
 @if (parentCategories.Any())
 {
-    <section class="py-16 md:py-24 bg-[#eae7de]">
+    <section class="py-16 md:py-24 bg-[#eae7de] cat-section-wrapper">
         <div class="max-w-7xl mx-auto px-4 md:px-8">
+
             <div class="flex justify-between items-end mb-12 md:mb-16 text-right reveal">
                 <div>
                     <span class="text-secondary font-bold text-sm tracking-[0.2em] uppercase mb-2 block">تصفح الفئات</span>
@@ -279,29 +280,248 @@
                     عرض الكل <i data-lucide="chevron-left" class="w-5 h-5"></i>
                 </a>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-5">
+
+            @* ── Category cards grid ── *@
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-5" id="cat-grid">
                 @for (int i = 0; i < parentCategories.Count; i++)
                 {
                     var cat = parentCategories[i];
                     var delay = delayClasses[Math.Min(i, delayClasses.Length - 1)];
                     var count = categoryCounts.TryGetValue(cat.Id, out var c) ? c : 0;
                     var icon = string.IsNullOrWhiteSpace(cat.IconUrl) ? GetCatIcon(cat.CatName) : cat.IconUrl;
-                    <a asp-area="" asp-controller="Hub" asp-action="CategoryAnnouncements"
-                       asp-route-Id="@cat.Id"
-                       class="cat-card bg-[#f7f4ee] p-6 md:p-8 rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer border border-[#d6d0c4]/40 reveal @delay">
-                        <div class="cat-icon w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-[#e6f4f2] flex items-center justify-center mb-4">
-                            <i data-lucide="@icon" class="w-6 h-6 md:w-8 md:h-8 text-secondary"></i>
-                        </div>
-                        <span class="font-black text-on-surface tracking-tight text-sm mb-1">@cat.CatName</span>
-                        @if (count > 0)
+                    var hasSubs = cat.SubCategoryMappings.Any();
+
+                    @* Wrapper: relative so the chevron button can sit in the corner *@
+                    <div class="cat-main-item relative reveal @delay" data-cat-id="@cat.Id">
+
+                        @* ── Clickable card → CategoryAnnouncements ── *@
+                        <a href="/Hub/CategoryAnnouncements/@cat.Id"
+                           class="cat-card bg-[#f7f4ee] p-6 md:p-8 rounded-2xl flex flex-col items-center justify-center text-center border border-[#d6d0c4]/40 w-full h-full block">
+                            <div class="cat-icon w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-[#e6f4f2] flex items-center justify-center mb-4">
+                                <i data-lucide="@icon" class="w-6 h-6 md:w-8 md:h-8 text-secondary"></i>
+                            </div>
+                            <span class="font-black text-on-surface tracking-tight text-sm mb-1">@cat.CatName</span>
+                            @if (count > 0)
+                            {
+                                <span class="text-[10px] font-bold text-outline uppercase tracking-widest">@FormatCatCount(count)</span>
+                            }
+                        </a>
+
+                        @* ── Chevron toggle (only if subcategories exist) ── *@
+                        @if (hasSubs)
                         {
-                            <span class="text-[10px] font-bold text-outline uppercase tracking-widest">@FormatCatCount(count)</span>
+                            <button class="cat-toggle-btn absolute bottom-2 left-2 w-7 h-7 rounded-full bg-[#e6f4f2] border border-secondary/20 flex items-center justify-center transition-all duration-300 hover:bg-secondary hover:text-white z-10"
+                                    data-cat-id="@cat.Id" title="عرض الأقسام الفرعية">
+                                <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300"></i>
+                            </button>
+
+                            @* Hidden subcategory data (rendered server-side, read by JS) *@
+                            <ul class="sub-source hidden" id="sub-@cat.Id">
+                                @foreach (var mapping in cat.SubCategoryMappings)
+                                {
+                                    var sub = mapping.SubCategory;
+                                    if (sub != null)
+                                    {
+                                        <li data-href="/Hub/SubCategoryAnnouncements/@sub.Id" data-name="@sub.CatName"></li>
+                                    }
+                                }
+                            </ul>
                         }
-                    </a>
+
+                    </div>
                 }
             </div>
+
+            @* ── Subcategory pills bar (populated by JS, arrow centered under active card) ── *@
+            <div id="subcats-bar" class="relative mt-6" style="display:none;">
+                @* Arrow pointing up toward the active card *@
+                <div id="subcats-arrow"
+                     style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:16px;height:8px;overflow:hidden;transition:left 0.35s cubic-bezier(0.16,1,0.3,1);">
+                    <div style="width:16px;height:16px;background:#f7f4ee;border:1px solid rgba(214,208,196,0.5);transform:rotate(45deg);margin-top:4px;border-radius:2px;box-shadow:-1px -1px 4px rgba(0,0,0,0.04);"></div>
+                </div>
+                @* Pills container *@
+                <div id="subcats-pills"
+                     class="bg-[#f7f4ee] border border-[#d6d0c4]/50 rounded-2xl px-5 py-4 flex flex-wrap gap-2.5 justify-center shadow-[0_4px_24px_rgba(0,0,0,0.07)]">
+                </div>
+            </div>
+
         </div>
     </section>
+
+    @* ── Subcategory bar styles ── *@
+    <style>
+        /* Bar open/close animation */
+        #subcats-bar {
+            transform-origin: top center;
+        }
+
+            #subcats-bar.bar-enter {
+                animation: barSlideIn 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            }
+
+            #subcats-bar.bar-exit {
+                animation: barSlideOut 0.25s ease forwards;
+            }
+
+        @@keyframes barSlideIn {
+            from {
+                opacity: 0;
+                transform: scaleY(0.8) translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scaleY(1) translateY(0);
+            }
+        }
+
+        @@keyframes barSlideOut {
+            from {
+                opacity: 1;
+                transform: scaleY(1) translateY(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: scaleY(0.85) translateY(-8px);
+            }
+        }
+
+        /* Individual pill entrance */
+        .subcat-pill {
+            opacity: 0;
+            animation: pillPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @@keyframes pillPop {
+            from {
+                opacity: 0;
+                transform: scale(0.7) translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* Active card ring */
+        .cat-card.cat-active {
+            box-shadow: 0 0 0 2px #0d9488, var(--shadow-card-hover);
+            transform: translateY(-6px);
+        }
+    </style>
+
+    @* ── Category toggle JS ── *@
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const bar    = document.getElementById('subcats-bar');
+            const pills  = document.getElementById('subcats-pills');
+            const arrow  = document.getElementById('subcats-arrow');
+            const grid   = document.getElementById('cat-grid');
+            let activeCat = null;
+
+            function closeBar(animate) {
+                if (!animate) { bar.style.display = 'none'; return; }
+                bar.classList.remove('bar-enter');
+                bar.classList.add('bar-exit');
+                bar.addEventListener('animationend', () => {
+                    bar.style.display = 'none';
+                    bar.classList.remove('bar-exit');
+                    pills.innerHTML = '';
+                }, { once: true });
+            }
+
+            function resetAll() {
+                activeCat = null;
+                document.querySelectorAll('.cat-toggle-btn').forEach(b => {
+                    b.classList.remove('bg-secondary', 'text-white');
+                    const ch = b.querySelector('i[data-lucide="chevron-down"]');
+                    if (ch) ch.style.transform = '';
+                });
+                document.querySelectorAll('.cat-main-item .cat-card').forEach(c => c.classList.remove('cat-active'));
+            }
+
+            function positionArrow(cardEl) {
+                // Center the arrow over the clicked card's horizontal midpoint
+                const cardRect = cardEl.getBoundingClientRect();
+                const gridRect = grid.getBoundingClientRect();
+                const barRect  = bar.getBoundingClientRect();
+                const centerX  = (cardRect.left + cardRect.width / 2) - barRect.left;
+                arrow.style.left = Math.max(8, Math.min(barRect.width - 24, centerX - 8)) + 'px';
+                arrow.style.transform = 'translateX(0)';
+            }
+
+            document.querySelectorAll('.cat-toggle-btn').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const catId  = this.dataset.catId;
+                    const source = document.getElementById('sub-' + catId);
+                    const card   = this.closest('.cat-main-item').querySelector('.cat-card');
+                    const chevron = this.querySelector('i[data-lucide="chevron-down"]');
+
+                    // ── Toggle off same category ──
+                    if (activeCat === catId) {
+                        closeBar(true);
+                        resetAll();
+                        return;
+                    }
+
+                    // ── Reset previous ──
+                    resetAll();
+                    activeCat = catId;
+
+                    // ── Highlight active card & button ──
+                    this.classList.add('bg-secondary', 'text-white');
+                    if (chevron) chevron.style.transform = 'rotate(180deg)';
+                    card.classList.add('cat-active');
+
+                    // ── Build pills ──
+                    pills.innerHTML = '';
+                    source.querySelectorAll('li').forEach((li, index) => {
+                        const pill = document.createElement('a');
+                        pill.href = li.dataset.href;
+                        pill.className = 'subcat-pill inline-flex items-center gap-1.5 px-4 py-2 bg-[#eae7de] border border-[#d6d0c4]/60 rounded-full text-xs font-black text-on-surface-variant hover:bg-secondary hover:text-white hover:border-secondary transition-colors duration-200 cursor-pointer';
+                        pill.style.animationDelay = (index * 0.055) + 's';
+                        pill.innerHTML = '<i data-lucide="tag" class="w-3 h-3 flex-shrink-0"></i>' + li.dataset.name;
+                        pills.appendChild(pill);
+                    });
+
+                    lucide.createIcons();
+
+                    // ── Show bar with animation ──
+                    bar.style.display = 'block';
+                    bar.classList.remove('bar-exit');
+
+                    // Position arrow after bar is visible (needs layout)
+                    requestAnimationFrame(() => {
+                        positionArrow(card);
+                        bar.classList.add('bar-enter');
+                        bar.addEventListener('animationend', () => bar.classList.remove('bar-enter'), { once: true });
+                        bar.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    });
+                });
+            });
+
+            // ── Close on outside click ──
+            document.addEventListener('click', function (e) {
+                if (activeCat && !e.target.closest('.cat-section-wrapper')) {
+                    closeBar(true);
+                    resetAll();
+                }
+            });
+
+            // ── Reposition arrow on resize ──
+            window.addEventListener('resize', () => {
+                if (activeCat) {
+                    const activeCard = document.querySelector(`.cat-main-item[data-cat-id="${activeCat}"] .cat-card`);
+                    if (activeCard) positionArrow(activeCard);
+                }
+            });
+        });
+    </script>
 }
 
 @* ═══════════════════════ ANNOUNCEMENTS (AJAX partial, same as before) ═══════════════════════ *@

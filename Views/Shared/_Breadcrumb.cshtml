@@ -1,87 +1,27 @@
-﻿@* @model List<BreadcrumbItem>
+﻿@using AnnouncmentHub.ViewModels
+@model List<BreadcrumbItem>
 
 @if (Model != null && Model.Any())
 {
-    <nav class="custom-breadcrumb mb-3">
-        <ol>
-            <!-- Home Icon -->
-            <li class="crumb-item">
-                <a href="/" class="crumb-link">
-                    <i class="fa fa-house"></i>
-                    الرئيسية
-                </a>
-            </li>
-
-            @foreach (var item in Model)
+    <nav class="breadcrumb-nav flex items-center gap-1.5 text-xs font-bold flex-wrap">
+        <a href="/" class="breadcrumb-crumb flex items-center gap-1 text-on-surface-variant hover:text-secondary transition-colors duration-200">
+            <i data-lucide="house" class="w-3.5 h-3.5"></i>
+            الرئيسية
+        </a>
+        @foreach (var item in Model)
+        {
+            <i data-lucide="chevron-left" class="w-3 h-3 text-outline flex-shrink-0"></i>
+            if (item == Model.Last())
             {
-                <li class="crumb-sep">
-                    <i class="fa fa-chevron-left"></i>
-                </li>
-
-                @if (item == Model.Last())
-                {
-                    <li class="crumb-item active">
-                        @item.Name
-                    </li>
-                }
-                else
-                {
-                    <li class="crumb-item">
-                        @if (!string.IsNullOrEmpty(item.Url))
-                        {
-                            <a href="@item.Url" class="crumb-link">
-                                @item.Name
-                            </a>
-                        }
-                        else
-                        {
-                            @item.Name
-                        }
-                    </li>
-                }
+                <span class="text-secondary font-black">@item.Name</span>
             }
-        </ol>
+            else
+            {
+                <a href="~/@(item.Url)@(item.Id)"
+                   class="breadcrumb-crumb text-on-surface-variant hover:text-secondary transition-colors duration-200">
+                    @item.Name
+                </a>
+            }
+        }
     </nav>
 }
- *@
-
- @model List<BreadcrumbItem>
-
-@if (Model != null && Model.Any())
-{
-    <nav class="custom-breadcrumb mb-3">
-        <ol>
-
-            <!-- Home Icon -->
-            <li class="crumb-item">
-                <a href="/" class="crumb-link">
-                    <i class="fa fa-house"></i>
-                    الرئيسية
-                </a>
-            </li>
-
-            @foreach (var item in Model)
-            {
-                <li class="crumb-sep">
-                    <i class="fa fa-chevron-left"></i>
-                </li>
-
-                if (item == Model.Last())
-                {
-                    <li class="crumb-item active">
-                        @item.Name
-                    </li>
-                }
-                else
-                {
-                    <li class="crumb-item">
-                        <a href="~/@(item.Url)@(item.Id)" class="crumb-link">
-                            @item.Name
-                        </a>
-                    </li>
-                }
-            }
-        </ol>
-    </nav>
-}
- 

@@ -54,9 +54,11 @@ namespace AnnouncmentHub.Controllers
             ViewBag.ClientCount = await _context.Clients
                 .CountAsync(c => c.IsActive);
 
-            // Parent categories for the hero search dropdown + category cards
+            // Parent categories + subcategories for hero dropdown & category cards
             var parentCategories = await _context.Categories
                 .Where(c => c.IsParent)
+                .Include(c => c.SubCategoryMappings)
+                    .ThenInclude(m => m.SubCategory)
                 .AsNoTracking()
                 .ToListAsync();
 

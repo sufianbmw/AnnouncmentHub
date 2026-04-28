@@ -2,60 +2,68 @@
 
 @if (Model.TotalPages > 1)
 {
-    <nav class="mt-4" aria-label="التنقل بين الصفحات">
-        <ul class="pagination justify-content-center flex-wrap">
+    <nav class="mt-10 flex flex-col items-center gap-4" aria-label="التنقل بين الصفحات">
 
-            <!-- Previous -->
-            <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
-                <a class="page-link" href="javascript:void(0)"
-                   onclick="loadPage(@(Model.PageNumber - 1))">
-                    &raquo; السابق
-                </a>
-            </li>
+        <div class="flex items-center gap-1.5 flex-wrap justify-center">
 
-            <!-- Page Numbers -->
-            @for (int i = 1; i <= Model.TotalPages; i++)
-            {
-                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
-                    <a class="page-link" href="javascript:void(0)"
-                       onclick="loadPage(@i)">
-                        @i
-                    </a>
-                </li>
+            @* Previous *@
+            <button onclick="loadPage(@(Model.PageNumber - 1))"
+                    class="pagination-btn flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black border transition-all duration-200 @(Model.PageNumber <= 1 ? "opacity-40 pointer-events-none border-outline-variant text-outline" : "border-outline-variant text-on-surface-variant hover:border-secondary hover:text-secondary hover:bg-secondary/5")"
+                    @(Model.PageNumber <= 1 ? "disabled" : "")>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                السابق
+            </button>
+
+            @* Page numbers *@
+            @{
+                int start = Math.Max(1, Model.PageNumber - 2);
+                int end = Math.Min(Model.TotalPages, start + 4);
+                if (end - start < 4) start = Math.Max(1, end - 4);
             }
 
-            <!-- Next -->
-            <li class="page-item @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")">
-                <a class="page-link" href="javascript:void(0)"
-                   onclick="loadPage(@(Model.PageNumber + 1))">
-                    التالي &laquo;
-                </a>
-            </li>
+            @if (start > 1)
+            {
+                <button onclick="loadPage(1)" class="pagination-btn w-10 h-10 rounded-xl text-xs font-black border border-outline-variant text-on-surface-variant hover:border-secondary hover:text-secondary hover:bg-secondary/5 transition-all duration-200">1</button>
+                if (start > 2)
+                {
+                    <span class="text-outline text-xs font-black px-1">…</span>
+                }
+            }
 
-        </ul>
+            @for (int i = start; i <= end; i++)
+            {
+                if (i == Model.PageNumber)
+                {
+                    <button class="pagination-btn w-10 h-10 rounded-xl text-xs font-black micro-gradient-primary text-white border-0 shadow-[0_4px_14px_rgba(13,148,136,0.4)]">@i</button>
+                }
+                else
+                {
+                    <button onclick="loadPage(@i)" class="pagination-btn w-10 h-10 rounded-xl text-xs font-black border border-outline-variant text-on-surface-variant hover:border-secondary hover:text-secondary hover:bg-secondary/5 transition-all duration-200">@i</button>
+                }
+            }
 
-        <p class="text-center text-muted small mt-1">
-            عرض صفحة @Model.PageNumber من @Model.TotalPages
-            (إجمالي @Model.TotalCount إعلان)
+            @if (end < Model.TotalPages)
+            {
+                if (end < Model.TotalPages - 1)
+                {
+                    <span class="text-outline text-xs font-black px-1">…</span>
+                }
+                <button onclick="loadPage(@Model.TotalPages)" class="pagination-btn w-10 h-10 rounded-xl text-xs font-black border border-outline-variant text-on-surface-variant hover:border-secondary hover:text-secondary hover:bg-secondary/5 transition-all duration-200">@Model.TotalPages</button>
+            }
+
+            @* Next *@
+            <button onclick="loadPage(@(Model.PageNumber + 1))"
+                    class="pagination-btn flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black border transition-all duration-200 @(Model.PageNumber >= Model.TotalPages ? "opacity-40 pointer-events-none border-outline-variant text-outline" : "border-outline-variant text-on-surface-variant hover:border-secondary hover:text-secondary hover:bg-secondary/5")"
+                    @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")>
+                التالي
+                <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+            </button>
+
+        </div>
+
+        <p class="text-[10px] font-black text-outline uppercase tracking-widest">
+            صفحة @Model.PageNumber من @Model.TotalPages — إجمالي @Model.TotalCount إعلان
         </p>
+
     </nav>
 }
-
-@* @model AnnouncmentHub.ViewModels.CategoryAnnouncementsViewModel
-
-@if (Model.TotalPages > 1)
-{
-    <nav aria-label="صفحات">
-        <ul class="pagination justify-content-center mt-4">
-            @for (int i = 1; i <= Model.TotalPages; i++)
-            {
-                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
-                    <a class="page-link" href="javascript:void(0);" onclick="loadPage(@i)">
-                        @i
-                    </a>
-                </li>
-            }
-        </ul>
-    </nav>
-}
- *@

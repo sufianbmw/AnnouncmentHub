@@ -4,297 +4,320 @@
 @{
     ViewBag.Title = $"إعلانات {Model.CategoryName}";
 
-    // ✅ تحويل بيانات الـ ViewModel إلى AnnouncementSearchResult لتمريرها للـ Partials
     var searchResult = new AnnouncementSearchResult
     {
         Announcements = Model.Announcements,
-        TotalCount = Model.TotalCount,
-        PageNumber = Model.PageNumber,
-        PageSize = Model.PageSize
+        TotalCount    = Model.TotalCount,
+        PageNumber    = Model.PageNumber,
+        PageSize      = Model.PageSize
     };
 }
 
-<div class="container mt-3">
-    <div class="row">
+@* ═══════════════════════ PAGE STYLES ═══════════════════════ *@
+@section Styles {
+<style>
+    /* ── Hero ── */
+    .cat-hero {
+        background: linear-gradient(160deg, #eae7de 0%, #f0ede4 60%, #e4e1d8 100%);
+        position: relative;
+        overflow: hidden;
+    }
+    .cat-hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(circle at 80% 50%, rgba(13,148,136,0.07) 0%, transparent 60%),
+            radial-gradient(circle at 15% 80%, rgba(245,158,11,0.05) 0%, transparent 50%);
+        pointer-events: none;
+    }
 
-        <!-- ⭐ Subcategory Filters -->
-        <div class="col-12 mb-3">
-            <div class="p-3 rounded border bgGradiants">
+    /* ── Filter tabs ── */
+    .filter-tab {
+        position: relative;
+        transition: color .25s ease, background .25s ease, box-shadow .25s ease, transform .2s cubic-bezier(0.34,1.56,0.64,1);
+        white-space: nowrap;
+        cursor: pointer;
+        user-select: none;
+    }
+    .filter-tab:hover  { transform: translateY(-2px); }
+    .filter-tab.active {
+        background: linear-gradient(135deg,#0d9488,#0f766e);
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(13,148,136,0.4);
+        transform: translateY(-2px);
+    }
 
-                <h6 class="fw-bold text-secondary mb-2">
-                    فلتر حسب الفئات الفرعية:
-                </h6>
+    /* ── Announcements swap animation ── */
+    .announcements-wrap {
+        transition: opacity .25s ease, transform .25s ease;
+    }
+    .announcements-wrap.loading {
+        opacity: 0;
+        transform: translateY(12px);
+        pointer-events: none;
+    }
 
-                <div class="filter-badges">
+    /* ── Individual card entrance ── */
+    .ann-card-enter {
+        opacity: 0;
+        transform: translateY(20px);
+        animation: annEnter .45s cubic-bezier(0.16,1,0.3,1) forwards;
+    }
+    @for (int d = 0; d < 12; d++) {
+        @:.ann-card-enter:nth-child(@(d+1)) { animation-delay: @(d * 0.06)s; }
+    }
+    @@keyframes annEnter {
+        to { opacity:1; transform:translateY(0); }
+    }
 
-                    <!-- Show All (فقط في صفحة الفئة الرئيسية) -->
-                    @if (!Model.IsSubcategoryPage)
+    /* ── Pagination button hover ── */
+    .pagination-btn { transition: all .2s ease; }
+    .pagination-btn:hover:not(:disabled) { transform: translateY(-1px); }
+
+    /* ── Filter bar scroll on mobile ── */
+    .filter-scroll { scrollbar-width: none; }
+    .filter-scroll::-webkit-scrollbar { display: none; }
+
+    /* ── Loading spinner ── */
+    .spin { animation: spin .8s linear infinite; }
+    @@keyframes spin { to { transform:rotate(360deg); } }
+</style>
+}
+
+@* ═══════════════════════ HERO HEADER ═══════════════════════ *@
+<div class="cat-hero pt-6 pb-10 px-4 md:px-8">
+    <div class="max-w-7xl mx-auto">
+
+        @* Breadcrumb *@
+        @if (Model.Breadcrumb != null && Model.Breadcrumb.Any())
+        {
+            <div class="mb-6">
+                @await Html.PartialAsync("_Breadcrumb", Model.Breadcrumb)
+            </div>
+        }
+
+        @* Category identity *@
+        <div class="flex flex-col md:flex-row md:items-center gap-5 text-right">
+
+            @* Icon bubble *@
+            <div class="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-[#e6f4f2] border border-secondary/20 flex items-center justify-center flex-shrink-0 shadow-[0_4px_20px_rgba(13,148,136,0.12)]">
+                <i data-lucide="@(string.IsNullOrWhiteSpace(Model.IconUrl) ? "tag" : Model.IconUrl)"
+                   class="w-8 h-8 md:w-10 md:h-10 text-secondary"></i>
+            </div>
+
+            <div class="flex-1">
+                @* Label *@
+                <span class="text-secondary font-bold text-xs tracking-[0.2em] uppercase mb-1 block">
+                    @(Model.IsSubcategoryPage ? "قسم فرعي" : "قسم رئيسي")
+                </span>
+
+                @* Name *@
+                <h1 class="text-3xl md:text-4xl font-black font-headline tracking-tighter text-on-surface leading-tight mb-2">
+                    @Model.CategoryName
+                </h1>
+
+                @* Stats row *@
+                <div class="flex flex-wrap items-center gap-4">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-secondary/10 border border-secondary/20 rounded-full text-[11px] font-black text-secondary">
+                        <i data-lucide="megaphone" class="w-3 h-3"></i>
+                        @Model.TotalCount إعلان
+                    </span>
+                    @if (Model.Subcategories.Any() && !Model.IsSubcategoryPage)
                     {
-                        <span class="filter-badge @(Model.SelectedSubcategories.Contains(0) ? "active" : "")"
-                              data-id="0">
-                            عرض الكل
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#e6f4f2] border border-secondary/10 rounded-full text-[11px] font-black text-secondary/70">
+                            <i data-lucide="layers" class="w-3 h-3"></i>
+                            @Model.Subcategories.Count قسم فرعي
                         </span>
                     }
-
-                    <!-- Subcategories -->
-                    @foreach (var sub in Model.Subcategories)
+                    @if (Model.IsSubcategoryPage && Model.ParentCategoryId.HasValue)
                     {
-                        <span class="filter-badge @(Model.SelectedSubcategories.Contains(sub.Id) ? "active" : "")"
-                              data-id="@sub.Id">
-                            @sub.CatName
-                        </span>
+                        <a href="/Hub/CategoryAnnouncements/@Model.ParentCategoryId"
+                           class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#e8e4d8] border border-outline-variant/40 rounded-full text-[11px] font-black text-on-surface-variant hover:border-secondary hover:text-secondary transition-colors duration-200">
+                            <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                            عودة للقسم الرئيسي
+                        </a>
                     }
-
                 </div>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- ⭐ Announcements container -->
-        <div id="announcements-container" class="col-12">
+@* ═══════════════════════ FILTER TABS ═══════════════════════ *@
+@if (Model.Subcategories.Any())
+{
+    <div class="sticky top-[5.5rem] z-30 bg-[#f0ede4]/95 backdrop-blur-xl border-b border-outline-variant/50 shadow-[0_4px_20px_rgba(0,0,0,0.05)]">
+        <div class="max-w-7xl mx-auto px-4 md:px-8">
+            <div class="filter-scroll flex items-center gap-2 overflow-x-auto py-3" id="filter-bar">
+
+                @* Show all — only on main category page *@
+                @if (!Model.IsSubcategoryPage)
+                {
+                    <span class="filter-tab active px-4 py-2 rounded-xl text-[11px] font-black border border-transparent bg-[#e8e4d8] text-on-surface"
+                          data-id="0">
+                        عرض الكل
+                    </span>
+                }
+
+                @foreach (var sub in Model.Subcategories)
+                {
+                    <span class="filter-tab px-4 py-2 rounded-xl text-[11px] font-black border border-transparent bg-[#e8e4d8] text-on-surface-variant @(Model.SelectedSubcategories.Contains(sub.Id) ? "active" : "")"
+                          data-id="@sub.Id">
+                        @sub.CatName
+                    </span>
+                }
+
+            </div>
+        </div>
+    </div>
+}
+
+@* ═══════════════════════ RESULTS AREA ═══════════════════════ *@
+<section class="py-10 md:py-14 px-4 md:px-8 bg-[#f0ede4] min-h-[60vh]">
+    <div class="max-w-7xl mx-auto">
+
+        @* Results header *@
+        <div class="flex items-center justify-between mb-8 text-right">
+            <div id="results-label" class="text-[11px] font-black text-outline uppercase tracking-widest">
+                @Model.TotalCount نتيجة
+            </div>
+            <div id="loading-indicator" class="hidden flex items-center gap-2 text-secondary text-xs font-bold">
+                <svg class="spin w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                </svg>
+                جاري التحميل...
+            </div>
+        </div>
+
+        @* Announcements *@
+        <div class="announcements-wrap" id="announcements-container">
             @await Html.PartialAsync("_AnnouncementsPartial", searchResult)
         </div>
 
-        <!-- ⭐ Pagination container -->
-        <div id="pagination-container" class="col-12">
+        @* Pagination *@
+        <div id="pagination-container">
             @await Html.PartialAsync("_PaginationPartial", searchResult)
         </div>
 
     </div>
-</div>
+</section>
 
+@* ═══════════════════════ SCRIPTS ═══════════════════════ *@
 @section Scripts {
+<script>
+document.addEventListener('DOMContentLoaded', function () {
 
-    <script>
+    const wrap    = document.getElementById('announcements-container');
+    const pgn     = document.getElementById('pagination-container');
+    const label   = document.getElementById('results-label');
+    const spinner = document.getElementById('loading-indicator');
 
-        // When badge is clicked
-        $(document).on("click", ".filter-badge", function () {
-
-            const id = parseInt($(this).data("id"));
+    // ── Filter tab clicks ──
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', function () {
+            const id = parseInt(this.dataset.id);
 
             if (id === 0) {
-                // Select ALL
-                $(".filter-badge").removeClass("active");
-                $(this).addClass("active");
+                // "Show all" selected
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
             } else {
-                $(".filter-badge[data-id=0]").removeClass("active");
-                $(this).toggleClass("active");
-
-                if ($(".filter-badge.active").length === 0) {
-                    $(".filter-badge[data-id=0]").addClass("active");
+                const allTab = document.querySelector('.filter-tab[data-id="0"]');
+                if (allTab) allTab.classList.remove('active');
+                this.classList.toggle('active');
+                if (!document.querySelector('.filter-tab.active') && allTab) {
+                    allTab.classList.add('active');
                 }
             }
 
-            triggerFilter();
+            triggerFilter(1);
         });
+    });
 
-        // Call AJAX to fetch announcements
-        function triggerFilter(page = 1) {
+    // ── AJAX filter + page ──
+    function triggerFilter(page) {
+        const selected = Array.from(document.querySelectorAll('.filter-tab.active'))
+            .map(t => parseInt(t.dataset.id));
 
-            var selected = $(".filter-badge.active").map(function () {
-                return parseInt($(this).data("id"));
-            }).get();
+        // Show loading state
+        wrap.classList.add('loading');
+        spinner.classList.remove('hidden');
+        label.textContent = 'جاري البحث...';
 
-            $.ajax({
-                type: "POST",
-                url: '@Url.Action("CategoryAnnouncementsAjax", "Hub")',
-                contentType: "application/json",
-                data: JSON.stringify({
-                    categoryId: @Model.CategoryId,
-                    subcategories: selected,
-                    page: page,
-                    pageSize: @Model.PageSize
-                }),
-                success: function (data) {
-                    $("#announcements-container").html(data.announcements);
-                    $("#pagination-container").html(data.pagination);
-                }
-            });
-        }
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("CategoryAnnouncementsAjax", "Hub")',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                categoryId: @Model.CategoryId,
+                subcategories: selected,
+                page: page || 1,
+                pageSize: @Model.PageSize
+            }),
+            success: function (data) {
+                // Swap content
+                wrap.innerHTML = data.announcements;
+                pgn.innerHTML  = data.pagination;
 
-        // Pagination via AJAX
-        function loadPage(page) {
-            triggerFilter(page);
-        }
+                // Re-init lucide icons in the new HTML
+                lucide.createIcons();
 
-    </script>
+                // Re-init wishlist buttons
+                initWishlist();
 
-    <style>
+                // Animate in
+                requestAnimationFrame(() => {
+                    wrap.classList.remove('loading');
+                    spinner.classList.add('hidden');
+                });
 
-        .filter-badges {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
+                // Update results label
+                const match = data.announcements.match(/ann-card-enter/g);
+                const count = match ? match.length : 0;
+                label.textContent = count + ' نتيجة';
 
-        .filter-badge {
-            padding: 6px 14px;
-            background: #f1f1f1;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-            border: 1px solid #ddd;
-            transition: 0.2s;
-            user-select: none;
-        }
-
-            .filter-badge:hover {
-                background: #e5e5e5;
+                // Scroll to results smoothly
+                document.getElementById('announcements-container')
+                    .scrollIntoView({ behavior: 'smooth', block: 'start' });
+            },
+            error: function () {
+                wrap.classList.remove('loading');
+                spinner.classList.add('hidden');
+                label.textContent = 'حدث خطأ، حاول مرة أخرى';
             }
-
-            .filter-badge.active {
-                background: #0d6efd;
-                color: #fff;
-                border-color: #0d6efd;
-            }
-
-    </style>
-
-}
-
-@* @model CategoryAnnouncementsViewModel
-
-@{
-    ViewBag.Title = $"إعلانات {Model.CategoryName}";
-}
-
-<div class="container mt-3">
-    <div class="row">
-
-
-        <!-- ⭐ Subcategory Filters bg-light-->
-        <div class="col-12 mb-3">
-            <div class="p-3 rounded border bgGradiants">
-
-                <h6 class="fw-bold text-secondary mb-2">
-                    فلتر حسب الفئات الفرعية:
-                </h6>
-
-                <div class="filter-badges">
-
-              
-                    @if (!Model.IsSubcategoryPage)
-                    {
-                        <span class="filter-badge @(Model.SelectedSubcategories.Contains(0) ? "active" : "")"
-                              data-id="0">
-                            عرض الكل
-                        </span>
-                    }
-
-                    <!-- Subcategories -->
-                    @foreach (var sub in Model.Subcategories)
-                    {
-                        <span class="filter-badge @(Model.SelectedSubcategories.Contains(sub.Id) ? "active" : "")"
-                              data-id="@sub.Id">
-                            @sub.CatName
-                        </span>
-                    }
-                </div>
-            </div>
-        </div>
-
-
-        <!-- ⭐ Announcements container -->
-        <div id="announcements-container" class="col-12">
-            @await Html.PartialAsync("_AnnouncementsPartial", Model)
-        </div>
-
-        <!-- ⭐ Pagination container -->
-        <div id="pagination-container" class="col-12">
-            @await Html.PartialAsync("_PaginationPartial", Model)
-        </div>
-
-    </div>
-</div>
-
-
-@section Scripts {
-
-    <script>
-
-        // When badge is clicked
-        $(document).on("click", ".filter-badge", function () {
-
-            const id = parseInt($(this).data("id"));
-
-            if (id === 0) {
-                // Select ALL
-                $(".filter-badge").removeClass("active");
-                $(this).addClass("active");
-            } else {
-                $(".filter-badge[data-id=0]").removeClass("active");
-                $(this).toggleClass("active");
-
-                if ($(".filter-badge.active").length === 0) {
-                    $(".filter-badge[data-id=0]").addClass("active");
-                }
-            }
-
-            triggerFilter();
         });
+    }
 
+    // ── Pagination ── (called from partial buttons)
+    window.loadPage = function (page) { triggerFilter(page); };
 
-        // Call AJAX to fetch announcements
-        function triggerFilter(page = 1) {
-
-            var selected = $(".filter-badge.active").map(function () {
-                return parseInt($(this).data("id"));
-            }).get();
-
-            $.ajax({
-                type: "POST",
-                url: '@Url.Action("CategoryAnnouncementsAjax", "Hub")',
-                contentType: "application/json",
-                data: JSON.stringify({
-                    categoryId: @Model.CategoryId,
-                    subcategories: selected,
-                    page: page,
-                    pageSize: @Model.PageSize
-                }),
-                success: function (data) {
-                    $("#announcements-container").html(data.announcements);
-                    $("#pagination-container").html(data.pagination);
+    // ── Wishlist toggle ──
+    function initWishlist() {
+        document.querySelectorAll('.wishlist-btn').forEach(btn => {
+            if (btn._wishlistBound) return;
+            btn._wishlistBound = true;
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.classList.toggle('active');
+                const icon = this.querySelector('i');
+                if (this.classList.contains('active')) {
+                    icon.style.color = '#ef4444';
+                    icon.setAttribute('fill', '#ef4444');
+                    this.style.transform = 'scale(1.3)';
+                    setTimeout(() => this.style.transform = '', 300);
+                } else {
+                    icon.style.color = '';
+                    icon.setAttribute('fill', 'none');
                 }
+                lucide.createIcons();
             });
-        }
+        });
+    }
 
-        // Pagination via AJAX
-        function loadPage(page) {
-            triggerFilter(page);
-        }
-
-    </script>
-
-
-    <style>
-
-        .filter-badges {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .filter-badge {
-            padding: 6px 14px;
-            background: #f1f1f1;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-            border: 1px solid #ddd;
-            transition: 0.2s;
-            user-select: none;
-        }
-
-            .filter-badge:hover {
-                background: #e5e5e5;
-            }
-
-            .filter-badge.active {
-                background: #0d6efd;
-                color: #fff;
-                border-color: #0d6efd;
-            }
-
-    </style>
-
+    initWishlist();
+    lucide.createIcons();
+});
+</script>
 }
- *@
