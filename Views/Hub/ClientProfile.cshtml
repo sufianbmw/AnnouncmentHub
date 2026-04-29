@@ -2,10 +2,9 @@
 @using AnnouncmentHub.ViewModels
 
 @{
-    var client = Model.Client;
-    ViewBag.Title = client.ClientName;
+    var c = Model.Client;
+    ViewBag.Title = c.ClientName;
 
-    // ✅ تحويل البيانات إلى AnnouncementSearchResult لتمريرها للـ Partial
     var searchResult = new AnnouncementSearchResult
     {
         Announcements = Model.Announcements,
@@ -13,357 +12,650 @@
         PageNumber = Model.PageNumber,
         PageSize = Model.PageSize
     };
+
+    bool hasPhone = !string.IsNullOrEmpty(c.MobileNumber);
+    bool hasWa = !string.IsNullOrEmpty(c.WhatsUp);
+    bool hasFb = !string.IsNullOrEmpty(c.FacebookLink);
+    bool hasSite = !string.IsNullOrEmpty(c.SiteUrl);
+    bool hasMap = c.GoogleMapsUrl != null;
+    bool hasHours = c.OpenFrom.HasValue && c.OpenTo.HasValue;
+    bool isOpen = hasHours && !c.IsClosed;
+
+    // Determine current status considering hours
+    string statusLabel = c.IsClosed ? "مغلق حالياً" : (hasHours ? "مفتوح الآن" : "نشط");
+    string statusClass = c.IsClosed ? "closed" : "open";
 }
 
-@section FullWidthHeader {
+@section Styles {
+    <style>
+        .profile-page {
+            background: #f0ede4;
+            min-height: 100vh;
+        }
 
-    <!-- 🔹 Cover -->
-    <div class="position-relative mb-4">
-        <img src="@(string.IsNullOrEmpty(client.CoverImageUrl)
-                                     ? Url.Content("~/images/file-icons/no-cover.jpg")
-                                     : client.CoverImageUrl)"
-         alt="Cover - @client.ClientName"
-         class="img-fluid w-100 shadow-lg"
-         style="max-height:370px; object-fit:cover;" />
+        /* ── Cover ── */
+        .profile-cover {
+            position: relative;
+            height: 320px;
+            overflow: hidden;
+            background: linear-gradient(160deg, #0d2b28 0%, #0f4a44 100%);
+        }
 
-        <!-- 🔹 Overlay -->
-        <div class="position-absolute bottom-0 end-0 w-100 p-4"
-             style="background: linear-gradient(to top, rgba(0,0,0,0.6) 40%, transparent 100%);">
+        .profile-cover-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: .45;
+            filter: saturate(.7);
+            transition: transform .8s ease;
+        }
 
-            <div class="d-flex justify-content-start align-items-center text-white flex-wrap">
+        .profile-cover:hover .profile-cover-img {
+            transform: scale(1.04);
+        }
 
-                <!-- Logo -->
-                <img src="@(string.IsNullOrEmpty(client.LogoUrl)
-                                                 ? Url.Content("~/images/file-icons/no-image.jpg")
-                                                 : client.LogoUrl)"
-                 alt="@client.ClientName"
-                 class="rounded-circle border border-4 border-white shadow"
-                 style="width:140px; height:140px; object-fit:contain;" />
+        .cover-gradient {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(6,26,24,.98) 0%, rgba(6,26,24,.5) 50%, rgba(6,26,24,.1) 100%);
+        }
 
-                <!-- Info -->
-                <div class="text-start ms-3">
-                    <h3 class="mb-2 fw-bold">@client.ClientName</h3>
+        /* ── Logo ── */
+        .profile-logo {
+            width: 96px;
+            height: 96px;
+            border-radius: 24px;
+            border: 3px solid rgba(255,255,255,.2);
+            background: #fff;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: 0 8px 32px rgba(0,0,0,.35);
+        }
 
-                    <span class="badge bg-primary fs-6 shadow mb-2 d-inline-block">
-                        إجمالي الإعلانات: @Model.TotalCount
-                    </span>
+            .profile-logo img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
 
-                    <!-- 🔹 Contact & Social Links -->
-                    <div class="d-flex gap-3 mt-3 flex-wrap align-items-center">
+        /* ── VIP badge ── */
+        .vip-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            background: linear-gradient(135deg,#f59e0b,#d97706);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 900;
+            box-shadow: 0 4px 14px rgba(245,158,11,.45);
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
 
-                    @if (!string.IsNullOrEmpty(client.MobileNumber))
+        /* ── Status badge ── */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 900;
+        }
+
+            .status-badge.open {
+                background: rgba(34,197,94,.15);
+                color: #4ade80;
+                border: 1px solid rgba(34,197,94,.3);
+            }
+
+            .status-badge.closed {
+                background: rgba(239,68,68,.15);
+                color: #f87171;
+                border: 1px solid rgba(239,68,68,.3);
+            }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+
+        .status-badge.open .status-dot {
+            background: #4ade80;
+            animation: blink 1.8s ease infinite;
+        }
+
+        .status-badge.closed .status-dot {
+            background: #f87171;
+        }
+
+        @@keyframes blink {
+            0%, 100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .4;
+            }
+        }
+
+        /* ── Sidebar card ── */
+        .info-card {
+            background: #f7f4ee;
+            border: 1px solid #e0ddd4;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .info-card-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid #e8e4d8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 10px;
+            font-weight: 900;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: .15em;
+        }
+
+            .info-card-header svg {
+                color: #0d9488;
+            }
+
+        .info-card-body {
+            padding: 4px 0;
+        }
+
+        /* ── Info row ── */
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 18px;
+            border-bottom: 1px solid #f0ede4;
+            text-decoration: none;
+            transition: background .15s;
+        }
+
+            .info-row:last-child {
+                border-bottom: none;
+            }
+
+            .info-row:hover {
+                background: #f0ede4;
+            }
+
+        .info-row-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .info-row-text {
+            flex: 1;
+            text-align: right;
+        }
+
+        .info-row-label {
+            font-size: 10px;
+            font-weight: 800;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+        }
+
+        .info-row-value {
+            font-size: 13px;
+            font-weight: 900;
+            color: #1a1a1a;
+            margin-top: 1px;
+        }
+
+        /* ── Hours progress bar ── */
+        .hours-bar-wrap {
+            padding: 14px 18px;
+        }
+
+        .hours-bar-track {
+            height: 6px;
+            border-radius: 4px;
+            background: #e8e4d8;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .hours-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #0d9488, #34d399);
+            transition: width .8s ease;
+        }
+
+        /* ── Map embed ── */
+        .map-wrap {
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid #e8e4d8;
+            box-shadow: 0 4px 16px rgba(0,0,0,.07);
+        }
+
+        /* ── Stat cards ── */
+        .stat-card {
+            background: #f7f4ee;
+            border: 1px solid #e0ddd4;
+            border-radius: 16px;
+            padding: 16px 20px;
+            text-align: center;
+            flex: 1;
+            transition: box-shadow .2s, transform .2s;
+        }
+
+            .stat-card:hover {
+                box-shadow: 0 6px 20px rgba(0,0,0,.08);
+                transform: translateY(-2px);
+            }
+
+        /* ── Pagination ── */
+        .pg-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            height: 40px;
+            padding: 0 6px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 900;
+            text-decoration: none;
+            border: 2px solid #e8e4d8;
+            color: #666;
+            background: #f7f4ee;
+            transition: all .22s cubic-bezier(0.34,1.56,0.64,1);
+        }
+
+            .pg-btn:hover {
+                background: #e8e4d8;
+                border-color: #0d9488;
+                color: #0d9488;
+                transform: translateY(-2px);
+            }
+
+            .pg-btn.active {
+                background: linear-gradient(135deg,#0d9488,#0f766e);
+                color: #fff;
+                border-color: transparent;
+                box-shadow: 0 4px 14px rgba(13,148,136,.35);
+            }
+
+            .pg-btn.disabled {
+                opacity: .35;
+                pointer-events: none;
+            }
+
+        /* ── Scroll reveal ── */
+        .sr {
+            opacity: 0;
+            transform: translateY(18px);
+            transition: opacity .5s ease, transform .5s ease;
+        }
+
+            .sr.visible {
+                opacity: 1;
+                transform: translateY(0);
+            }
+    </style>
+}
+
+<div class="profile-page" dir="rtl">
+
+    @* ═══ COVER + IDENTITY ═══ *@
+    <div class="profile-cover">
+        @if (!string.IsNullOrEmpty(c.CoverImageUrl))
+        {
+            <img src="@c.CoverImageUrl" class="profile-cover-img" alt="" />
+        }
+        <div class="cover-gradient"></div>
+
+        @* Identity overlay *@
+        <div class="absolute bottom-0 left-0 right-0 px-4 md:px-10 pb-7">
+            <div class="max-w-7xl mx-auto flex items-end gap-5 flex-wrap">
+
+                <div class="profile-logo">
+                    <img src="@(string.IsNullOrEmpty(c.LogoUrl) ? "/images/file-icons/no-image.jpg" : c.LogoUrl)"
+                         alt="@c.ClientName" />
+                </div>
+
+                <div class="flex-1 pb-0.5">
+                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                        @if (c.IsVIP)
                         {
-                            <a href="tel:@client.MobileNumber"
-                               class="text-white text-decoration-none fw-semibold">
-                                📞 <span class="ms-1">@client.MobileNumber</span>
+                            <span class="vip-badge">
+                                <i data-lucide="star" class="w-3 h-3 fill-white"></i> عميل مميّز
+                            </span>
+                        }
+                        <span class="status-badge @statusClass">
+                            <span class="status-dot"></span>
+                            @statusLabel
+                        </span>
+                        @if (hasHours && !c.IsClosed)
+                        {
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 border border-white/15 rounded-full text-[10px] font-bold text-white/80">
+                                <i data-lucide="clock" class="w-3 h-3"></i>
+                                @c.OpenFrom!.Value.ToString(@"hh\:mm") — @c.OpenTo!.Value.ToString(@"hh\:mm")
+                            </span>
+                        }
+                    </div>
+                    <h1 class="text-2xl md:text-3xl font-black font-headline tracking-tight text-white leading-tight">
+                        @c.ClientName
+                    </h1>
+                    @* Quick contact row on cover *@
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        @if (hasPhone)
+                        {
+                            <a href="tel:@c.MobileNumber"
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 border border-white/15 rounded-lg text-xs font-bold text-white transition-all duration-200">
+                                <i data-lucide="phone" class="w-3 h-3"></i> @c.MobileNumber
                             </a>
                         }
-
-                        @if (!string.IsNullOrEmpty(client.WhatsUp))
+                        @if (hasWa)
                         {
-                            <a href="https://wa.me/@client.WhatsUp.Replace("+", "")"
-                               target="_blank"
-                               class="text-white text-decoration-none fw-semibold">
-                                💬 واتساب
+                            <a href="https://wa.me/@c.WhatsUp!.Replace("+", "")" target="_blank"
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-500/20 hover:bg-green-500/30 border border-green-400/30 rounded-lg text-xs font-bold text-green-300 transition-all duration-200">
+                                <i data-lucide="message-circle" class="w-3 h-3"></i> واتساب
                             </a>
                         }
-
-                        @if (!string.IsNullOrEmpty(client.FacebookLink))
+                        @if (hasFb)
                         {
-                            <a href="@client.FacebookLink"
-                               target="_blank"
-                               class="text-white text-decoration-none fw-semibold">
-                                📘 فيسبوك
+                            <a href="@c.FacebookLink" target="_blank"
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/30 rounded-lg text-xs font-bold text-blue-300 transition-all duration-200">
+                                <i data-lucide="facebook" class="w-3 h-3"></i> فيسبوك
                             </a>
                         }
-
-                        @if (!string.IsNullOrEmpty(client.SiteUrl))
+                        @if (hasSite)
                         {
-                            <a href="@client.SiteUrl"
-                               target="_blank"
-                               class="text-white text-decoration-none fw-semibold">
-                                🌐 الموقع
+                            <a href="@c.SiteUrl" target="_blank"
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 border border-white/15 rounded-lg text-xs font-bold text-white transition-all duration-200">
+                                <i data-lucide="globe" class="w-3 h-3"></i> الموقع
                             </a>
                         }
-
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-}
+    @* ═══ BODY ═══ *@
+    <div class="max-w-7xl mx-auto px-4 md:px-8 py-8 flex flex-col lg:flex-row gap-8 items-start">
 
-<!-- 🔹 Announcements -->
-<div class="container">
+        @* ── Sidebar ── *@
+        <aside class="w-full lg:w-72 flex-shrink-0 space-y-5 lg:sticky lg:top-24">
 
-    @await Html.PartialAsync("_AnnouncementsPartial", searchResult)
-
-    <!-- 🔹 Pagination (روابط عادية) -->
-    @if (Model.TotalPages > 1)
-    {
-        <nav class="mt-4" aria-label="التنقل بين الصفحات">
-            <ul class="pagination justify-content-center flex-wrap">
-
-                <!-- Previous -->
-                <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
-                    <a class="page-link"
-                       asp-action="ClientProfile"
-                       asp-route-id="@client.Id"
-                       asp-route-page="@(Model.PageNumber - 1)"
-                       asp-route-pageSize="@Model.PageSize">
-                        &raquo; السابق
-                    </a>
-                </li>
-
-                <!-- Page Numbers -->
-                @for (int i = 1; i <= Model.TotalPages; i++)
+            @* Stats *@
+            <div class="flex gap-3 sr">
+                <div class="stat-card">
+                    <div class="text-2xl font-black text-secondary">@Model.TotalCount</div>
+                    <div class="text-[10px] font-black text-outline uppercase tracking-widest mt-0.5">إعلان</div>
+                </div>
+                <div class="stat-card">
+                    <div class="text-2xl font-black text-secondary">@Model.TotalPages</div>
+                    <div class="text-[10px] font-black text-outline uppercase tracking-widest mt-0.5">صفحة</div>
+                </div>
+                @if (c.IsVIP)
                 {
-                    <li class="page-item @(i == Model.PageNumber ? "active" : "")">
-                        <a class="page-link"
-                           asp-action="ClientProfile"
-                           asp-route-id="@client.Id"
-                           asp-route-page="@i"
-                           asp-route-pageSize="@Model.PageSize">
-                            @i
-                        </a>
-                    </li>
-                }
-
-                <!-- Next -->
-                <li class="page-item @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")">
-                    <a class="page-link"
-                       asp-action="ClientProfile"
-                       asp-route-id="@client.Id"
-                       asp-route-page="@(Model.PageNumber + 1)"
-                       asp-route-pageSize="@Model.PageSize">
-                        التالي &laquo;
-                    </a>
-                </li>
-
-            </ul>
-
-            <p class="text-center text-muted small mt-1">
-                عرض صفحة @Model.PageNumber من @Model.TotalPages
-                (إجمالي @Model.TotalCount إعلان)
-            </p>
-        </nav>
-    }
-
-</div>
-@* @model ClientAnnouncementsViewModel
-@using Newtonsoft.Json
-@using AnnouncmentHub.Helpers
-
-@{
-    var client = Model.Client;
-    var page = Model.PageNumber;
-    var pageSize = Model.PageSize;
-    var totalPages = Model.TotalPages;
-    ViewBag.Title = client.ClientName;
-} *@
-
-@* @section FullWidthHeader {
-
-    <!-- 🔹 Cover -->
-    <div class="position-relative mb-4">
-        <img src="@(string.IsNullOrEmpty(client.CoverImageUrl)
-                              ? Url.Content("~/images/file-icons/no-cover.jpg")
-                              : client.CoverImageUrl)"
-         alt="Cover - @client.ClientName"
-         class="img-fluid w-100 shadow-lg"
-         style="max-height:370px; object-fit:cover;" />
-
-        <!-- 🔹 Overlay -->
-        <div class="position-absolute bottom-0 end-0 w-100 p-4"
-             style="background: linear-gradient(to top, rgba(0,0,0,0.6) 40%, transparent 100%);">
-
-            <div class="d-flex justify-content-start align-items-center text-white flex-wrap">
-
-                <!-- Logo -->
-                <img src="@(string.IsNullOrEmpty(client.LogoUrl)
-                                          ? Url.Content("~/images/file-icons/no-image.jpg")
-                                          : client.LogoUrl)"
-                 alt="@client.ClientName"
-                 class="rounded-circle border border-4 border-white shadow"
-                 style="width:140px; height:140px; object-fit:contain;" />
-
-                <!-- Info -->
-                <div class="text-start ms-3">
-                    <h3 class="mb-2 fw-bold">@client.ClientName</h3>
-
-                    <span class="badge bg-primary fs-6 shadow mb-2 d-inline-block">
-                        إجمالي الإعلانات: @Model.TotalCount
-                    </span>
-
-                    <!-- 🔹 Contact & Social Links -->
-                    <div class="d-flex gap-3 mt-3 flex-wrap align-items-center">
-
-                      
-                    @if (!string.IsNullOrEmpty(client.MobileNumber))
-                        {
-                            <a href="tel:@client.MobileNumber"
-                               class="text-white text-decoration-none fw-semibold">
-                                📞 <span class="ms-1">@client.MobileNumber</span>
-                            </a>
-                        }
-
-                     
-                        @if (!string.IsNullOrEmpty(client.WhatsUp))
-                        {
-                            <a href="https://wa.me/@client.WhatsUp.Replace("+", "")"
-                               target="_blank"
-                               class="text-white text-decoration-none fw-semibold">
-                                💬 واتساب
-                            </a>
-                        }
-
-                    
-                        @if (!string.IsNullOrEmpty(client.FacebookLink))
-                        {
-                            <a href="@client.FacebookLink"
-                               target="_blank"
-                               class="text-white text-decoration-none fw-semibold">
-                                📘 فيسبوك
-                            </a>
-                        }
-
-                        @if (!string.IsNullOrEmpty(client.SiteUrl))
-                        {
-                            <a href="@client.SiteUrl"
-                               target="_blank"
-                               class="text-white text-decoration-none fw-semibold">
-                                🌐 الموقع
-                            </a>
-                        }
-
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-}
-
-
-<!-- 🔹 Announcements -->
-<div class="container">
-    @if (Model.Announcements.Any())
-    {
-        <div class="row g-3">
-            @foreach (var item in Model.Announcements)
-            {
-                var categories = JsonConvert.DeserializeObject<List<CategoryJsonLink>>(item.CategoriesJson ?? "[]");
-
-                <div class="col-md-6">
-                    <div class="card shadow-sm h-100">
-                        <div class="row g-0">
-                            <!-- Thumbnail -->
-                            <div class="col-4 text-center d-flex align-items-center justify-content-center bg-light">
-                                @{
-                                    var filePath = item.FilePath;
-                                    var extension = System.IO.Path.GetExtension(filePath ?? "").ToLower();
-                                    string displayPath;
-
-                                    if (string.IsNullOrEmpty(filePath))
-                                    {
-                                        displayPath = Url.Content("~/images/file-icons/no-image.jpg");
-                                    }
-                                    else if (new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp" }.Contains(extension))
-                                    {
-                                        displayPath = filePath;
-                                    }
-                                    else if (extension == ".pdf")
-                                    {
-                                        displayPath = Url.Content("~/images/file-icons/pdf-icon.png");
-                                    }
-                                    else if (extension == ".doc" || extension == ".docx")
-                                    {
-                                        displayPath = Url.Content("~/images/file-icons/word-icon.png");
-                                    }
-                                    else if (extension == ".xls" || extension == ".xlsx")
-                                    {
-                                        displayPath = Url.Content("~/images/file-icons/excel-icon.png");
-                                    }
-                                    else
-                                    {
-                                        displayPath = Url.Content("~/images/file-icons/file-icon.png");
-                                    }
-                                }
-
-                                <div class="col-md-4 p-2" style="width:90%;height:100%">
-                                    <div class="ratio ratio-1x1 bg-white border rounded shadow-sm overflow-hidden">
-                                        <img src="@displayPath"
-                                             alt="Thumbnail"
-                                             class="w-100 h-100"
-                                             style="object-fit: cover;" />
-                                    </div>
-                                </div>
-
-
-                             </div>
-
-                            <!-- Content -->
-                            <div class="col-8">
-                                <div class="card-body">
-                                    <h6 class="card-title fw-bold">
-                                        <a asp-controller="Hub" asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none text-primary">
-                                            @item.Title
-                                        </a>
-                                    </h6>
-                                    @if (item.AddedDate.HasValue)
-                                    {
-                                        <small class="text-muted">🗓️ @DateTimeHelper.FormatDateTime(item.AddedDate)</small>
-                                    }
-                                    <p class="card-text small mt-2 text-muted">
-                                        @(string.IsNullOrEmpty(item.Description) ? "لا يوجد وصف" : item.Description.Length > 80 ? item.Description[..item.Description.LastIndexOf(" ", 80)] + "..." : item.Description)
-                                    </p>
-                            <div>
-                                @foreach (var cat in categories)
-                                        {
-                                    
-                                             <span class="badge bg-secondary me-1">
-                                            <a asp-controller="Hub" class="text-decoration-none text-white small" asp-action="CategoryAnnouncements" asp-route-id="@cat.CategoryId">
-                                                @cat.CategoryName
-                                            </a>
-                                            </span>
-                                        }
-                                    </div>
-                                    <div class="mt-2">
-                                        @if (!string.IsNullOrEmpty(item.FilePath))
-                                        {
-                                            <a href="@item.FilePath" target="_blank" class="btn btn-sm btn-outline-info">
-                                                📂 فتح الملف
-                                            </a>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="stat-card" style="background:linear-gradient(135deg,#fef3c7,#fde68a); border-color:#fcd34d;">
+                        <div style="color:#d97706;">
+                            <i data-lucide="star" class="w-6 h-6 mx-auto fill-amber-400"></i>
                         </div>
+                        <div class="text-[10px] font-black uppercase tracking-widest mt-1" style="color:#d97706;">VIP</div>
+                    </div>
+                }
+            </div>
+
+            @* Contact Info card *@
+            @if (hasPhone || hasWa || hasFb || hasSite)
+            {
+                <div class="info-card sr">
+                    <div class="info-card-header">
+                        <i data-lucide="contact-2" class="w-3.5 h-3.5"></i>
+                        معلومات التواصل
+                    </div>
+                    <div class="info-card-body">
+                        @if (hasPhone)
+                        {
+                            <a href="tel:@c.MobileNumber" class="info-row">
+                                <div class="info-row-icon" style="background:#f0fdf4;">
+                                    <i data-lucide="phone" class="w-4 h-4" style="color:#16a34a;"></i>
+                                </div>
+                                <div class="info-row-text">
+                                    <div class="info-row-label">رقم الهاتف</div>
+                                    <div class="info-row-value" style="direction:ltr; text-align:right;">@c.MobileNumber</div>
+                                </div>
+                                <i data-lucide="chevron-left" class="w-3.5 h-3.5 text-outline flex-shrink-0"></i>
+                            </a>
+                        }
+                        @if (hasWa)
+                        {
+                            <a href="https://wa.me/@c.WhatsUp!.Replace("+", "")" target="_blank" class="info-row">
+                                <div class="info-row-icon" style="background:#f0fdf4;">
+                                    <i data-lucide="message-circle" class="w-4 h-4" style="color:#16a34a;"></i>
+                                </div>
+                                <div class="info-row-text">
+                                    <div class="info-row-label">واتساب</div>
+                                    <div class="info-row-value">مراسلة على واتساب</div>
+                                </div>
+                                <i data-lucide="chevron-left" class="w-3.5 h-3.5 text-outline flex-shrink-0"></i>
+                            </a>
+                        }
+                        @if (hasFb)
+                        {
+                            <a href="@c.FacebookLink" target="_blank" class="info-row">
+                                <div class="info-row-icon" style="background:#eff6ff;">
+                                    <i data-lucide="facebook" class="w-4 h-4" style="color:#2563eb;"></i>
+                                </div>
+                                <div class="info-row-text">
+                                    <div class="info-row-label">فيسبوك</div>
+                                    <div class="info-row-value">صفحة الفيسبوك</div>
+                                </div>
+                                <i data-lucide="chevron-left" class="w-3.5 h-3.5 text-outline flex-shrink-0"></i>
+                            </a>
+                        }
+                        @if (hasSite)
+                        {
+                            <a href="@c.SiteUrl" target="_blank" class="info-row">
+                                <div class="info-row-icon" style="background:#f0fdfa;">
+                                    <i data-lucide="globe" class="w-4 h-4" style="color:#0d9488;"></i>
+                                </div>
+                                <div class="info-row-text">
+                                    <div class="info-row-label">الموقع الإلكتروني</div>
+                                    <div class="info-row-value text-secondary text-xs truncate max-w-[140px]">@c.SiteUrl</div>
+                                </div>
+                                <i data-lucide="chevron-left" class="w-3.5 h-3.5 text-outline flex-shrink-0"></i>
+                            </a>
+                        }
                     </div>
                 </div>
             }
-        </div>
 
-        <!-- 🔹 Pagination -->
-        <nav aria-label="صفحات الإعلانات">
-            <ul class="pagination justify-content-center mt-4">
-                @for (int i = 1; i <= totalPages; i++)
-                {
-                    <li class="page-item @(i == page ? "active" : "")">
-                        <a class="page-link"
-                           asp-action="ClientProfile"
-                           asp-route-id="@client.Id"
-                           asp-route-page="@i"
-                           asp-route-pageSize="@pageSize">@i</a>
-                    </li>
-                }
-            </ul>
-        </nav>
-    }
-    else
-    {
-        <div class="alert alert-info text-center shadow-sm">لا توجد إعلانات لهذا العميل حالياً.</div>
-    }
+            @* Working Hours card *@
+            @if (hasHours)
+            {
+                double nowMinutes = DateTime.Now.Hour * 60 + DateTime.Now.Minute;
+                double openMinutes = c.OpenFrom!.Value.TotalMinutes;
+                double closeMinutes = c.OpenTo!.Value.TotalMinutes;
+                double progress = closeMinutes > openMinutes
+                ? Math.Max(0, Math.Min(100, (nowMinutes - openMinutes) / (closeMinutes - openMinutes) * 100))
+                : 0;
+                <div class="info-card sr">
+                    <div class="info-card-header">
+                        <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                        أوقات العمل
+                    </div>
+                    <div class="hours-bar-wrap">
+                        <div class="flex items-center justify-between">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black @(c.IsClosed ? "bg-red-50 text-red-500" : "bg-green-50 text-green-600")">
+                                <i data-lucide="@(c.IsClosed ? "lock" : "unlock")" class="w-3 h-3"></i>
+                                @(c.IsClosed ? "مغلق" : "مفتوح الآن")
+                            </span>
+                            <span class="text-xs font-black text-on-surface" style="direction:ltr;">
+                                @c.OpenFrom.Value.ToString(@"hh\:mm") → @c.OpenTo.Value.ToString(@"hh\:mm")
+                            </span>
+                        </div>
+                        @if (!c.IsClosed)
+                        {
+                            <div class="hours-bar-track mt-3">
+                                <div class="hours-bar-fill" id="hours-bar" style="width: 0%"
+                                     data-progress="@progress.ToString("F0")"></div>
+                            </div>
+                            <div class="flex justify-between mt-1.5">
+                                <span class="text-[9px] font-black text-outline" style="direction:ltr;">@c.OpenFrom.Value.ToString(@"hh\:mm")</span>
+                                <span class="text-[9px] font-black text-secondary">@progress.ToString("F0")٪ مضى</span>
+                                <span class="text-[9px] font-black text-outline" style="direction:ltr;">@c.OpenTo.Value.ToString(@"hh\:mm")</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            @* Map card *@
+            @if (hasMap && c.Latitude.HasValue && c.Longitude.HasValue)
+            {
+                <div class="info-card sr">
+                    <div class="info-card-header">
+                        <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+                        الموقع الجغرافي
+                    </div>
+                    <div class="p-3">
+                        <div class="map-wrap">
+                            <iframe src="https://www.google.com/maps?q=@c.Latitude,@c.Longitude&z=15&output=embed"
+                                    width="100%" height="200" style="border:0; display:block;"
+                                    allowfullscreen="" loading="lazy"
+                                    referrerpolicy="no-referrer-when-downgrade">
+                            </iframe>
+                        </div>
+                        <a href="@c.GoogleMapsUrl" target="_blank"
+                           class="mt-2.5 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-black bg-[#fef9c3] border border-yellow-200 text-yellow-700 hover:bg-yellow-100 transition-colors duration-200">
+                            <i data-lucide="navigation" class="w-3.5 h-3.5"></i>
+                            فتح في خرائط Google
+                        </a>
+                    </div>
+                </div>
+            }
+            @* Map link only (no coordinates) *@
+            @if (hasMap && (!c.Latitude.HasValue || !c.Longitude.HasValue))
+            {
+                <div class="info-card sr">
+                    <div class="info-card-header">
+                        <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> الموقع الجغرافي
+                    </div>
+                    <div class="p-3">
+                        <a href="@c.GoogleMapsUrl" target="_blank"
+                           class="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-xs font-black bg-[#fef9c3] border border-yellow-200 text-yellow-700 hover:bg-yellow-100 transition-colors duration-200">
+                            <i data-lucide="navigation" class="w-4 h-4"></i>
+                            عرض على خرائط Google
+                        </a>
+                    </div>
+                </div>
+            }
+
+        </aside>
+
+        @* ── Announcements ── *@
+        <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between mb-6 sr">
+                <h2 class="text-sm font-black text-on-surface flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-lg bg-[#e6f4f2] flex items-center justify-center">
+                        <i data-lucide="megaphone" class="w-3.5 h-3.5 text-secondary"></i>
+                    </span>
+                    إعلانات @c.ClientName
+                </h2>
+                <span class="text-[11px] font-black text-outline uppercase tracking-widest">
+                    @Model.TotalCount إعلان
+                </span>
+            </div>
+
+            @await Html.PartialAsync("_AnnouncementsPartial", searchResult)
+
+            @if (Model.TotalPages > 1)
+            {
+                int pStart = Math.Max(1, Model.PageNumber - 2);
+                int pEnd = Math.Min(Model.TotalPages, pStart + 4);
+                if (pEnd - pStart < 4) pStart = Math.Max(1, pEnd - 4);
+                <nav class="mt-10 flex flex-col items-center gap-3">
+                    <div class="flex items-center gap-1.5 flex-wrap justify-center">
+                        <a href="@Url.Action("ClientProfile", new { id = c.Id, page = Model.PageNumber - 1, pageSize = Model.PageSize })"
+                           class="pg-btn @(Model.PageNumber <= 1 ? "disabled" : "")">
+                            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        </a>
+                        @if (pStart > 1)
+                        {
+                            <a href="@Url.Action("ClientProfile", new { id = c.Id, page = 1, pageSize = Model.PageSize })" class="pg-btn">1</a>
+                            if (pStart > 2)
+                            {
+
+                                <span class="text-outline text-xs font-black px-1">…</span>
+                            }
+                        }
+                        @for (int i = pStart; i <= pEnd; i++)
+                        {
+                            <a href="@Url.Action("ClientProfile", new { id = c.Id, page = i, pageSize = Model.PageSize })"
+                               class="pg-btn @(i == Model.PageNumber ? "active" : "")">@i</a>
+                        }
+                        @if (pEnd < Model.TotalPages)
+                        {
+                            if (pEnd < Model.TotalPages - 1)
+                            {
+                                <span class="text-outline text-xs font-black px-1">…</span>
+                            }
+                            <a href="@Url.Action("ClientProfile", new { id = c.Id, page = Model.TotalPages, pageSize = Model.PageSize })" class="pg-btn">@Model.TotalPages</a>
+                        }
+                        <a href="@Url.Action("ClientProfile", new { id = c.Id, page = Model.PageNumber + 1, pageSize = Model.PageSize })"
+                           class="pg-btn @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")">
+                            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+                    <p class="text-[10px] font-black text-outline uppercase tracking-widest">
+                        صفحة @Model.PageNumber من @Model.TotalPages — إجمالي @Model.TotalCount إعلان
+                    </p>
+                </nav>
+            }
+        </div>
+    </div>
 </div>
- *@
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // ── Scroll reveal ──
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry, i) => {
+                    if (entry.isIntersecting) {
+                        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.06 });
+            document.querySelectorAll('.sr').forEach(el => observer.observe(el));
+
+            // ── Animate hours bar ──
+            const bar = document.getElementById('hours-bar');
+            if (bar) {
+                const target = parseFloat(bar.dataset.progress) || 0;
+                setTimeout(() => bar.style.width = target + '%', 400);
+            }
+
+            lucide.createIcons();
+        });
+    </script>
+}

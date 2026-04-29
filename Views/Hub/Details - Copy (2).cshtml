@@ -366,6 +366,16 @@
 
         <div class="hero-content max-w-7xl mx-auto w-full">
 
+            @* Breadcrumb *@
+            <nav class="flex items-center gap-1.5 text-xs font-bold mb-5 flex-wrap">
+                <a href="/" class="flex items-center gap-1 text-white/60 hover:text-white transition-colors duration-200">
+                    <i data-lucide="house" class="w-3.5 h-3.5"></i> الرئيسية
+                </a>
+                <i data-lucide="chevron-left" class="w-3 h-3 text-white/30"></i>
+                <a href="javascript:history.back()" class="text-white/60 hover:text-white transition-colors duration-200">الإعلانات</a>
+                <i data-lucide="chevron-left" class="w-3 h-3 text-white/30"></i>
+                <span class="text-white/90 font-black line-clamp-1 max-w-xs">@Model.Title</span>
+            </nav>
 
             @* Badges *@
             <div class="flex flex-wrap gap-2 mb-4">

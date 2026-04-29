@@ -540,7 +540,7 @@ namespace AnnouncmentHub.Controllers
                 Name = client.ClientName ?? "الملف الشخصي للعميل" // "Client Profile" in Arabic
             });
 
-            ViewBag.Breadcrumb = await _breadcrumbService.GetClientBreadcrumbAsync(id);
+            ViewBag.Breadcrumb = await _breadcrumbService.GetCategoryBreadcrumbAsync(id);
 
             var vm = new ClientAnnouncementsViewModel
             {
@@ -781,7 +781,7 @@ namespace AnnouncmentHub.Controllers
         }
 
 
-        
+
         public async Task<IActionResult> SubCategoryAnnouncements(int id, int page = 1, int pageSize = 10)
         {
             var subcategory = await _context.Categories

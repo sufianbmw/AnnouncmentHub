@@ -1,0 +1,75 @@
+﻿@model ClientViewModel
+
+<div class="container">
+    <div class="row">
+        <!-- Right Section (Client Cards with Pagination) -->
+        <div class="col-md">
+            <!-- Cards for Clients -->
+            <div class="row">
+                @foreach (var client in Model.Clients)
+                {
+                    <div class="col-md-4 mb-2">
+                        <div class="card shadow-sm">
+                            <div class="card-body text-center">
+                                <!-- Client Logo (Circular) -->
+                                <div class="client-logo-wrapper mb-2">
+                                    <img src="@client.LogoUrl" alt="Logo" class="client-logo rounded-circle border border-2 border-secondary shadow" style="width:140px; height:140px; object-fit:cover;" />
+                                </div>
+                                <!-- Client Name (Clickable to Profile) -->
+                                <h6 class="card-title">
+                                    <a href="@Url.Action("ClientProfile", new { id = client.Id })" class="text-decoration-none">
+                                        @client.ClientName
+                                    </a>
+                                </h6>
+                                <!-- Optionally, you can add more info here, like the cover image -->
+
+     @*                            <div class="card-text rounded border shadow" style="overflow:hidden;max-height: 200px !important">
+                                    <img src="@client.CoverImageUrl" class="img-fluid img-cover" alt="Cover Image" style="object-fit: cover" />
+
+                                 </div> *@
+
+                                <div class="card-text rounded border shadow" style="height: 200px;max-height: 200px; overflow: hidden; background-image: url('@client.CoverImageUrl'); background-size: cover; background-position: center;">
+                                    <!-- Content inside the div, if needed -->
+                                </div>
+
+                                
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Pagination Controls -->
+            <div class="pagination-container mt-2 d-flex justify-content-center">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination">
+                        <!-- Previous Button -->
+                        @if (Model.PageNumber > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="@Url.Action("Clients", new { page = Model.PageNumber - 1, pageSize = Model.PageSize, categoryId = ViewBag.CategoryId })">Previous</a>
+                            </li>
+                        }
+
+                        <!-- Page Numbers -->
+                        @for (int i = 1; i <= Math.Ceiling((double)Model.TotalClients / Model.PageSize); i++)
+                        {
+                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                <a class="page-link" href="@Url.Action("Clients", new { page = i, pageSize = Model.PageSize, categoryId = ViewBag.CategoryId })">@i</a>
+                            </li>
+                        }
+
+                        <!-- Next Button -->
+                        @if (Model.PageNumber < Math.Ceiling((double)Model.TotalClients / Model.PageSize))
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="@Url.Action("Clients", new { page = Model.PageNumber + 1, pageSize = Model.PageSize, categoryId = ViewBag.CategoryId })">Next</a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+

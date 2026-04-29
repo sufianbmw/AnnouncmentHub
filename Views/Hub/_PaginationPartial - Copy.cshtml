@@ -1,61 +1,489 @@
-﻿@model AnnouncmentHub.ViewModels.AnnouncementSearchResult
+﻿@model ClientViewModel
 
-@if (Model.TotalPages > 1)
-{
-    <nav class="mt-4" aria-label="التنقل بين الصفحات">
-        <ul class="pagination justify-content-center flex-wrap">
-
-            <!-- Previous -->
-            <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
-                <a class="page-link" href="javascript:void(0)"
-                   onclick="loadPage(@(Model.PageNumber - 1))">
-                    &raquo; السابق
-                </a>
-            </li>
-
-            <!-- Page Numbers -->
-            @for (int i = 1; i <= Model.TotalPages; i++)
-            {
-                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
-                    <a class="page-link" href="javascript:void(0)"
-                       onclick="loadPage(@i)">
-                        @i
-                    </a>
-                </li>
-            }
-
-            <!-- Next -->
-            <li class="page-item @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")">
-                <a class="page-link" href="javascript:void(0)"
-                   onclick="loadPage(@(Model.PageNumber + 1))">
-                    التالي &laquo;
-                </a>
-            </li>
-
-        </ul>
-
-        <p class="text-center text-muted small mt-1">
-            عرض صفحة @Model.PageNumber من @Model.TotalPages
-            (إجمالي @Model.TotalCount إعلان)
-        </p>
-    </nav>
+@{
+    ViewBag.Title = "العملاء";
+    int totalPages = (int)Math.Ceiling((double)Model.TotalClients / Model.PageSize);
 }
 
-@* @model AnnouncmentHub.ViewModels.CategoryAnnouncementsViewModel
+@section Styles {
+    <style>
+        /* ── Card: no overflow:hidden so logo can overlap ── */
+        .client-card {
+            background: #f7f4ee;
+            border: 1px solid #e0ddd4;
+            border-radius: 20px;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: transform .28s cubic-bezier(0.34,1.56,0.64,1), box-shadow .28s ease, border-color .25s;
+        }
 
-@if (Model.TotalPages > 1)
-{
-    <nav aria-label="صفحات">
-        <ul class="pagination justify-content-center mt-4">
-            @for (int i = 1; i <= Model.TotalPages; i++)
-            {
-                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
-                    <a class="page-link" href="javascript:void(0);" onclick="loadPage(@i)">
-                        @i
-                    </a>
-                </li>
+            .client-card:hover {
+                transform: translateY(-6px);
+                box-shadow: 0 20px 48px rgba(0,0,0,.11);
+                border-color: rgba(13,148,136,.35);
             }
-        </ul>
-    </nav>
+
+        /* ── Cover ── */
+        .client-cover {
+            height: 120px;
+            border-radius: 18px 18px 0 0;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+            flex-shrink: 0;
+        }
+
+            .client-cover img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: transform .55s ease;
+            }
+
+        .client-card:hover .client-cover img {
+            transform: scale(1.07);
+        }
+
+        /* Default cover pattern when no image */
+        .client-cover-pattern {
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle at 20% 50%, rgba(255,255,255,.08) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,.06) 0%, transparent 40%);
+        }
+
+        /* ── VIP ribbon ── */
+        .vip-ribbon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 3;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: linear-gradient(135deg,#f59e0b,#d97706);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 900;
+            box-shadow: 0 3px 10px rgba(245,158,11,.45);
+            letter-spacing: .06em;
+            text-transform: uppercase;
+        }
+
+        /* ── Logo overlapping cover ── */
+        .client-logo-wrap {
+            position: relative;
+            margin-top: -32px;
+            margin-right: 18px;
+            z-index: 2;
+            width: fit-content;
+        }
+
+        .client-logo {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            border: 3px solid #f7f4ee;
+            background: #fff;
+            box-shadow: 0 4px 16px rgba(0,0,0,.13);
+            overflow: hidden;
+            display: block;
+        }
+
+            .client-logo img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+
+        /* ── Status dot on logo corner ── */
+        .status-dot {
+            position: absolute;
+            bottom: -2px;
+            left: -2px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2.5px solid #f7f4ee;
+        }
+
+            .status-dot.open {
+                background: #22c55e;
+                box-shadow: 0 0 0 0 rgba(34,197,94,.4);
+                animation: pulse-green 2s infinite;
+            }
+
+            .status-dot.closed {
+                background: #ef4444;
+            }
+        @@keyframes pulse-green {
+            0%
+
+        {
+            box-shadow: 0 0 0 0 rgba(34,197,94,.4);
+        }
+
+        70% {
+            box-shadow: 0 0 0 5px rgba(34,197,94,.0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(34,197,94,.0);
+        }
+
+        }
+
+        /* ── Body ── */
+        .client-body {
+            padding: 10px 18px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+            text-align: right;
+        }
+
+        /* ── Contact icon pills ── */
+        .contact-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 9px;
+            font-size: 10px;
+            font-weight: 900;
+            transition: transform .2s cubic-bezier(0.34,1.56,0.64,1), box-shadow .2s;
+        }
+
+            .contact-pill:hover {
+                transform: translateY(-2px) scale(1.1);
+            }
+
+        .pill-phone {
+            background: #f0ede4;
+            color: #555;
+        }
+
+        .pill-wa {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .pill-fb {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .pill-site {
+            background: #e6f4f2;
+            color: #0d9488;
+        }
+
+        .pill-map {
+            background: #fef9c3;
+            color: #a16207;
+        }
+
+        /* ── Hours text ── */
+        .hours-text {
+            font-size: 10px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            justify-content: flex-end;
+        }
+
+            .hours-text.open {
+                color: #16a34a;
+            }
+
+            .hours-text.closed {
+                color: #ef4444;
+            }
+
+        /* ── Simple fade-in on scroll ── */
+        .client-card {
+            opacity: 0;
+            transition: opacity .4s ease, transform .28s ease, box-shadow .28s ease, border-color .25s;
+        }
+
+            .client-card.visible {
+                opacity: 1;
+            }
+
+        /* ── Pagination ── */
+        .pg-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            height: 40px;
+            padding: 0 6px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 900;
+            text-decoration: none;
+            border: 2px solid #e8e4d8;
+            color: #666;
+            background: #f7f4ee;
+            transition: all .22s cubic-bezier(0.34,1.56,0.64,1);
+        }
+
+            .pg-btn:hover {
+                background: #e8e4d8;
+                border-color: #0d9488;
+                color: #0d9488;
+                transform: translateY(-2px);
+            }
+
+            .pg-btn.active {
+                background: linear-gradient(135deg,#0d9488,#0f766e);
+                color: #fff;
+                border-color: transparent;
+                box-shadow: 0 4px 14px rgba(13,148,136,.35);
+                transform: translateY(-1px);
+            }
+
+            .pg-btn.disabled {
+                opacity: .38;
+                pointer-events: none;
+            }
+    </style>
 }
- *@
+
+<div class="bg-[#f0ede4] min-h-screen" dir="rtl">
+
+    @* ── Hero ── *@
+    <div class="relative overflow-hidden pt-6 pb-10 px-4 md:px-8"
+         style="background: linear-gradient(160deg,#eae7de 0%,#f0ede4 60%,#e4e1d8 100%);">
+        <div class="absolute inset-0 pointer-events-none"
+             style="background: radial-gradient(circle at 75% 50%, rgba(13,148,136,.07) 0%, transparent 55%), radial-gradient(circle at 10% 80%, rgba(245,158,11,.05) 0%, transparent 50%);"></div>
+
+        <div class="max-w-7xl mx-auto relative">
+            @* Breadcrumb *@
+            <nav class="flex items-center gap-1.5 text-xs font-bold mb-6 flex-wrap">
+                <a href="/" class="flex items-center gap-1 text-on-surface-variant hover:text-secondary transition-colors duration-200">
+                    <i data-lucide="house" class="w-3.5 h-3.5"></i> الرئيسية
+                </a>
+                <i data-lucide="chevron-left" class="w-3 h-3 text-outline"></i>
+                <span class="text-secondary font-black">العملاء</span>
+            </nav>
+
+            <div class="flex items-end justify-between gap-4 flex-wrap">
+                <div>
+                    <span class="text-secondary font-bold text-xs tracking-[.2em] uppercase mb-1.5 block">دليل الشركاء</span>
+                    <h1 class="text-3xl md:text-4xl font-black font-headline tracking-tighter text-on-surface">المتاجر الموثّقة</h1>
+                </div>
+                <div class="flex items-center gap-3 mb-1">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary/10 border border-secondary/20 rounded-full text-[11px] font-black text-secondary">
+                        <i data-lucide="store" class="w-3.5 h-3.5"></i>
+                        @Model.TotalClients متجر
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#e8e4d8] border border-outline-variant/50 rounded-full text-[11px] font-black text-on-surface-variant">
+                        <i data-lucide="file-stack" class="w-3.5 h-3.5"></i>
+                        صفحة @Model.PageNumber من @totalPages
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* ── Grid ── *@
+    <div class="max-w-7xl mx-auto px-4 md:px-8 pb-16 pt-2">
+
+        @if (Model.Clients != null && Model.Clients.Any())
+        {
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                @foreach (var c in Model.Clients)
+                {
+                    bool isClosed = c.IsClosed;
+                    bool hasHours = c.OpenFrom.HasValue && c.OpenTo.HasValue;
+
+                    <a href="@Url.Action("ClientProfile", new { id = c.Id })" class="client-card">
+
+                        @* Cover *@
+                        <div class="client-cover">
+                            @if (!string.IsNullOrEmpty(c.CoverImageUrl))
+                            {
+                                <img src="@c.CoverImageUrl" alt="" loading="lazy" />
+                            }
+                            else
+                            {
+                                <div class="client-cover-pattern"></div>
+                            }
+                            @if (c.IsVIP)
+                            {
+                                <div class="vip-ribbon">
+                                    <i data-lucide="star" class="w-3 h-3 fill-white"></i> VIP
+                                </div>
+                            }
+                        </div>
+
+                        @* Logo (overlaps cover) *@
+                        <div class="client-logo-wrap">
+                            <div class="client-logo">
+                                <img src="@(string.IsNullOrEmpty(c.LogoUrl) ? "/images/file-icons/no-image.jpg" : c.LogoUrl)"
+                                     alt="@c.ClientName" loading="lazy" />
+                            </div>
+                            <span class="status-dot @(isClosed ? "closed" : "open")"></span>
+                        </div>
+
+                        @* Body *@
+                        <div class="client-body">
+
+                            @* Name *@
+                            <h3 class="font-black text-on-surface text-sm tracking-tight leading-snug mt-1">
+                                @c.ClientName
+                            </h3>
+
+                            @* Hours *@
+                            @if (hasHours)
+                            {
+                                <p class="hours-text @(isClosed ? "closed" : "open")">
+                                    <i data-lucide="@(isClosed ? "lock" : "clock")" class="w-3 h-3"></i>
+                                    @if (isClosed)
+                                    {
+                                        <span>مغلق حالياً</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@c.OpenFrom!.Value.ToString(@"hh\:mm") — @c.OpenTo!.Value.ToString(@"hh\:mm")</span>
+                                    }
+                                </p>
+                            }
+
+                            @* Contact pills *@
+                            @{
+                                bool hasContact = !string.IsNullOrEmpty(c.MobileNumber) ||
+                                !string.IsNullOrEmpty(c.WhatsUp) ||
+                                !string.IsNullOrEmpty(c.FacebookLink) ||
+                                !string.IsNullOrEmpty(c.SiteUrl) ||
+                                c.GoogleMapsUrl != null;
+                            }
+                            @if (hasContact)
+                            {
+                                <div class="flex gap-1.5 flex-wrap justify-end mt-auto pt-2">
+                                    @if (!string.IsNullOrEmpty(c.MobileNumber))
+                                    {
+                                        <span class="contact-pill pill-phone" title="هاتف">
+                                            <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+                                        </span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(c.WhatsUp))
+                                    {
+                                        <span class="contact-pill pill-wa" title="واتساب">
+                                            <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                                        </span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(c.FacebookLink))
+                                    {
+                                        <span class="contact-pill pill-fb" title="فيسبوك">
+                                            <i data-lucide="facebook" class="w-3.5 h-3.5"></i>
+                                        </span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(c.SiteUrl))
+                                    {
+                                        <span class="contact-pill pill-site" title="موقع إلكتروني">
+                                            <i data-lucide="globe" class="w-3.5 h-3.5"></i>
+                                        </span>
+                                    }
+                                    @if (c.GoogleMapsUrl != null)
+                                    {
+                                        <span class="contact-pill pill-map" title="الموقع على الخريطة">
+                                            <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+                                        </span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="flex flex-col items-center justify-center py-24 text-center">
+                <div class="w-20 h-20 rounded-full bg-[#e6f4f2] flex items-center justify-center mb-5">
+                    <i data-lucide="store" class="w-9 h-9 text-secondary"></i>
+                </div>
+                <h3 class="text-xl font-black text-on-surface mb-2">لا يوجد عملاء</h3>
+                <p class="text-sm font-bold text-outline">لم يتم إضافة أي عميل حتى الآن</p>
+            </div>
+        }
+
+        @* ── Pagination ── *@
+        @if (totalPages > 1)
+        {
+            <nav class="mt-14 flex flex-col items-center gap-3">
+                <div class="flex items-center gap-1.5 flex-wrap justify-center">
+
+                    <a href="@Url.Action("Clients", new { page = Model.PageNumber - 1, pageSize = Model.PageSize })"
+                       class="pg-btn @(Model.PageNumber <= 1 ? "disabled" : "")">
+                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </a>
+
+                    @{
+                        int pStart = Math.Max(1, Model.PageNumber - 2);
+                        int pEnd = Math.Min(totalPages, pStart + 4);
+                        if (pEnd - pStart < 4) pStart = Math.Max(1, pEnd - 4);
+                    }
+
+                    @if (pStart > 1)
+                    {
+                        <a href="@Url.Action("Clients", new { page = 1, pageSize = Model.PageSize })" class="pg-btn">1</a>
+                        if (pStart > 2)
+                        {
+
+                            <span class="text-outline text-xs font-black px-1">…</span>
+                        }
+                    }
+                    @for (int i = pStart; i <= pEnd; i++)
+                    {
+                        <a href="@Url.Action("Clients", new { page = i, pageSize = Model.PageSize })"
+                           class="pg-btn @(i == Model.PageNumber ? "active" : "")">@i</a>
+                    }
+                    @if (pEnd < totalPages)
+                    {
+                        if (pEnd < totalPages - 1)
+                        {
+                            <span class="text-outline text-xs font-black px-1">…</span>
+                        }
+                        <a href="@Url.Action("Clients", new { page = totalPages, pageSize = Model.PageSize })" class="pg-btn">@totalPages</a>
+                    }
+
+                    <a href="@Url.Action("Clients", new { page = Model.PageNumber + 1, pageSize = Model.PageSize })"
+                       class="pg-btn @(Model.PageNumber >= totalPages ? "disabled" : "")">
+                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                    </a>
+                </div>
+                <p class="text-[10px] font-black text-outline uppercase tracking-widest">
+                    صفحة @Model.PageNumber من @totalPages — إجمالي @Model.TotalClients متجر
+                </p>
+            </nav>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const cards = document.querySelectorAll('.client-card');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry, i) => {
+                    if (entry.isIntersecting) {
+                        setTimeout(() => entry.target.classList.add('visible'), i * 60);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.05 });
+            cards.forEach(card => observer.observe(card));
+            lucide.createIcons();
+        });
+    </script>
+}

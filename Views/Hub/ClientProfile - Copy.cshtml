@@ -1,5 +1,159 @@
-﻿@model ClientAnnouncementsViewModel
+﻿@model AnnouncmentHub.ViewModels.ClientAnnouncementsViewModel
+@using AnnouncmentHub.ViewModels
+
+@{
+    var client = Model.Client;
+    ViewBag.Title = client.ClientName;
+
+    // ✅ تحويل البيانات إلى AnnouncementSearchResult لتمريرها للـ Partial
+    var searchResult = new AnnouncementSearchResult
+    {
+        Announcements = Model.Announcements,
+        TotalCount = Model.TotalCount,
+        PageNumber = Model.PageNumber,
+        PageSize = Model.PageSize
+    };
+}
+
+@section FullWidthHeader {
+
+    <!-- 🔹 Cover -->
+    <div class="position-relative mb-4">
+        <img src="@(string.IsNullOrEmpty(client.CoverImageUrl)
+                                     ? Url.Content("~/images/file-icons/no-cover.jpg")
+                                     : client.CoverImageUrl)"
+         alt="Cover - @client.ClientName"
+         class="img-fluid w-100 shadow-lg"
+         style="max-height:370px; object-fit:cover;" />
+
+        <!-- 🔹 Overlay -->
+        <div class="position-absolute bottom-0 end-0 w-100 p-4"
+             style="background: linear-gradient(to top, rgba(0,0,0,0.6) 40%, transparent 100%);">
+
+            <div class="d-flex justify-content-start align-items-center text-white flex-wrap">
+
+                <!-- Logo -->
+                <img src="@(string.IsNullOrEmpty(client.LogoUrl)
+                                                 ? Url.Content("~/images/file-icons/no-image.jpg")
+                                                 : client.LogoUrl)"
+                 alt="@client.ClientName"
+                 class="rounded-circle border border-4 border-white shadow"
+                 style="width:140px; height:140px; object-fit:contain;" />
+
+                <!-- Info -->
+                <div class="text-start ms-3">
+                    <h3 class="mb-2 fw-bold">@client.ClientName</h3>
+
+                    <span class="badge bg-primary fs-6 shadow mb-2 d-inline-block">
+                        إجمالي الإعلانات: @Model.TotalCount
+                    </span>
+
+                    <!-- 🔹 Contact & Social Links -->
+                    <div class="d-flex gap-3 mt-3 flex-wrap align-items-center">
+
+                    @if (!string.IsNullOrEmpty(client.MobileNumber))
+                        {
+                            <a href="tel:@client.MobileNumber"
+                               class="text-white text-decoration-none fw-semibold">
+                                📞 <span class="ms-1">@client.MobileNumber</span>
+                            </a>
+                        }
+
+                        @if (!string.IsNullOrEmpty(client.WhatsUp))
+                        {
+                            <a href="https://wa.me/@client.WhatsUp.Replace("+", "")"
+                               target="_blank"
+                               class="text-white text-decoration-none fw-semibold">
+                                💬 واتساب
+                            </a>
+                        }
+
+                        @if (!string.IsNullOrEmpty(client.FacebookLink))
+                        {
+                            <a href="@client.FacebookLink"
+                               target="_blank"
+                               class="text-white text-decoration-none fw-semibold">
+                                📘 فيسبوك
+                            </a>
+                        }
+
+                        @if (!string.IsNullOrEmpty(client.SiteUrl))
+                        {
+                            <a href="@client.SiteUrl"
+                               target="_blank"
+                               class="text-white text-decoration-none fw-semibold">
+                                🌐 الموقع
+                            </a>
+                        }
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+}
+
+<!-- 🔹 Announcements -->
+<div class="container">
+
+    @await Html.PartialAsync("_AnnouncementsPartial", searchResult)
+
+    <!-- 🔹 Pagination (روابط عادية) -->
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="mt-4" aria-label="التنقل بين الصفحات">
+            <ul class="pagination justify-content-center flex-wrap">
+
+                <!-- Previous -->
+                <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
+                    <a class="page-link"
+                       asp-action="ClientProfile"
+                       asp-route-id="@client.Id"
+                       asp-route-page="@(Model.PageNumber - 1)"
+                       asp-route-pageSize="@Model.PageSize">
+                        &raquo; السابق
+                    </a>
+                </li>
+
+                <!-- Page Numbers -->
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                        <a class="page-link"
+                           asp-action="ClientProfile"
+                           asp-route-id="@client.Id"
+                           asp-route-page="@i"
+                           asp-route-pageSize="@Model.PageSize">
+                            @i
+                        </a>
+                    </li>
+                }
+
+                <!-- Next -->
+                <li class="page-item @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")">
+                    <a class="page-link"
+                       asp-action="ClientProfile"
+                       asp-route-id="@client.Id"
+                       asp-route-page="@(Model.PageNumber + 1)"
+                       asp-route-pageSize="@Model.PageSize">
+                        التالي &laquo;
+                    </a>
+                </li>
+
+            </ul>
+
+            <p class="text-center text-muted small mt-1">
+                عرض صفحة @Model.PageNumber من @Model.TotalPages
+                (إجمالي @Model.TotalCount إعلان)
+            </p>
+        </nav>
+    }
+
+</div>
+@* @model ClientAnnouncementsViewModel
 @using Newtonsoft.Json
+@using AnnouncmentHub.Helpers
 
 @{
     var client = Model.Client;
@@ -7,71 +161,198 @@
     var pageSize = Model.PageSize;
     var totalPages = Model.TotalPages;
     ViewBag.Title = client.ClientName;
-}
+} *@
 
-<div class="container">
-    <!-- Client header -->
-    <div class="row bg-light border rounded p-3 mb-3 align-items-center">
-        <div class="col-md-2 text-center">
-            <img src="@(string.IsNullOrEmpty(client.LogoUrl) ? Url.Content("~/images/file-icons/no-image.jpg") : client.LogoUrl)"
+@* @section FullWidthHeader {
+
+    <!-- 🔹 Cover -->
+    <div class="position-relative mb-4">
+        <img src="@(string.IsNullOrEmpty(client.CoverImageUrl)
+                              ? Url.Content("~/images/file-icons/no-cover.jpg")
+                              : client.CoverImageUrl)"
+         alt="Cover - @client.ClientName"
+         class="img-fluid w-100 shadow-lg"
+         style="max-height:370px; object-fit:cover;" />
+
+        <!-- 🔹 Overlay -->
+        <div class="position-absolute bottom-0 end-0 w-100 p-4"
+             style="background: linear-gradient(to top, rgba(0,0,0,0.6) 40%, transparent 100%);">
+
+            <div class="d-flex justify-content-start align-items-center text-white flex-wrap">
+
+                <!-- Logo -->
+                <img src="@(string.IsNullOrEmpty(client.LogoUrl)
+                                          ? Url.Content("~/images/file-icons/no-image.jpg")
+                                          : client.LogoUrl)"
                  alt="@client.ClientName"
-                 class="img-fluid img-thumbnail rounded" />
-        </div>
-        <div class="col-md-10">
-            <h3 class="mb-1">@client.ClientName</h3>
-            <p class="text-muted mb-2">إجمالي الإعلانات: @Model.TotalCount</p>
-            <a asp-controller="Hub" asp-action="LoadingHub" class="btn btn-sm btn-outline-secondary">العودة</a>
-        </div>
-    </div>
+                 class="rounded-circle border border-4 border-white shadow"
+                 style="width:140px; height:140px; object-fit:contain;" />
 
-    <!-- Announcements list -->
-    @if (Model.Announcements.Any())
-    {
-        @foreach (var item in Model.Announcements)
-        {
-            var categories = JsonConvert.DeserializeObject<List<CategoryJsonLink>>(item.CategoriesJson ?? "[]");
+                <!-- Info -->
+                <div class="text-start ms-3">
+                    <h3 class="mb-2 fw-bold">@client.ClientName</h3>
 
-            <div class="row bg-light border rounded mb-2 p-3">
-                <div class="col-md-2 d-flex justify-content-center align-content-center m-0 p-0">
-@*                     <img src="@item.ThumbnailPath" class="img-fluid img-thumbnail rounded" />
- *@                    <img src="~/images/file-icons/no-image.jpg" class="img-fluid img-thumbnail rounded" />
+                    <span class="badge bg-primary fs-6 shadow mb-2 d-inline-block">
+                        إجمالي الإعلانات: @Model.TotalCount
+                    </span>
 
-                </div>
-                <div class="col-md-10">
-                    <div class="mb-2 mt-1 d-flex justify-content-between align-items-start">
-                        <h6 class="text-primary fw-bold m-0">@item.Title</h6>
-                        @if (item.AddedDate.HasValue)
+                    <!-- 🔹 Contact & Social Links -->
+                    <div class="d-flex gap-3 mt-3 flex-wrap align-items-center">
+
+                      
+                    @if (!string.IsNullOrEmpty(client.MobileNumber))
                         {
-                            <span class="text-muted small">🗓️ @item.AddedDate.Value.ToString("yyyy-MM-dd")</span>
+                            <a href="tel:@client.MobileNumber"
+                               class="text-white text-decoration-none fw-semibold">
+                                📞 <span class="ms-1">@client.MobileNumber</span>
+                            </a>
                         }
-                    </div>
 
-                    <div class="row">
-                        <div class="col">
-                            <p class="text-secondary small mb-1">الإعلان موجود في</p>
-                            <p class="mb-2">
-                                @foreach (var cat in categories)
-                                {
-                                    <span class="badge bg-secondary me-1">
-                                        <a class="text-decoration-none text-white small"
-                                           href="/Categories/Details/@cat.CategoryId">@cat.CategoryName</a>
-                                    </span>
-                                }
-                            </p>
-                        </div>
+                     
+                        @if (!string.IsNullOrEmpty(client.WhatsUp))
+                        {
+                            <a href="https://wa.me/@client.WhatsUp.Replace("+", "")"
+                               target="_blank"
+                               class="text-white text-decoration-none fw-semibold">
+                                💬 واتساب
+                            </a>
+                        }
+
+                    
+                        @if (!string.IsNullOrEmpty(client.FacebookLink))
+                        {
+                            <a href="@client.FacebookLink"
+                               target="_blank"
+                               class="text-white text-decoration-none fw-semibold">
+                                📘 فيسبوك
+                            </a>
+                        }
+
+                        @if (!string.IsNullOrEmpty(client.SiteUrl))
+                        {
+                            <a href="@client.SiteUrl"
+                               target="_blank"
+                               class="text-white text-decoration-none fw-semibold">
+                                🌐 الموقع
+                            </a>
+                        }
+
                     </div>
                 </div>
             </div>
-        }
+        </div>
+    </div>
 
-        <!-- Pagination -->
-        <nav>
-            <ul class="pagination justify-content-center">
+}
+
+
+<!-- 🔹 Announcements -->
+<div class="container">
+    @if (Model.Announcements.Any())
+    {
+        <div class="row g-3">
+            @foreach (var item in Model.Announcements)
+            {
+                var categories = JsonConvert.DeserializeObject<List<CategoryJsonLink>>(item.CategoriesJson ?? "[]");
+
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="row g-0">
+                            <!-- Thumbnail -->
+                            <div class="col-4 text-center d-flex align-items-center justify-content-center bg-light">
+                                @{
+                                    var filePath = item.FilePath;
+                                    var extension = System.IO.Path.GetExtension(filePath ?? "").ToLower();
+                                    string displayPath;
+
+                                    if (string.IsNullOrEmpty(filePath))
+                                    {
+                                        displayPath = Url.Content("~/images/file-icons/no-image.jpg");
+                                    }
+                                    else if (new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp" }.Contains(extension))
+                                    {
+                                        displayPath = filePath;
+                                    }
+                                    else if (extension == ".pdf")
+                                    {
+                                        displayPath = Url.Content("~/images/file-icons/pdf-icon.png");
+                                    }
+                                    else if (extension == ".doc" || extension == ".docx")
+                                    {
+                                        displayPath = Url.Content("~/images/file-icons/word-icon.png");
+                                    }
+                                    else if (extension == ".xls" || extension == ".xlsx")
+                                    {
+                                        displayPath = Url.Content("~/images/file-icons/excel-icon.png");
+                                    }
+                                    else
+                                    {
+                                        displayPath = Url.Content("~/images/file-icons/file-icon.png");
+                                    }
+                                }
+
+                                <div class="col-md-4 p-2" style="width:90%;height:100%">
+                                    <div class="ratio ratio-1x1 bg-white border rounded shadow-sm overflow-hidden">
+                                        <img src="@displayPath"
+                                             alt="Thumbnail"
+                                             class="w-100 h-100"
+                                             style="object-fit: cover;" />
+                                    </div>
+                                </div>
+
+
+                             </div>
+
+                            <!-- Content -->
+                            <div class="col-8">
+                                <div class="card-body">
+                                    <h6 class="card-title fw-bold">
+                                        <a asp-controller="Hub" asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none text-primary">
+                                            @item.Title
+                                        </a>
+                                    </h6>
+                                    @if (item.AddedDate.HasValue)
+                                    {
+                                        <small class="text-muted">🗓️ @DateTimeHelper.FormatDateTime(item.AddedDate)</small>
+                                    }
+                                    <p class="card-text small mt-2 text-muted">
+                                        @(string.IsNullOrEmpty(item.Description) ? "لا يوجد وصف" : item.Description.Length > 80 ? item.Description[..item.Description.LastIndexOf(" ", 80)] + "..." : item.Description)
+                                    </p>
+                            <div>
+                                @foreach (var cat in categories)
+                                        {
+                                    
+                                             <span class="badge bg-secondary me-1">
+                                            <a asp-controller="Hub" class="text-decoration-none text-white small" asp-action="CategoryAnnouncements" asp-route-id="@cat.CategoryId">
+                                                @cat.CategoryName
+                                            </a>
+                                            </span>
+                                        }
+                                    </div>
+                                    <div class="mt-2">
+                                        @if (!string.IsNullOrEmpty(item.FilePath))
+                                        {
+                                            <a href="@item.FilePath" target="_blank" class="btn btn-sm btn-outline-info">
+                                                📂 فتح الملف
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- 🔹 Pagination -->
+        <nav aria-label="صفحات الإعلانات">
+            <ul class="pagination justify-content-center mt-4">
                 @for (int i = 1; i <= totalPages; i++)
                 {
                     <li class="page-item @(i == page ? "active" : "")">
                         <a class="page-link"
-                           asp-action="Details"
+                           asp-action="ClientProfile"
                            asp-route-id="@client.Id"
                            asp-route-page="@i"
                            asp-route-pageSize="@pageSize">@i</a>
@@ -82,6 +363,7 @@
     }
     else
     {
-        <div class="alert alert-info d-flex justify-content-center">لا توجد إعلانات لهذا العميل حالياً.</div>
+        <div class="alert alert-info text-center shadow-sm">لا توجد إعلانات لهذا العميل حالياً.</div>
     }
 </div>
+ *@
