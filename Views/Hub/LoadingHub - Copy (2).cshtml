@@ -1,0 +1,260 @@
+﻿@{
+    var parentCategories = ViewBag.ParentCategories as List<Category>;
+}
+
+<!-- ✅ Modal for pdf.js built-in viewer -->
+<div id="pdfModal" class="modal">
+    <div class="modal-content">
+        <span id="closePdfModal" class="close">&times;</span>
+
+        <!-- ✅ The PDF.js viewer -->
+        <iframe id="pdfViewerFrame"
+                src=""
+                width="100%"
+                height="800px"
+                style="border:none;"></iframe>
+
+        <!-- ✅ Share/Download bar -->
+        <div id="pdfShareButtons" class="pdf-share mt-2" style="display:flex; gap:10px; justify-content:center;">
+            <a id="pdf-share-facebook" target="_blank" rel="noopener noreferrer" title="مشاركة على فيسبوك" class="social-btn fb"><i class="fab fa-facebook-f"></i></a>
+            <a id="pdf-share-twitter" target="_blank" rel="noopener noreferrer" title="مشاركة على تويتر" class="social-btn tw"><i class="fab fa-twitter"></i></a>
+            <a id="pdf-share-whatsapp" target="_blank" rel="noopener noreferrer" title="مشاركة على واتساب" class="social-btn wa"><i class="fab fa-whatsapp"></i></a>
+            <a id="pdf-share-download" target="_blank" rel="noopener noreferrer" title="تحميل" class="social-btn Dow"><i class="fa-solid fa-download"></i></a>
+        </div>
+    </div>
+</div>
+
+
+<div>
+    <div class="info-box rounded border p-4 mb-2 category-wrapper">
+        <div class="main-menu">
+            @foreach (var category in parentCategories)
+            {
+                <div class="category-container">
+                    <button class="category-btn" data-category-id="@category.Id">@category.CatName</button>
+                </div>
+            }
+        </div>
+        <div class="subcategories-container" id="subcategories-container"></div>
+    </div>
+
+    <div id="announcementArea">
+        <div id="announcementList" class="row d-flex justify-content-start">
+            <p class="d-flex justify-content-center">
+                <i class="fas fa-info-circle" style="color:#3498db; margin-left: 6px;"></i>
+                اضغط على أحد التصنيفات الفرعية لعرض الإعلانات.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- PhotoSwipe gallery root -->
+<div class="pswp-gallery" id="imageGallery"></div>
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true"></div>
+
+<!-- ✅ Image Share Buttons -->
+<div id="imageShareButtons" class="pdf-share" style="display: none;">
+    <a id="image-share-facebook" target="_blank" rel="noopener noreferrer" title="مشاركة على فيسبوك" class="social-btn fb"><i class="fab fa-facebook-f"></i></a>
+    <a id="image-share-twitter" target="_blank" rel="noopener noreferrer" title="مشاركة على تويتر" class="social-btn tw"><i class="fab fa-twitter"></i></a>
+    <a id="image-share-whatsapp" target="_blank" rel="noopener noreferrer" title="مشاركة على واتساب" class="social-btn wa"><i class="fab fa-whatsapp"></i></a>
+    <a id="image-share-download" target="_blank" rel="noopener noreferrer" title="تحميل" class="social-btn Dow"><i class="fa-solid fa-download"></i></a>
+</div>
+
+@section Scripts {
+    <script src="~/js/photoswipe/photoswipe.umd.min.js"></script>
+    <script src="~/js/photoswipe/photoswipe-lightbox.umd.min.js"></script>
+    <link href="~/css/landing.css" rel="stylesheet" />
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // 🔗 Share helper
+            function updateShareLinks(prefix, url) {
+                const full = url.startsWith('http') ? url : window.location.origin + url;
+                const enc = encodeURIComponent(full);
+
+                const fb = document.getElementById(`${prefix}-facebook`);
+                const tw = document.getElementById(`${prefix}-twitter`);
+                const wa = document.getElementById(`${prefix}-whatsapp`);
+                const dw = document.getElementById(`${prefix}-download`);
+
+                if (fb && tw && wa && dw) {
+                    fb.href = `https://www.facebook.com/sharer/sharer.php?u=${enc}`;
+                    tw.href = `https://twitter.com/intent/tweet?url=${enc}`;
+                    wa.href = `https://wa.me/?text=${enc}`;
+                    dw.href = full;
+                }
+            }
+
+            // ✅ Open pdf.js viewer.html inside modal
+               function openPdfViewer(filePath) {
+            const fullUrl = window.location.origin + `/Scripts/pdfjs/web/viewer.html?file=${filePath}`;
+            document.getElementById('pdfViewerFrame').src = fullUrl;
+
+            // ✅ Update share/download links
+            const fileFullUrl = window.location.origin + filePath;
+            updateShareLinks('pdf-share', fileFullUrl);
+
+            // Show modal
+            document.getElementById('pdfModal').style.display = 'flex';
+        }
+
+
+            // Close modal
+            document.getElementById("closePdfModal").onclick = function () {
+                document.getElementById('pdfModal').style.display = "none";
+                document.getElementById('pdfViewerFrame').src = "";
+            };
+
+            // Close modal if clicking outside
+            window.onclick = function (e) {
+                const modal = document.getElementById('pdfModal');
+                if (e.target === modal) {
+                    modal.style.display = "none";
+                    document.getElementById('pdfViewerFrame').src = "";
+                }
+            };
+
+            // Load subcategories
+            window.loadSubcategories = function (parentId) {
+                fetch(`/Hub/GetSubcategories?parentId=${parentId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        const container = document.getElementById('subcategories-container');
+                        container.innerHTML = '';
+
+                        if (data.length === 0) {
+                            container.innerHTML = '<p class="text-center">لا توجد تصنيفات فرعية حالياً</p>';
+                            return;
+                        }
+
+                        const list = document.createElement('div');
+                        list.classList.add('subcategories-list');
+
+                        data.forEach(sub => {
+                            const item = document.createElement('div');
+                            item.innerHTML = `<button class="subcategory-btn" data-subcategory-id="${sub.id}">${sub.catName}</button>`;
+                            list.appendChild(item);
+                        });
+
+                        container.appendChild(list);
+
+                        list.querySelectorAll('.subcategory-btn').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                document.querySelectorAll('.subcategory-btn').forEach(b => b.classList.remove('active'));
+                                btn.classList.add('active');
+                                loadAnnouncementsBySubcategory(btn.dataset.subcategoryId);
+                            });
+                        });
+                    });
+            };
+
+            // Load announcements
+            function loadAnnouncementsBySubcategory(id) {
+                fetch(`/Hub/GetAnnouncementsBySubcategory?subCategoryId=${id}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        const list = document.getElementById('announcementList');
+                        list.innerHTML = '';
+
+                        if (!data.length) {
+                            list.innerHTML = '<p class="text-center">لا توجد إعلانات حالياً</p>';
+                            return;
+                        }
+
+                        data.forEach(item => {
+                            const div = document.createElement('div');
+                            div.className = 'col-lg-2 col-md-3 col-sm-4 col-6 ms-2 announcement';
+                            div.innerHTML = `<h6 class="card-title fw-bold">
+                                   <a href="/Hub/Details/${item.id}" class="text-decoration-none text-primary">
+                                   ${item.title}  </a>  </h6> <hr>
+                                <img src="${item.thumbnailPath}" class="img-fluid" alt="إعلان: ${item.title}" loading="lazy"/>
+                                
+                                <a href="#" class="viewFileBtn" data-file-path="${item.filePath}">مشاهدة الإعلان</a>
+                            `;
+                            list.appendChild(div);
+                        });
+
+                        list.querySelectorAll('.viewFileBtn').forEach(button => {
+                            button.addEventListener('click', e => {
+                                e.preventDefault();
+                                const path = button.getAttribute('data-file-path');
+                                const ext = path.split('.').pop().toLowerCase();
+                                const isImage = ['jpg','jpeg','png','gif','bmp','webp'].includes(ext);
+
+                                if (isImage) {
+                                    openImageViewer([{ url: path }]);
+                                } else {
+                                    openPdfViewer(path);
+                                }
+                            });
+                        });
+                    });
+            }
+
+            // Image size helper
+            async function getImageSize(url) {
+                return new Promise(res => {
+                    const img = new Image();
+                    img.onload = () => res({ width: img.naturalWidth, height: img.naturalHeight });
+                    img.onerror = () => res({ width: 800, height: 600 });
+                    img.src = url;
+                });
+            }
+
+            // Image viewer
+            async function openImageViewer(imageList) {
+                const galleryEl = document.getElementById('imageGallery');
+                galleryEl.innerHTML = '';
+
+                for (const img of imageList) {
+                    if (!img.url) continue;
+                    const size = await getImageSize(img.url);
+                    const anchor = document.createElement('a');
+                    anchor.href = img.url;
+                    anchor.setAttribute('data-pswp-width', size.width);
+                    anchor.setAttribute('data-pswp-height', size.height);
+                    anchor.setAttribute('data-caption', img.caption || '');
+                    anchor.innerHTML = `<img src="${img.url}" style="display:none" />`;
+                    galleryEl.appendChild(anchor);
+                }
+
+                const lightbox = new PhotoSwipeLightbox({
+                    gallery: '#imageGallery',
+                    children: 'a',
+                    pswpModule: PhotoSwipe,
+                    captionAttribute: 'data-caption'
+                });
+
+                lightbox.on('change', () => {
+                    const current = lightbox.pswp.currSlide;
+                    if (!current || !current.data || !current.data.src) return;
+                    const src = current.data.src;
+                    const shareBar = document.getElementById('imageShareButtons');
+                    if (shareBar) {
+                        shareBar.style.display = 'inline-flex';
+                        updateShareLinks('image-share', src);
+                    }
+                });
+
+                lightbox.on('close', () => {
+                    const shareBar = document.getElementById('imageShareButtons');
+                    if (shareBar) shareBar.style.display = 'none';
+                });
+
+                lightbox.init();
+                galleryEl.querySelector('a')?.click();
+            }
+
+            // Hook category buttons
+            document.querySelectorAll('.category-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                    button.classList.add('active');
+                    window.loadSubcategories(button.getAttribute('data-category-id'));
+                });
+            });
+
+        });
+    </script>
+}
