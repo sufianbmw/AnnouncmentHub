@@ -3,25 +3,118 @@
 
 @if (Model != null && Model.Any())
 {
-    <nav class="breadcrumb-nav flex items-center gap-1.5 text-xs font-bold flex-wrap">
-        <a href="/" class="breadcrumb-crumb flex items-center gap-1 text-on-surface-variant hover:text-secondary transition-colors duration-200">
-            <i data-lucide="house" class="w-3.5 h-3.5"></i>
-            الرئيسية
-        </a>
-        @foreach (var item in Model)
-        {
-            <i data-lucide="chevron-left" class="w-3 h-3 text-outline flex-shrink-0"></i>
-            if (item == Model.Last())
-            {
-                <span class="text-secondary font-black">@item.Name</span>
-            }
-            else
-            {
-                <a href="~/@(item.Url)@(item.Id)"
-                   class="breadcrumb-crumb text-on-surface-variant hover:text-secondary transition-colors duration-200">
-                    @item.Name
-                </a>
-            }
-        }
-    </nav>
+    var allItems = Model;
+    var lastItem = allItems.Last();
+    var prevItems = allItems.Take(allItems.Count - 1).ToList();
+    var totalSteps = allItems.Count + 1; @* +1 for Home *@
+
+    <div class="bc-bar w-full" role="navigation" aria-label="مسار التنقل">
+
+        @* ── Full-width background strip ── *@
+        <div class="bc-strip relative overflow-hidden">
+
+            @* Subtle decorative gradient blobs *@
+            <div class="absolute inset-0 pointer-events-none overflow-hidden">
+                <div class="absolute -right-20 -top-10 w-64 h-64 bg-secondary/5 rounded-full blur-3xl"></div>
+                <div class="absolute -left-10 -bottom-10 w-48 h-48 bg-accent/4 rounded-full blur-2xl"></div>
+            </div>
+
+            <div class="max-w-7xl mx-auto px-4 md:px-8 py-4 relative z-10">
+                <div class="flex items-center justify-between gap-4">
+
+                    @* ── Left: crumb trail ── *@
+                    <nav class="flex items-center gap-1 overflow-x-auto no-scrollbar flex-1 min-w-0">
+
+                        @* Home *@
+                        <a href="/" class="bc-crumb-link group flex items-center gap-1.5 px-3 py-1.5 rounded-xl
+                                               text-on-surface-variant hover:text-secondary
+                                               transition-all duration-200 flex-shrink-0">
+                            <span class="bc-home-icon w-6 h-6 rounded-lg bg-secondary/10 flex items-center justify-center
+                                             group-hover:bg-secondary group-hover:text-white transition-all duration-200 flex-shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24"
+                                     fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                    <polyline points="9 22 9 12 15 12 15 22" />
+                                </svg>
+                            </span>
+                            <span class="text-xs font-black tracking-wide hidden sm:inline">الرئيسية</span>
+                        </a>
+
+                        @* Middle crumbs *@
+                        @foreach (var item in prevItems)
+                        {
+                            @* Separator *@
+                            <span class="bc-chevron flex-shrink-0 text-outline/40 mx-0.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24"
+                                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m15 18-6-6 6-6" />
+                                </svg>
+                            </span>
+
+                            @if (!string.IsNullOrEmpty(item.Url))
+                            {
+                                <a href="~/@(item.Url)@(item.Id)"
+                                   class="bc-crumb-link flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl
+                                                      text-xs font-bold text-on-surface-variant
+                                                      hover:text-secondary hover:bg-secondary/8
+                                                      transition-all duration-200 whitespace-nowrap flex-shrink-0">
+                                    @item.Name
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="flex items-center px-2.5 py-1.5 text-xs font-bold
+                                                         text-on-surface-variant whitespace-nowrap flex-shrink-0">
+                                    @item.Name
+                                </span>
+                            }
+                        }
+
+                        @* Final separator *@
+                        <span class="bc-chevron flex-shrink-0 text-outline/40 mx-0.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m15 18-6-6 6-6" />
+                            </svg>
+                        </span>
+
+                        @* Active crumb *@
+                        <span class="bc-active-crumb flex items-center gap-2 px-3 py-1.5 rounded-xl
+                                         bg-secondary text-white text-xs font-black
+                                         whitespace-nowrap flex-shrink-0 max-w-[220px]
+                                         shadow-[0_4px_14px_rgba(13,148,136,0.35)]">
+                            <span class="w-1.5 h-1.5 rounded-full bg-white/70 flex-shrink-0"></span>
+                            <span class="truncate">@lastItem.Name</span>
+                        </span>
+
+                    </nav>
+
+                    @* ── Right: step counter ── *@
+                    <div class="bc-step-counter flex items-center gap-2 flex-shrink-0 hidden sm:flex">
+                        @* Progress dots *@
+                        <div class="flex items-center gap-1">
+                            @for (int i = 0; i < totalSteps; i++)
+                            {
+                                bool isLast = (i == totalSteps - 1);
+                                <span class="bc-dot rounded-full transition-all duration-300 @(isLast
+                                                                          ? "w-5 h-2 bg-secondary"
+                                                                          : "w-2 h-2 bg-outline/30")">
+                        </span>
+                                                }
+                        </div>
+                        @* Step label *@
+                        <span class="text-[10px] font-black text-outline uppercase tracking-widest">
+                            @totalSteps / @totalSteps
+                        </span>
+                    </div>
+
+                </div>
+            </div>
+
+            @* Bottom accent line *@
+            <div class="bc-accent-line absolute bottom-0 right-0 left-0 h-px
+                            bg-gradient-to-l from-transparent via-secondary/30 to-transparent"></div>
+        </div>
+
+    </div>
 }

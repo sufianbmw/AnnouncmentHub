@@ -212,7 +212,9 @@
     <main role="main">
         @if (ViewBag.Breadcrumb != null)
         {
-            @await Html.PartialAsync("_Breadcrumb", ViewBag.Breadcrumb as List<AnnouncmentHub.ViewModels.BreadcrumbItem>)
+            <div class="max-w-7xl mx-auto px-4 md:px-8 pt-4">
+                @await Html.PartialAsync("_Breadcrumb", ViewBag.Breadcrumb as List<AnnouncmentHub.ViewModels.BreadcrumbItem>)
+            </div>
         }
         @RenderBody()
     </main>
