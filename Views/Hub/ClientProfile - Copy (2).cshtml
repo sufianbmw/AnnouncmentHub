@@ -303,26 +303,6 @@
                 pointer-events: none;
             }
 
-        /* ── Cover icon buttons ── */
-        .cover-icon-btn {
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-        }
-
-        /* ── Directions button ── */
-        .directions-btn {
-            position: relative;
-            overflow: hidden;
-        }
-
-            .directions-btn::before {
-                content: '';
-                position: absolute;
-                inset: 0;
-                background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
-                pointer-events: none;
-            }
-
         /* ── Scroll reveal ── */
         .sr {
             opacity: 0;
@@ -379,41 +359,34 @@
                     <h1 class="text-2xl md:text-3xl font-black font-headline tracking-tight text-white leading-tight">
                         @c.ClientName
                     </h1>
-                    @* Quick contact — icon-only circles on cover *@
-                    <div class="flex items-center gap-2 mt-4">
+                    @* Quick contact row on cover *@
+                    <div class="flex flex-wrap gap-2 mt-3">
                         @if (hasPhone)
                         {
-                            <a href="tel:@c.MobileNumber" title="@c.MobileNumber"
-                               class="cover-icon-btn group w-10 h-10 rounded-2xl bg-white/10 hover:bg-white/25 border border-white/20 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg">
-                                <i data-lucide="phone" class="w-4 h-4 text-white"></i>
+                            <a href="tel:@c.MobileNumber"
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 border border-white/15 rounded-lg text-xs font-bold text-white transition-all duration-200">
+                                <i data-lucide="phone" class="w-3 h-3"></i> @c.MobileNumber
                             </a>
                         }
                         @if (hasWa)
                         {
-                            <a href="https://wa.me/@c.WhatsUp!.Replace("+", "")" target="_blank" title="واتساب"
-                               class="cover-icon-btn group w-10 h-10 rounded-2xl bg-green-500/20 hover:bg-green-500/40 border border-green-400/30 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg">
-                                <i data-lucide="message-circle" class="w-4 h-4 text-green-300"></i>
+                            <a href="https://wa.me/@c.WhatsUp!.Replace("+", "")" target="_blank"
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-500/20 hover:bg-green-500/30 border border-green-400/30 rounded-lg text-xs font-bold text-green-300 transition-all duration-200">
+                                <i data-lucide="message-circle" class="w-3 h-3"></i> واتساب
                             </a>
                         }
                         @if (hasFb)
                         {
-                            <a href="@c.FacebookLink" target="_blank" title="فيسبوك"
-                               class="cover-icon-btn group w-10 h-10 rounded-2xl bg-blue-500/20 hover:bg-blue-500/40 border border-blue-400/30 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg">
-                                <i data-lucide="facebook" class="w-4 h-4 text-blue-300"></i>
+                            <a href="@c.FacebookLink" target="_blank"
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/30 rounded-lg text-xs font-bold text-blue-300 transition-all duration-200">
+                                <i data-lucide="facebook" class="w-3 h-3"></i> فيسبوك
                             </a>
                         }
                         @if (hasSite)
                         {
-                            <a href="@c.SiteUrl" target="_blank" title="الموقع الإلكتروني"
-                               class="cover-icon-btn group w-10 h-10 rounded-2xl bg-white/10 hover:bg-white/25 border border-white/20 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg">
-                                <i data-lucide="globe" class="w-4 h-4 text-white"></i>
-                            </a>
-                        }
-                        @if (hasMap)
-                        {
-                            <a href="@c.GoogleMapsUrl" target="_blank" title="الاتجاهات"
-                               class="cover-icon-btn group w-10 h-10 rounded-2xl bg-yellow-500/20 hover:bg-yellow-500/40 border border-yellow-400/30 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg">
-                                <i data-lucide="navigation" class="w-4 h-4 text-yellow-300"></i>
+                            <a href="@c.SiteUrl" target="_blank"
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 border border-white/15 rounded-lg text-xs font-bold text-white transition-all duration-200">
+                                <i data-lucide="globe" class="w-3 h-3"></i> الموقع
                             </a>
                         }
                     </div>
@@ -554,54 +527,43 @@
                 </div>
             }
 
-            @* Map card — always show directions button, embed when coordinates available *@
-            @if (hasMap)
+            @* Map card *@
+            @if (hasMap && c.Latitude.HasValue && c.Longitude.HasValue)
             {
                 <div class="info-card sr">
                     <div class="info-card-header">
                         <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
                         الموقع الجغرافي
                     </div>
-                    <div class="p-3 space-y-3">
-
-                        @* Embedded map (only when lat/lon available) *@
-                        @if (c.Latitude.HasValue && c.Longitude.HasValue)
-                        {
-                            <div class="map-wrap relative group">
-                                <iframe src="https://www.google.com/maps?q=@c.Latitude,@c.Longitude&z=15&output=embed"
-                                        width="100%" height="220" style="border:0; display:block;"
-                                        allowfullscreen="" loading="lazy"
-                                        referrerpolicy="no-referrer-when-downgrade">
-                                </iframe>
-                                @* Overlay tap-to-open on mobile *@
-                                <a href="@c.GoogleMapsUrl" target="_blank"
-                                   class="absolute inset-0 md:hidden" aria-label="فتح الخريطة"></a>
-                            </div>
-                        }
-
-                        @* Directions button — always shown *@
+                    <div class="p-3">
+                        <div class="map-wrap">
+                            <iframe src="https://www.google.com/maps?q=@c.Latitude,@c.Longitude&z=15&output=embed"
+                                    width="100%" height="200" style="border:0; display:block;"
+                                    allowfullscreen="" loading="lazy"
+                                    referrerpolicy="no-referrer-when-downgrade">
+                            </iframe>
+                        </div>
                         <a href="@c.GoogleMapsUrl" target="_blank"
-                           class="directions-btn flex items-center justify-center gap-2.5 w-full py-3 rounded-2xl
-                                      text-xs font-black text-white
-                                      bg-gradient-to-l from-[#0d9488] to-[#0f766e]
-                                      shadow-[0_4px_14px_rgba(13,148,136,0.4)]
-                                      hover:shadow-[0_6px_20px_rgba(13,148,136,0.5)]
-                                      hover:-translate-y-0.5
-                                      transition-all duration-200">
-                            <i data-lucide="navigation" class="w-4 h-4"></i>
-                            الحصول على الاتجاهات
-                            <i data-lucide="external-link" class="w-3 h-3 opacity-70"></i>
+                           class="mt-2.5 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-black bg-[#fef9c3] border border-yellow-200 text-yellow-700 hover:bg-yellow-100 transition-colors duration-200">
+                            <i data-lucide="navigation" class="w-3.5 h-3.5"></i>
+                            فتح في خرائط Google
                         </a>
-
-                        @* Coordinates pill *@
-                        @if (c.Latitude.HasValue && c.Longitude.HasValue)
-                        {
-                            <div class="flex items-center justify-center gap-1.5 text-[9px] font-black text-outline uppercase tracking-widest">
-                                <i data-lucide="crosshair" class="w-3 h-3"></i>
-                                <span style="direction:ltr;">@c.Latitude.Value.ToString("F4"), @c.Longitude.Value.ToString("F4")</span>
-                            </div>
-                        }
-
+                    </div>
+                </div>
+            }
+            @* Map link only (no coordinates) *@
+            @if (hasMap && (!c.Latitude.HasValue || !c.Longitude.HasValue))
+            {
+                <div class="info-card sr">
+                    <div class="info-card-header">
+                        <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> الموقع الجغرافي
+                    </div>
+                    <div class="p-3">
+                        <a href="@c.GoogleMapsUrl" target="_blank"
+                           class="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-xs font-black bg-[#fef9c3] border border-yellow-200 text-yellow-700 hover:bg-yellow-100 transition-colors duration-200">
+                            <i data-lucide="navigation" class="w-4 h-4"></i>
+                            عرض على خرائط Google
+                        </a>
                     </div>
                 </div>
             }

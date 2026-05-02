@@ -10,13 +10,13 @@ using NuGet.Protocol.Plugins;
 
 namespace AnnouncmentHub.Controllers
 {
-    public class HubControllerold : Controller
+    public class HubController1 : Controller
     {
         private readonly ApplicationDbContext _context;
         private readonly AnnouncementRepository _repository;
         private readonly BreadcrumbService _breadcrumbService;
 
-        public HubControllerold(ApplicationDbContext context,  AnnouncementRepository repository, BreadcrumbService breadcrumbService)
+        public HubController1(ApplicationDbContext context, AnnouncementRepository repository, BreadcrumbService breadcrumbService)
         {
             _context = context;
             _repository = repository;
@@ -54,11 +54,23 @@ namespace AnnouncmentHub.Controllers
             ViewBag.ClientCount = await _context.Clients
                 .CountAsync(c => c.IsActive);
 
-            // Parent categories for the hero search dropdown
-            ViewBag.ParentCategories = await _context.Categories
+            // Parent categories + subcategories for hero dropdown & category cards
+            var parentCategories = await _context.Categories
                 .Where(c => c.IsParent)
+                .Include(c => c.SubCategoryMappings)
+                    .ThenInclude(m => m.SubCategory)
                 .AsNoTracking()
                 .ToListAsync();
+
+            ViewBag.ParentCategories = parentCategories;
+
+            // Count of active announcements per parent category (for category cards)
+            var categoryIds = parentCategories.Select(c => c.Id).ToList();
+            ViewBag.CategoryCounts = await _context.AnnouncementCategories
+                .Where(ac => ac.Announcement.IsActive && categoryIds.Contains(ac.CategoryId))
+                .GroupBy(ac => ac.CategoryId)
+                .Select(g => new { CategoryId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.CategoryId, x => x.Count);
 
             return View();
         }
@@ -251,35 +263,35 @@ namespace AnnouncmentHub.Controllers
 
             return PartialView("_Top30RandomClients", clients);
 
-           
+
         }
 
 
-    //    public async Task<IActionResult> Search(
-    //string title,
-    //List<int>? categoryIds,
-    //int? clientId,
-    //DateTime? dateFrom,
-    //DateTime? dateTo,
-    //int page = 1,
-    //int pageSize = 10)
-    //    {
-    //        var result = await _repository.GetAnnouncementsDynamic(
-    //            title,
-    //            categoryIds,
-    //            clientId,
-    //            dateFrom,
-    //            dateTo,
-    //            page,
-    //            pageSize
-    //        );
+        //    public async Task<IActionResult> Search(
+        //string title,
+        //List<int>? categoryIds,
+        //int? clientId,
+        //DateTime? dateFrom,
+        //DateTime? dateTo,
+        //int page = 1,
+        //int pageSize = 10)
+        //    {
+        //        var result = await _repository.GetAnnouncementsDynamic(
+        //            title,
+        //            categoryIds,
+        //            clientId,
+        //            dateFrom,
+        //            dateTo,
+        //            page,
+        //            pageSize
+        //        );
 
-    //        ViewBag.TotalCount = result.TotalCount;
-    //        ViewBag.AllCategories = await GetAllCategories();
-    //        ViewBag.SelectedCategories = categoryIds ?? new List<int>();
+        //        ViewBag.TotalCount = result.TotalCount;
+        //        ViewBag.AllCategories = await GetAllCategories();
+        //        ViewBag.SelectedCategories = categoryIds ?? new List<int>();
 
-    //        return View(result);
-    //    }
+        //        return View(result);
+        //    }
         public async Task<IActionResult> Search(
             string? title,
             int? mainCategoryId,
@@ -450,6 +462,19 @@ namespace AnnouncmentHub.Controllers
             });
         }
 
+        /// <summary>Returns subcategories for a main category as JSON — used by search page AJAX</summary>
+        [HttpGet]
+        public async Task<IActionResult> GetSubCategoriesJson(int mainCategoryId)
+        {
+            var subs = await _context.CategoryParentMappings
+                .Where(m => m.ParentCategoryId == mainCategoryId)
+                .Select(m => new { id = m.SubCategoryId, name = m.SubCategory.CatName })
+                .AsNoTracking()
+                .ToListAsync();
+
+            return Json(subs);
+        }
+
         public async Task<List<CategoryJsonLink>> GetAllCategories()
         {
             return await _context.Categories.Where(c => c.IsParent == true)
@@ -459,7 +484,7 @@ namespace AnnouncmentHub.Controllers
                     CategoryName = c.CatName
                 })
                 .AsNoTracking().ToListAsync();
-      
+
         }
         public async Task<IActionResult> Clients(int page = 1, int pageSize = 10)
         {
@@ -515,7 +540,7 @@ namespace AnnouncmentHub.Controllers
                 Name = client.ClientName ?? "الملف الشخصي للعميل" // "Client Profile" in Arabic
             });
 
-            ViewBag.Breadcrumb = await _breadcrumbService.GetClientBreadcrumbAsync(id);
+            ViewBag.Breadcrumb = await _breadcrumbService.GetCategoryBreadcrumbAsync(id);
 
             var vm = new ClientAnnouncementsViewModel
             {
@@ -756,133 +781,7 @@ namespace AnnouncmentHub.Controllers
         }
 
 
-        //public async Task<IActionResult> SubCategoryAnnouncements(int id, int page = 1, int pageSize = 10)
-        //{
-        //    // Load subcategory itself
-        //    var subcategory = await _context.Categories
-        //        .Include(c => c.ParentMappings)
-        //        .FirstOrDefaultAsync(c => c.Id == id);
 
-        //    if (subcategory == null)
-        //        return NotFound();
-
-        //    // Get parent category
-        //    var parentId = subcategory.ParentMappings.FirstOrDefault()?.ParentCategoryId;
-
-        //    if (parentId == null)
-        //        return NotFound("This subcategory has no parent category.");
-
-        //    // Load ALL Subcategories under same parent
-        //    var siblingSubcategories = _context.CategoryParentMappings
-        //        .Where(x => x.ParentCategoryId == parentId)
-        //        .Select(x => x.SubCategory)
-        //        .ToList();
-
-        //    // Prepare default filter
-        //    List<int> filterIds = new List<int> { id };
-
-        //    // Query announcements
-        //    var query = _context.AnnouncementCategories
-        //        .Where(ac => filterIds.Contains(ac.CategoryId))
-        //        .Select(ac => ac.Announcement)
-        //        .Distinct();
-
-        //    int totalCount = query.Count();
-
-        //    var announcements = query
-        //        .OrderByDescending(a => a.AddedDate)
-        //        .Skip((page - 1) * pageSize)
-        //        .Take(pageSize)
-        //        .Select(a => new AnnouncementDto
-        //        {
-        //            Id = a.Id,
-        //            Title = a.Title,
-        //            Description = a.Description,
-        //            FilePath = a.FilePath,
-        //            AddedDate = a.AddedDate,
-        //            ClientId = a.ClientId,
-        //            Client = a.Client
-        //        })
-        //        .ToList();
-
-        //    // Breadcrumb
-        //    var breadcrumb = await _breadcrumbService.GetCategoryBreadcrumbAsync(id);
-        //    ViewBag.Breadcrumb = await _breadcrumbService.GetCategoryBreadcrumbAsync(id);
-
-
-        //    // Build VM
-        //    var vm = new CategoryAnnouncementsViewModel
-        //    {
-        //        IsSubcategoryPage = true,
-        //        ParentCategoryId = parentId,
-        //        CategoryId = id,
-        //        CategoryName = subcategory.CatName,
-        //        IconUrl = subcategory.IconUrl,
-        //        Breadcrumb = breadcrumb,
-        //        Subcategories = siblingSubcategories,
-        //        SelectedSubcategories = new List<int> { id },
-        //        Announcements = announcements,
-        //        PageNumber = page,
-        //        PageSize = pageSize,
-        //        TotalCount = totalCount
-        //    };
-
-        //    return View("CategoryAnnouncements", vm);
-        //}
-        //[HttpPost]
-        //public IActionResult SubCategoryFilterAjax([FromBody] FilterRequestViewModel req)
-        //{
-        //    // Load siblings
-        //    var subcategories = _context.CategoryParentMappings
-        //        .Where(cpm => cpm.ParentCategoryId == req.CategoryId) // Parent
-        //        .Select(cpm => cpm.SubCategory)
-        //        .ToList();
-
-        //    // Filter logic
-        //    bool all = req.Subcategories == null || req.Subcategories.Count == 0;
-
-        //    var filterIds = all
-        //        ? subcategories.Select(s => s.Id).ToList()
-        //        : req.Subcategories;
-
-        //    var query = _context.AnnouncementCategories
-        //        .Where(ac => filterIds.Contains(ac.CategoryId))
-        //        .Select(ac => ac.Announcement)
-        //        .Distinct();
-
-        //    int totalCount = query.Count();
-
-        //    var announcements = query
-        //        .OrderByDescending(a => a.AddedDate)
-        //        .Skip((req.Page - 1) * req.PageSize)
-        //        .Take(req.PageSize)
-        //        .Select(a => new AnnouncementDto
-        //        {
-        //            Id = a.Id,
-        //            Title = a.Title,
-        //            Description = a.Description,
-        //            FilePath = a.FilePath,
-        //            AddedDate = a.AddedDate
-        //        })
-        //        .ToList();
-
-        //    var vm = new CategoryAnnouncementsViewModel
-        //    {
-        //        CategoryId = req.CategoryId,
-        //        Announcements = announcements,
-        //        PageNumber = req.Page,
-        //        PageSize = req.PageSize,
-        //        TotalCount = totalCount,
-        //        Subcategories = subcategories,
-        //        SelectedSubcategories = req.Subcategories
-        //    };
-
-        //    return Json(new
-        //    {
-        //        announcements = RenderPartial("_AnnouncementsPartial", vm),
-        //        pagination = RenderPartial("_PaginationPartial", vm)
-        //    });
-        //}
         public async Task<IActionResult> SubCategoryAnnouncements(int id, int page = 1, int pageSize = 10)
         {
             var subcategory = await _context.Categories
@@ -981,7 +880,7 @@ namespace AnnouncmentHub.Controllers
                 return NotFound();
 
             var breadcrumb = new List<BreadcrumbItem>();
-            
+
 
             if (clientId.HasValue && announcement.Client != null)
             {

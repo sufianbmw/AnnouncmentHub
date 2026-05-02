@@ -531,16 +531,12 @@ namespace AnnouncmentHub.Controllers
                 pageNumber: page,
                 pageSize: pageSize
             );
-            // 🟢 Breadcrumb: Home → Client
-            var breadcrumb = new List<BreadcrumbItem>();
-
-            breadcrumb.Add(new BreadcrumbItem
+            // 🟢 Breadcrumb: Home → Clients → ClientName
+            ViewBag.Breadcrumb = new List<BreadcrumbItem>
             {
-                Id = client.Id,
-                Name = client.ClientName ?? "الملف الشخصي للعميل" // "Client Profile" in Arabic
-            });
-
-            ViewBag.Breadcrumb = await _breadcrumbService.GetCategoryBreadcrumbAsync(id);
+                new BreadcrumbItem { Name = "العملاء", Url = "../Clients" },
+                new BreadcrumbItem { Name = client.ClientName ?? "الملف الشخصي" }
+            };
 
             var vm = new ClientAnnouncementsViewModel
             {
