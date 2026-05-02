@@ -1,0 +1,17 @@
+﻿@using AnnouncmentHub.Models
+@model List<AnnouncmentHub.Models.Page>
+
+@if (Model != null && Model.Any())
+{
+    <div class="col-md-3 mb-3">
+        <h6 class="footer-heading">📄 صفحات</h6>
+        <ul class="footer-links">
+            @foreach (var page in Model)
+            {
+                <li class="mb-2">
+                    <a href="/Hub/Page/@(page.Id)" class="footer-link">@(page.PageTitle)</a>
+                </li>
+            }
+        </ul>
+    </div>
+}

@@ -3,13 +3,16 @@
 
 @if (Model != null && Model.Any())
 {
-    <div class="col-md-3 mb-3">
-        <h6 class="footer-heading">📄 صفحات</h6>
-        <ul class="footer-links">
+    <div class="space-y-4">
+        <h4 class="text-xs font-black uppercase tracking-widest text-secondary">صفحات</h4>
+        <ul class="space-y-3">
             @foreach (var page in Model)
             {
-                <li class="mb-2">
-                    <a href="/Hub/Page/@(page.Id)" class="footer-link">@(page.PageTitle)</a>
+                <li>
+                    <a href="/Hub/Page/@(page.Id)"
+                       class="footer-link text-xs font-bold text-on-surface-variant">
+                        @(page.PageTitle)
+                    </a>
                 </li>
             }
         </ul>

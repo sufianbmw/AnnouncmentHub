@@ -1,316 +1,353 @@
 ﻿@using AnnouncmentHub.Models
+@using AnnouncmentHub.ViewModels
+@model AnnouncmentHub.ViewModels.AnnouncementSearchResult
 @{
     var parentCategories = ViewBag.ParentCategories as List<Category>;
     ViewData["Title"] = "تصفّح بالتصنيف";
+
+    string GetCatIcon(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "tag";
+        var n = name.ToLower();
+        if (n.Contains("سيار") || n.Contains("car"))     return "car";
+        if (n.Contains("عقار") || n.Contains("real"))    return "building-2";
+        if (n.Contains("إلكتر") || n.Contains("tech"))   return "smartphone";
+        if (n.Contains("تعليم") || n.Contains("edu"))    return "graduation-cap";
+        if (n.Contains("سياح") || n.Contains("tour"))    return "palmtree";
+        if (n.Contains("سوق") || n.Contains("market"))   return "shopping-bag";
+        if (n.Contains("خدم") || n.Contains("service"))  return "wrench";
+        if (n.Contains("وظيف") || n.Contains("job"))     return "briefcase";
+        if (n.Contains("أثاث") || n.Contains("furni"))   return "sofa";
+        if (n.Contains("رياض") || n.Contains("sport"))   return "dumbbell";
+        return "tag";
+    }
 }
 
-@* ═══════════════════════ PDF MODAL (unchanged) ═══════════════════════ *@
-<div id="pdfModal" class="modal">
-    <div class="modal-content">
-        <span id="closePdfModal" class="close">&times;</span>
-        <iframe id="pdfViewerFrame" src="" width="100%" height="800px" style="border:none;"></iframe>
-        <div id="pdfShareButtons" class="pdf-share mt-2" style="display:flex; gap:10px; justify-content:center;">
-            <a id="pdf-share-facebook" target="_blank" rel="noopener noreferrer" title="مشاركة على فيسبوك" class="social-btn fb"><i class="fab fa-facebook-f"></i></a>
-            <a id="pdf-share-twitter" target="_blank" rel="noopener noreferrer" title="مشاركة على تويتر" class="social-btn tw"><i class="fab fa-twitter"></i></a>
-            <a id="pdf-share-whatsapp" target="_blank" rel="noopener noreferrer" title="مشاركة على واتساب" class="social-btn wa"><i class="fab fa-whatsapp"></i></a>
-            <a id="pdf-share-download" target="_blank" rel="noopener noreferrer" title="تحميل" class="social-btn Dow"><i class="fa-solid fa-download"></i></a>
+@section Styles {
+<style>
+    /* ── Category cards ── */
+    .cat-card {
+        background: #f7f4ee; border-radius: 20px;
+        border: 2px solid #e8e4d8;
+        padding: 20px 16px; text-align: center;
+        cursor: pointer; text-decoration: none; display: flex;
+        flex-direction: column; align-items: center; gap: 10px;
+        transition: transform .25s cubic-bezier(0.34,1.56,0.64,1), box-shadow .25s ease, border-color .2s;
+        position: relative;
+    }
+    .cat-card:hover       { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(0,0,0,.09); border-color: rgba(13,148,136,.3); }
+    .cat-card.active      { border-color: #0d9488; box-shadow: 0 0 0 3px rgba(13,148,136,.15), 0 8px 24px rgba(13,148,136,.2); transform: translateY(-4px); }
+    .cat-icon-wrap        { width: 52px; height: 52px; border-radius: 14px; background: #e6f4f2; display: flex; align-items: center; justify-content: center; transition: background .2s; }
+    .cat-card.active .cat-icon-wrap { background: #0d9488; }
+    .cat-card.active .cat-icon-wrap svg { color: #fff !important; }
+
+    /* ── Toggle chevron ── */
+    .cat-toggle-btn {
+        position: absolute; bottom: 8px; left: 8px;
+        width: 26px; height: 26px; border-radius: 50%;
+        background: #e6f4f2; border: 1px solid rgba(13,148,136,.2);
+        display: flex; align-items: center; justify-content: center;
+        transition: all .2s; cursor: pointer; color: #0d9488;
+    }
+    .cat-toggle-btn:hover { background: #0d9488; color: #fff; }
+    .cat-toggle-btn.rotated svg { transform: rotate(180deg); }
+
+    /* ── Subcats bar ── */
+    #subcats-bar { transform-origin: top center; }
+    #subcats-bar.bar-enter { animation: barIn .35s cubic-bezier(0.16,1,0.3,1) forwards; }
+    #subcats-bar.bar-exit  { animation: barOut .22s ease forwards; }
+    @@keyframes barIn  { from { opacity:0; transform:scaleY(.85) translateY(-8px); } to { opacity:1; transform:scaleY(1) translateY(0); } }
+    @@keyframes barOut { from { opacity:1; transform:scaleY(1) translateY(0); }      to { opacity:0; transform:scaleY(.85) translateY(-8px); } }
+
+    .subcat-pill {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 7px 14px; border-radius: 10px;
+        font-size: 11px; font-weight: 800;
+        border: 2px solid #e8e4d8; background: #f7f4ee; color: #555;
+        cursor: pointer; transition: all .2s cubic-bezier(0.34,1.56,0.64,1);
+        opacity: 0; animation: pillPop .3s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    }
+    @for (int d = 0; d < 16; d++) {
+        @:.subcat-pill:nth-child(@(d+1)) { animation-delay: @(d * 0.05)s; }
+    }
+    @@keyframes pillPop { to { opacity:1; transform:scale(1) translateY(0); } }
+    .subcat-pill:hover { background: #e6f4f2; border-color: #0d9488; color: #0d9488; transform: translateY(-2px); }
+    .subcat-pill.active { background: linear-gradient(135deg,#0d9488,#0f766e); color: #fff; border-color: transparent; box-shadow: 0 4px 12px rgba(13,148,136,.35); transform: translateY(-2px); }
+
+    /* ── Announcements ── */
+    .ann-wrap { transition: opacity .25s ease, transform .25s ease; }
+    .ann-wrap.loading { opacity: 0; transform: translateY(10px); pointer-events: none; }
+
+    .ann-card {
+        background: #f7f4ee; border-radius: 16px; overflow: hidden;
+        border: 1px solid #e0ddd4; text-decoration: none; display: block;
+        opacity: 0; animation: annIn .4s cubic-bezier(0.16,1,0.3,1) forwards;
+        transition: transform .25s ease, box-shadow .25s ease;
+    }
+    .ann-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,0,0,.1); }
+    @for (int d = 0; d < 12; d++) {
+        @:.ann-card:nth-child(@(d+1)) { animation-delay: @(d * 0.055)s; }
+    }
+    @@keyframes annIn { to { opacity:1; } }
+
+    .ann-img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
+
+    /* ── Spinner ── */
+    .spin { animation: spin .8s linear infinite; }
+    @@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+}
+
+<div class="bg-[#f0ede4] min-h-screen" dir="rtl">
+
+    @* ── Hero ── *@
+    <div class="relative overflow-hidden pt-6 pb-10 px-4 md:px-8"
+         style="background: linear-gradient(160deg,#eae7de 0%,#f0ede4 60%,#e4e1d8 100%);">
+        <div class="absolute inset-0 pointer-events-none"
+             style="background: radial-gradient(circle at 75% 50%, rgba(13,148,136,.07) 0%, transparent 55%),
+                                radial-gradient(circle at 10% 80%, rgba(245,158,11,.05) 0%, transparent 50%);"></div>
+        <div class="max-w-7xl mx-auto relative">
+            <span class="text-secondary font-bold text-xs tracking-[.2em] uppercase mb-1.5 block">استكشف الإعلانات</span>
+            <h1 class="text-3xl md:text-4xl font-black font-headline tracking-tighter text-on-surface">تصفّح بالتصنيف</h1>
         </div>
     </div>
-</div>
 
-@* ═══════════════════════ IMAGE SHARE BUTTONS (unchanged) ═══════════════════════ *@
-<div id="imageShareButtons" class="pdf-share" style="display:none;">
-    <a id="image-share-facebook" target="_blank" rel="noopener noreferrer" title="مشاركة على فيسبوك" class="social-btn fb"><i class="fab fa-facebook-f"></i></a>
-    <a id="image-share-twitter" target="_blank" rel="noopener noreferrer" title="مشاركة على تويتر" class="social-btn tw"><i class="fab fa-twitter"></i></a>
-    <a id="image-share-whatsapp" target="_blank" rel="noopener noreferrer" title="مشاركة على واتساب" class="social-btn wa"><i class="fab fa-whatsapp"></i></a>
-    <a id="image-share-download" target="_blank" rel="noopener noreferrer" title="تحميل" class="social-btn Dow"><i class="fa-solid fa-download"></i></a>
-</div>
+    <div class="max-w-7xl mx-auto px-4 md:px-8 py-10 space-y-8">
 
-@* ═══════════════════════ PAGE HEADER ═══════════════════════ *@
-<div class="bg-[#f0ede4] pt-8 pb-6 px-4 md:px-8 border-b border-outline-variant/40">
-    <div class="max-w-7xl mx-auto">
-        <span class="text-secondary font-bold text-sm tracking-[0.2em] uppercase mb-2 block">استكشف الإعلانات</span>
-        <h1 class="text-3xl md:text-4xl font-black font-headline tracking-tighter">تصفّح بالتصنيف</h1>
-    </div>
-</div>
+        @* ── Category cards grid ── *@
+        @if (parentCategories != null && parentCategories.Any())
+        {
+            <div>
+                <p class="text-[10px] font-black text-outline uppercase tracking-widest mb-4">اختر تصنيفاً رئيسياً</p>
 
-@* ═══════════════════════ CATEGORY BROWSER ═══════════════════════ *@
-<div class="max-w-7xl mx-auto px-4 md:px-8 py-8">
+                <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3" id="cat-grid">
+                    @foreach (var cat in parentCategories)
+                    {
+                        var icon = string.IsNullOrWhiteSpace(cat.IconUrl) ? GetCatIcon(cat.CatName) : cat.IconUrl;
+                        <div class="cat-card" data-cat-id="@cat.Id">
+                            <div class="cat-icon-wrap">
+                                <i data-lucide="@icon" class="w-6 h-6 text-secondary"></i>
+                            </div>
+                            <span class="text-[11px] font-black text-on-surface leading-tight text-center">@cat.CatName</span>
 
-    @* Parent category buttons *@
-    <div class="bg-[#f7f4ee] rounded-2xl p-5 md:p-7 mb-6 shadow-sm border border-outline-variant/30">
+                            @* Hidden subcategory data — fetched via AJAX and cached here *@
+                            <ul class="sub-source hidden" id="sub-@cat.Id"></ul>
 
-        <p class="text-xs font-black text-outline uppercase tracking-widest mb-4">اختر تصنيفاً رئيسياً</p>
+                            <button class="cat-toggle-btn" data-cat-id="@cat.Id" title="الأقسام الفرعية">
+                                <svg class="w-3.5 h-3.5 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </button>
+                        </div>
+                    }
+                </div>
 
-        <div class="flex flex-wrap gap-3" id="parentCategoryList">
-            @if (parentCategories != null)
-            {
-                @foreach (var category in parentCategories)
-                {
-                    <button class="category-btn px-5 py-2.5 rounded-xl text-sm font-black border-2 border-transparent
-                                           bg-[#e8e4d8] text-on-surface-variant
-                                           hover:bg-secondary hover:text-white hover:border-secondary
-                                           active:scale-95 transition-all duration-200"
-                            data-category-id="@category.Id">
-                        @category.CatName
-                    </button>
-                }
-            }
-        </div>
-
-        @* Subcategory strip — populated by JS *@
-        <div id="subcategories-container" class="mt-5 pt-5 border-t border-outline-variant/40 hidden">
-            <p class="text-xs font-black text-outline uppercase tracking-widest mb-3">اختر تصنيفاً فرعياً</p>
-            <div id="subcategories-list-inner" class="flex flex-wrap gap-2"></div>
-        </div>
-    </div>
-
-    @* Announcement results area *@
-    <div id="announcementArea">
-        <div id="announcementList">
-
-            @* Default empty state *@
-            <div id="emptyState" class="text-center py-20 text-on-surface-variant">
-                <i data-lucide="layout-grid" class="w-14 h-14 mx-auto mb-4 opacity-25"></i>
-                <p class="font-black text-base mb-1">اختر تصنيفاً للبدء</p>
-                <p class="text-sm">اضغط على أحد التصنيفات الرئيسية أعلاه</p>
+                @* ── Subcats bar ── *@
+                <div id="subcats-bar" class="mt-4" style="display:none;">
+                    <div id="subcats-arrow"
+                         style="position:relative; height:8px; margin-bottom:-1px;">
+                        <div id="subcats-arrow-inner"
+                             style="position:absolute; width:16px; height:16px; background:#f7f4ee; border:1px solid rgba(214,208,196,.5); transform:rotate(45deg); top:2px; left:50%; margin-left:-8px; border-radius:2px; transition: left .35s cubic-bezier(0.16,1,0.3,1);"></div>
+                    </div>
+                    <div class="bg-[#f7f4ee] border border-[#d6d0c4]/50 rounded-2xl px-5 py-4 flex flex-wrap gap-2 justify-center shadow-[0_4px_24px_rgba(0,0,0,.07)]"
+                         id="subcats-pills"></div>
+                </div>
             </div>
+        }
 
+        @* ── Results header ── *@
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span id="results-label" class="text-[11px] font-black text-outline uppercase tracking-widest">
+                    كل الإعلانات — @(Model?.TotalCount ?? 0) إعلان
+                </span>
+                <div id="loading-spinner" class="hidden">
+                    <svg class="spin w-4 h-4 text-secondary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                    </svg>
+                </div>
+            </div>
+            <span id="active-cat-label" class="hidden px-3 py-1 bg-secondary/10 border border-secondary/20 rounded-full text-[11px] font-black text-secondary"></span>
         </div>
+
+        @* ── Announcements grid ── *@
+        <div class="ann-wrap" id="ann-container">
+
+            @* Default: all announcements using Top30 style *@
+        @await Html.PartialAsync("_RandomAnnouncementsTop30", Model)
+        </div>
+
     </div>
-
 </div>
-
-@* PhotoSwipe gallery root (unchanged) *@
-<div class="pswp-gallery" id="imageGallery"></div>
-<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true"></div>
 
 @section Scripts {
-    <script src="~/js/photoswipe/photoswipe.umd.min.js"></script>
-    <script src="~/js/photoswipe/photoswipe-lightbox.umd.min.js"></script>
-    <link href="~/css/landing.css" rel="stylesheet" />
+<script>
+document.addEventListener('DOMContentLoaded', function () {
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
+    const bar      = document.getElementById('subcats-bar');
+    const pills    = document.getElementById('subcats-pills');
+    const arrow    = document.getElementById('subcats-arrow-inner');
+    const annWrap  = document.getElementById('ann-container');
+    const label    = document.getElementById('results-label');
+    const spinner  = document.getElementById('loading-spinner');
+    const catLabel = document.getElementById('active-cat-label');
+    const grid     = document.getElementById('cat-grid');
 
-            // ═══════════════════════════════════════════════
-            // ALL JS LOGIC BELOW IS UNCHANGED FROM ORIGINAL
-            // ═══════════════════════════════════════════════
+    let activeCatId  = null;
+    let activeSubId  = null;
+    let subCache     = {}; // catId → [{id,catName}]
 
-            // 🔗 Share helper
-            function updateShareLinks(prefix, url) {
-                const full = url.startsWith('http') ? url : window.location.origin + url;
-                const enc = encodeURIComponent(full);
-                const fb = document.getElementById(`${prefix}-facebook`);
-                const tw = document.getElementById(`${prefix}-twitter`);
-                const wa = document.getElementById(`${prefix}-whatsapp`);
-                const dw = document.getElementById(`${prefix}-download`);
-                if (fb && tw && wa && dw) {
-                    fb.href = `https://www.facebook.com/sharer/sharer.php?u=${enc}`;
-                    tw.href = `https://twitter.com/intent/tweet?url=${enc}`;
-                    wa.href = `https://wa.me/?text=${enc}`;
-                    dw.href = full;
-                }
-            }
+    // ── helpers ──────────────────────────────────────────
+    function closeBar(animate) {
+        if (!animate) { bar.style.display = 'none'; return; }
+        bar.classList.remove('bar-enter');
+        bar.classList.add('bar-exit');
+        bar.addEventListener('animationend', () => {
+            bar.style.display = 'none';
+            bar.classList.remove('bar-exit');
+        }, { once: true });
+    }
 
-            // ✅ PDF viewer
-            function openPdfViewer(filePath) {
-                const fullUrl = window.location.origin + `/Scripts/pdfjs/web/viewer.html?file=${filePath}`;
-                document.getElementById('pdfViewerFrame').src = fullUrl;
-                const fileFullUrl = window.location.origin + filePath;
-                updateShareLinks('pdf-share', fileFullUrl);
-                document.getElementById('pdfModal').style.display = 'flex';
-            }
-
-            // Close modal
-            document.getElementById("closePdfModal").onclick = function () {
-                document.getElementById('pdfModal').style.display = "none";
-                document.getElementById('pdfViewerFrame').src = "";
-            };
-            window.onclick = function (e) {
-                const modal = document.getElementById('pdfModal');
-                if (e.target === modal) {
-                    modal.style.display = "none";
-                    document.getElementById('pdfViewerFrame').src = "";
-                }
-            };
-
-            // Load subcategories
-            window.loadSubcategories = function (parentId) {
-                fetch(`/Hub/GetSubcategories?parentId=${parentId}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        const wrapper = document.getElementById('subcategories-container');
-                        const inner   = document.getElementById('subcategories-list-inner');
-                        inner.innerHTML = '';
-
-                        if (data.length === 0) {
-                            inner.innerHTML = '<p class="text-sm text-on-surface-variant">لا توجد تصنيفات فرعية حالياً</p>';
-                            wrapper.classList.remove('hidden');
-                            return;
-                        }
-
-                        data.forEach(sub => {
-                            const btn = document.createElement('button');
-                            btn.className = 'subcategory-btn px-4 py-2 rounded-xl text-xs font-black border-2 border-transparent bg-[#e8e4d8] text-on-surface-variant hover:bg-secondary hover:text-white transition-all duration-200';
-                            btn.setAttribute('data-subcategory-id', sub.id);
-                            btn.textContent = sub.catName;
-                            inner.appendChild(btn);
-                        });
-
-                        wrapper.classList.remove('hidden');
-
-                        inner.querySelectorAll('.subcategory-btn').forEach(btn => {
-                            btn.addEventListener('click', () => {
-                                inner.querySelectorAll('.subcategory-btn').forEach(b => b.classList.remove('active', 'bg-secondary', 'text-white'));
-                                btn.classList.add('active', 'bg-secondary', 'text-white');
-                                loadAnnouncementsBySubcategory(btn.dataset.subcategoryId);
-                            });
-                        });
-                    });
-            };
-
-            // Load announcements — new card HTML, same fetch logic
-            function loadAnnouncementsBySubcategory(id) {
-                const list = document.getElementById('announcementList');
-                list.innerHTML = `
-                    <div class="text-center py-12 text-on-surface-variant">
-                        <div class="w-8 h-8 border-2 border-secondary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-                        <p class="text-sm font-bold">جاري التحميل...</p>
-                    </div>`;
-
-                fetch(`/Hub/GetAnnouncementsBySubcategory?subCategoryId=${id}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        list.innerHTML = '';
-
-                        if (!data.length) {
-                            list.innerHTML = `
-                                <div class="text-center py-16 text-on-surface-variant">
-                                    <p class="font-bold text-sm">لا توجد إعلانات في هذا التصنيف حالياً</p>
-                                </div>`;
-                            return;
-                        }
-
-                        const grid = document.createElement('div');
-                        grid.className = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5';
-
-                        data.forEach(item => {
-                            const card = document.createElement('div');
-                            card.className = 'listing-card group cursor-pointer';
-                            card.innerHTML = `
-                                <div class="listing-img-wrap relative aspect-[4/3] mb-3">
-                                    <a href="/Hub/Details/${item.id}">
-                                        <img src="${item.thumbnailPath}"
-                                             class="listing-img w-full h-full object-cover"
-                                             alt="${item.title}"
-                                             loading="lazy"
-                                             onerror="this.onerror=null;this.src='/images/file-icons/no-image.jpg';" />
-                                    </a>
-                                    <button class="viewFileBtn wishlist-btn absolute top-3 left-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm"
-                                            data-file-path="${item.filePath}">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                    </button>
-                                </div>
-                                <div class="px-1">
-                                    <a href="/Hub/Details/${item.id}"
-                                       class="block font-black text-sm text-on-surface leading-tight hover:text-secondary transition-colors line-clamp-2 mb-2">
-                                        ${item.title}
-                                    </a>
-                                    <span class="text-[10px] font-black text-secondary flex items-center gap-1">
-                                        عرض التفاصيل →
-                                    </span>
-                                </div>`;
-                            grid.appendChild(card);
-                        });
-
-                        list.appendChild(grid);
-                        lucide.createIcons(); // re-init any lucide icons
-
-                        // Attach file viewer to view buttons
-                        list.querySelectorAll('.viewFileBtn').forEach(button => {
-                            button.addEventListener('click', e => {
-                                e.preventDefault();
-                                const path = button.getAttribute('data-file-path');
-                                if (!path) return;
-                                const ext = path.split('.').pop().toLowerCase();
-                                const isImage = ['jpg','jpeg','png','gif','bmp','webp'].includes(ext);
-                                if (isImage) {
-                                    openImageViewer([{ url: path }]);
-                                } else {
-                                    openPdfViewer(path);
-                                }
-                            });
-                        });
-                    });
-            }
-
-            // Image size helper
-            async function getImageSize(url) {
-                return new Promise(res => {
-                    const img = new Image();
-                    img.onload  = () => res({ width: img.naturalWidth,  height: img.naturalHeight });
-                    img.onerror = () => res({ width: 800, height: 600 });
-                    img.src = url;
-                });
-            }
-
-            // Image viewer (PhotoSwipe — unchanged)
-            async function openImageViewer(imageList) {
-                const galleryEl = document.getElementById('imageGallery');
-                galleryEl.innerHTML = '';
-                for (const img of imageList) {
-                    if (!img.url) continue;
-                    const size   = await getImageSize(img.url);
-                    const anchor = document.createElement('a');
-                    anchor.href = img.url;
-                    anchor.setAttribute('data-pswp-width',  size.width);
-                    anchor.setAttribute('data-pswp-height', size.height);
-                    anchor.setAttribute('data-caption',     img.caption || '');
-                    anchor.innerHTML = `<img src="${img.url}" style="display:none" />`;
-                    galleryEl.appendChild(anchor);
-                }
-                const lightbox = new PhotoSwipeLightbox({
-                    gallery: '#imageGallery',
-                    children: 'a',
-                    pswpModule: PhotoSwipe,
-                    captionAttribute: 'data-caption'
-                });
-                lightbox.on('change', () => {
-                    const current = lightbox.pswp.currSlide;
-                    if (!current?.data?.src) return;
-                    const shareBar = document.getElementById('imageShareButtons');
-                    if (shareBar) {
-                        shareBar.style.display = 'inline-flex';
-                        updateShareLinks('image-share', current.data.src);
-                    }
-                });
-                lightbox.on('close', () => {
-                    const shareBar = document.getElementById('imageShareButtons');
-                    if (shareBar) shareBar.style.display = 'none';
-                });
-                lightbox.init();
-                galleryEl.querySelector('a')?.click();
-            }
-
-            // Hook parent category buttons
-            document.querySelectorAll('.category-btn').forEach(button => {
-                button.addEventListener('click', () => {
-                    document.querySelectorAll('.category-btn').forEach(b => {
-                        b.classList.remove('active', 'bg-secondary', 'text-white', 'border-secondary');
-                        b.classList.add('bg-[#e8e4d8]', 'text-on-surface-variant');
-                    });
-                    button.classList.add('active', 'bg-secondary', 'text-white', 'border-secondary');
-                    button.classList.remove('bg-[#e8e4d8]', 'text-on-surface-variant');
-
-                    // Hide empty state
-                    const empty = document.getElementById('emptyState');
-                    if (empty) empty.style.display = 'none';
-
-                    window.loadSubcategories(button.getAttribute('data-category-id'));
-                });
-            });
-
+    function resetAllCards() {
+        document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.cat-toggle-btn').forEach(b => {
+            b.classList.remove('rotated');
         });
-    </script>
+    }
+
+    function positionArrow(cardEl) {
+        const barRect  = bar.getBoundingClientRect();
+        const cardRect = cardEl.getBoundingClientRect();
+        const cx = (cardRect.left + cardRect.width / 2) - barRect.left;
+        arrow.style.left = Math.max(8, Math.min(barRect.width - 24, cx - 8)) + 'px';
+        arrow.style.marginLeft = '0';
+    }
+
+    function setLoading(on) {
+        if (on) { annWrap.classList.add('loading'); spinner.classList.remove('hidden'); }
+        else    { annWrap.classList.remove('loading'); spinner.classList.add('hidden'); }
+    }
+
+        // ── load announcements by subcat ─────────────────────
+    function loadBySubcat(subId, subName) {
+        activeSubId = subId;
+        setLoading(true);
+        catLabel.textContent = subName;
+        catLabel.classList.remove('hidden');
+
+        fetch(`/Hub/GetAnnouncementsBySubcategoryHtml?subCategoryId=${subId}`)
+            .then(r => r.text())
+            .then(html => {
+                setLoading(false);
+                annWrap.innerHTML = html;
+                lucide.createIcons();
+                // count cards
+                const count = annWrap.querySelectorAll('.listing-card').length;
+                label.textContent = `${count} إعلان — ${subName}`;
+                annWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            })
+            .catch(() => setLoading(false));
+    }
+
+    // ── build subcats pills ───────────────────────────────
+    function buildPills(subs, cardEl) {
+        pills.innerHTML = '';
+        if (!subs.length) {
+            pills.innerHTML = '<span class="text-xs font-bold text-outline">لا توجد أقسام فرعية</span>';
+        } else {
+            subs.forEach(sub => {
+                const p = document.createElement('button');
+                p.className = 'subcat-pill';
+                p.dataset.subId = sub.id;
+                p.dataset.subName = sub.catName;
+                p.innerHTML = `<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 20l4-16m2 16 4-16M6 9h14M4 15h14"/></svg> ${sub.catName}`;
+                p.addEventListener('click', () => {
+                    pills.querySelectorAll('.subcat-pill').forEach(x => x.classList.remove('active'));
+                    p.classList.add('active');
+                    loadBySubcat(sub.id, sub.catName);
+                });
+                pills.appendChild(p);
+            });
+        }
+
+        bar.style.display = 'block';
+        bar.classList.remove('bar-exit');
+        requestAnimationFrame(() => {
+            positionArrow(cardEl);
+            bar.classList.add('bar-enter');
+            bar.addEventListener('animationend', () => bar.classList.remove('bar-enter'), { once: true });
+        });
+    }
+
+    // ── fetch or use cached subcats ───────────────────────
+    function openSubcats(catId, cardEl) {
+        if (subCache[catId] !== undefined) {
+            buildPills(subCache[catId], cardEl);
+            return;
+        }
+        fetch(`/Hub/GetSubcategories?parentId=${catId}`)
+            .then(r => r.json())
+            .then(data => {
+                subCache[catId] = data;
+                buildPills(data, cardEl);
+            });
+    }
+
+    // ── toggle btn click ──────────────────────────────────
+    document.querySelectorAll('.cat-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const catId  = this.dataset.catId;
+            const cardEl = this.closest('.cat-card');
+
+            // Toggle off
+            if (activeCatId === catId) {
+                closeBar(true);
+                resetAllCards();
+                activeCatId = null;
+                catLabel.classList.add('hidden');
+                return;
+            }
+
+            // Switch
+            resetAllCards();
+            activeCatId = catId;
+            cardEl.classList.add('active');
+            this.classList.add('rotated');
+            closeBar(false);
+            openSubcats(catId, cardEl);
+        });
+    });
+
+    // ── card body click → CategoryAnnouncements ───────────
+    document.querySelectorAll('.cat-card').forEach(card => {
+        card.addEventListener('click', function (e) {
+            if (e.target.closest('.cat-toggle-btn')) return;
+            window.location.href = `/Hub/CategoryAnnouncements/${this.dataset.catId}`;
+        });
+    });
+
+    // ── close on outside click ────────────────────────────
+    document.addEventListener('click', function (e) {
+        if (activeCatId && !e.target.closest('#cat-grid') && !e.target.closest('#subcats-bar')) {
+            closeBar(true);
+            resetAllCards();
+            activeCatId = null;
+            catLabel.classList.add('hidden');
+        }
+    });
+
+    // ── reposition arrow on resize ────────────────────────
+    window.addEventListener('resize', () => {
+        if (activeCatId) {
+            const activeCard = document.querySelector(`.cat-card[data-cat-id="${activeCatId}"]`);
+            if (activeCard) positionArrow(activeCard);
+        }
+    });
+
+    lucide.createIcons();
+});
+</script>
 }

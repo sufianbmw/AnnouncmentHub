@@ -1,0 +1,14 @@
+@using AnnouncmentHub.Models
+@model List<AnnouncmentHub.Models.Category>
+
+@if (Model != null && Model.Any())
+{
+    foreach (var cat in Model)
+    {
+        <a href="/Hub/SubCategoryAnnouncements/@(cat.Id)"
+           class="nav-cat text-xs font-bold text-on-surface-variant hover:text-secondary flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block flex-shrink-0"></span>
+            @cat.CatName
+        </a>
+    }
+}

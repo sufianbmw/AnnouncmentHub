@@ -428,20 +428,24 @@
         @* ── Left column: main content ── *@
         <div class="flex-1 min-w-0 space-y-7">
 
-            @* Share bar *@
-            <div class="flex flex-wrap gap-2 items-center sr">
+            @* Share bar — icon only *@
+            <div class="flex items-center gap-2 sr">
                 <span class="text-[10px] font-black text-outline uppercase tracking-widest ml-1">مشاركة</span>
-                <a href="@waUrl" target="_blank" class="share-btn share-btn-wa">
-                    <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> واتساب
+                <a href="@waUrl" target="_blank" title="واتساب"
+                   class="share-btn share-btn-wa w-9 h-9 p-0 rounded-xl flex items-center justify-center">
+                    <i data-lucide="message-circle" class="w-4 h-4"></i>
                 </a>
-                <a href="@fbUrl" target="_blank" class="share-btn share-btn-fb">
-                    <i data-lucide="facebook" class="w-3.5 h-3.5"></i> فيسبوك
+                <a href="@fbUrl" target="_blank" title="فيسبوك"
+                   class="share-btn share-btn-fb w-9 h-9 p-0 rounded-xl flex items-center justify-center">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
                 </a>
-                <a href="@twUrl" target="_blank" class="share-btn share-btn-tw">
-                    <i data-lucide="twitter" class="w-3.5 h-3.5"></i> X
+                <a href="@twUrl" target="_blank" title="X / تويتر"
+                   class="share-btn share-btn-tw w-9 h-9 p-0 rounded-xl flex items-center justify-center">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
                 </a>
-                <button class="share-btn share-btn-copy" id="copy-btn" onclick="copyLink()">
-                    <i data-lucide="link" class="w-3.5 h-3.5"></i> نسخ الرابط
+                <button id="copy-btn" onclick="copyLink()" title="نسخ الرابط"
+                        class="share-btn share-btn-copy w-9 h-9 p-0 rounded-xl flex items-center justify-center">
+                    <i data-lucide="link" class="w-4 h-4"></i>
                 </button>
             </div>
 
@@ -661,10 +665,10 @@
                         <i data-lucide="message-circle" class="w-4 h-4"></i> مشاركة عبر واتساب
                     </a>
                     <a href="@fbUrl" target="_blank" class="share-btn share-btn-fb w-full justify-center">
-                        <i data-lucide="facebook" class="w-4 h-4"></i> مشاركة عبر فيسبوك
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg> مشاركة عبر فيسبوك
                     </a>
                     <a href="@twUrl" target="_blank" class="share-btn share-btn-tw w-full justify-center">
-                        <i data-lucide="twitter" class="w-4 h-4"></i> مشاركة عبر X
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg> مشاركة عبر X
                     </a>
                     <button class="share-btn share-btn-copy w-full justify-center" id="copy-btn-2" onclick="copyLink()">
                         <i data-lucide="link" class="w-4 h-4"></i> نسخ الرابط

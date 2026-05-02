@@ -1,0 +1,62 @@
+@using AnnouncmentHub.ViewModels
+@model List<CategoryDto>
+
+@{
+    // Separator between items
+    string sep = "◆";
+}
+
+@if (Model != null && Model.Any())
+{
+    @* First pass *@
+    <div class="flex items-center gap-0 whitespace-nowrap ticker-track" aria-hidden="false">
+        @foreach (var item in Model)
+        {
+            <a href="/Hub/Details/@(item.Id)"
+               class="ticker-item inline-flex items-center gap-2.5 px-6 text-[11px] font-black tracking-wide text-white/90 hover:text-white transition-colors duration-200 group">
+                <span class="ticker-star w-4 h-4 rounded-full bg-amber-400/20 border border-amber-400/40 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-400/40 transition-colors duration-200">
+                    <svg class="w-2.5 h-2.5 text-amber-400" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                </span>
+                @(item.Name)
+                <span class="text-white/20 mx-1">@sep</span>
+            </a>
+        }
+    </div>
+
+    @* Duplicate for seamless infinite loop *@
+    <div class="flex items-center gap-0 whitespace-nowrap ticker-track" aria-hidden="true">
+        @foreach (var item in Model)
+        {
+            <a href="/Hub/Details/@item.Id"
+               class="ticker-item inline-flex items-center gap-2.5 px-6 text-[11px] font-black tracking-wide text-white/90 hover:text-white transition-colors duration-200 group">
+                <span class="ticker-star w-4 h-4 rounded-full bg-amber-400/20 border border-amber-400/40 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-400/40 transition-colors duration-200">
+                    <svg class="w-2.5 h-2.5 text-amber-400" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                </span>
+                @(item.Name)
+                <span class="text-white/20 mx-1">@sep</span>
+            </a>
+        }
+    </div>
+}
+else
+{
+    @* Fallback static items if no VIP announcements *@
+    <div class="flex items-center gap-16 px-8 whitespace-nowrap">
+        <span class="text-white/70 text-[11px] font-black tracking-widest uppercase flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse inline-block"></span>
+            منصة الإعلانات الأردنية الأولى
+        </span>
+        <span class="text-white/70 text-[11px] font-black tracking-widest uppercase flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse inline-block"></span>
+            عقارات · سيارات · إلكترونيات · خدمات
+        </span>
+        <span class="text-white/70 text-[11px] font-black tracking-widest uppercase flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse inline-block"></span>
+            متاجر موثّقة وعروض يومية
+        </span>
+    </div>
+}

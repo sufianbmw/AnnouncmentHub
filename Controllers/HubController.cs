@@ -82,40 +82,31 @@ namespace AnnouncmentHub.Controllers
         // GET: LandingPage (Parent categories, announcements by default)
         public async Task<IActionResult> LoadingHub()
         {
-            // Fetch all parent categories
             var parentCategories = await _context.Categories
                 .Where(c => c.IsParent)
+                .Include(c => c.SubCategoryMappings)
+                    .ThenInclude(m => m.SubCategory)
+                .AsNoTracking()
                 .ToListAsync();
 
-            // Fetch all announcements (no filter applied yet)
-            var announcements = await _context.Announcements
-                .Where(a => a.IsActive)
-                .OrderByDescending(a => a.AddedDate)
-                .ToListAsync();
+            var result = await _repository.GetAnnouncementsDynamic(
+                title: null,
+                categoryIds: null,
+                clientId: null,
+                dateFrom: null,
+                dateTo: null,
+                pageNumber: 1,
+                pageSize: 30,
+                isRandom: false
+            );
 
-            // Map announcements to view model with ThumbnailPath
-            var announcementsViewModel = announcements.Select(a => new AnnouncementViewModel
-            {
-                Id = a.Id,
-                Title = a.Title,
-                Description = a.Description,
-                FilePath = a.FilePath,
-                AddedDate = a.AddedDate,
-                IsActive = a.IsActive,
-                ThumbnailPath = GetThumbnailPath(a.FilePath)  // Ensure ThumbnailPath is set correctly
-            }).ToList();
-
-            // Pass data to view
             ViewBag.ParentCategories = parentCategories;
-            ViewBag.Announcements = announcementsViewModel;
-
-            // 🟢 Breadcrumb: just Home
             ViewBag.Breadcrumb = new List<BreadcrumbItem>
-                {
-                 new BreadcrumbItem { Id = 0, Name = "الرئيسية" }
-                };
+            {
+                new BreadcrumbItem { Id = 0, Name = "الرئيسية" }
+            };
 
-            return View();
+            return View(result);
         }
 
         // Deducing the thumbnail path based on file type
@@ -169,6 +160,23 @@ namespace AnnouncmentHub.Controllers
             }).ToList();
 
             return Json(announcements);
+        }
+
+        // GET: Returns full-detail HTML partial for announcements by subcategory
+        public async Task<IActionResult> GetAnnouncementsBySubcategoryHtml(int subCategoryId)
+        {
+            var result = await _repository.GetAnnouncementsDynamic(
+                title: null,
+                categoryIds: new List<int> { subCategoryId },
+                clientId: null,
+                dateFrom: null,
+                dateTo: null,
+                pageNumber: 1,
+                pageSize: 30,
+                isRandom: false
+            );
+
+            return PartialView("_RandomAnnouncementsTop30", result);
         }
 
         //public async Task<IActionResult> RandomAnnouncementsTop30()
@@ -534,7 +542,7 @@ namespace AnnouncmentHub.Controllers
             // 🟢 Breadcrumb: Home → Clients → ClientName
             ViewBag.Breadcrumb = new List<BreadcrumbItem>
             {
-                new BreadcrumbItem { Name = "العملاء", Url = "../Clients" },
+                new BreadcrumbItem { Name = "العملاء", Url = "hub/Clients" },
                 new BreadcrumbItem { Name = client.ClientName ?? "الملف الشخصي" }
             };
 
