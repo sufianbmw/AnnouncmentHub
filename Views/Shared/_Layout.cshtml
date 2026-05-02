@@ -37,8 +37,8 @@
                     },
                     keyframes: {
                         marquee: {
-                            '0%':   { transform: 'translateX(0%)' },
-                            '100%': { transform: 'translateX(50%)' },
+                            '0%':   { transform: 'translateX(-50%)' },
+                            '100%': { transform: 'translateX(0%)' },
                         },
                         fadeUp: {
                             '0%': { opacity: '0', transform: 'translateY(24px)' },
@@ -183,7 +183,7 @@
         </div>
 
         @* Scrolling track *@
-        <div class="flex w-max animate-marquee py-2.5">
+        <div class="flex w-max animate-marquee py-2.5 hover:[animation-play-state:paused] cursor-pointer">
             @await Component.InvokeAsync("MarqueeTicker")
         </div>
     </div>
