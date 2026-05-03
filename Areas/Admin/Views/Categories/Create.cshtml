@@ -11,7 +11,7 @@
         </div>
 
         <div class="card-body bg-light">
-                <form asp-action="Create" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+            <form asp-action="Create" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
 
                 <!-- 🔹 Category Name -->
                 <div class="mb-4">
@@ -26,7 +26,7 @@
                         <label asp-for="IsParent" for="IsParentCheckbox" class="form-label fs-5 fw-semibold">👑 تصنيف رئيسي؟</label>
                     </div>
                     <div class="col-auto form-check form-switch">
-                        <input asp-for="IsParent"  class="form-check-input" type="checkbox" id="IsParentCheckbox" />
+                        <input asp-for="IsParent" class="form-check-input" type="checkbox" id="IsParentCheckbox" />
                     </div>
                 </div>
 
@@ -63,16 +63,8 @@
                     <span asp-validation-for="ParentCategoryIds" class="text-danger"></span>
                 </div>
 
-        
-                <div class="mb-4">
-                    <label asp-for="IconFile" class="form-label fs-5 fw-semibold">🖼️ تحميل أيقونة التصنيف</label>
-                    <input asp-for="IconFile" type="file" accept="image/*" class="form-control" />
-                    <span asp-validation-for="IconFile" class="text-danger"></span>
 
-                    <div class="mt-2">
-                        <img id="iconPreview" src="@Model.IconUrl" alt="preview" style="max-height:100px; display:@(string.IsNullOrEmpty(Model.IconUrl) ? "none" : "block");" />
-                    </div>
-                </div>
+                @await Html.PartialAsync("_IconPicker", Model.IconName ?? "")
                 <!-- خيارات الحالة -->
                 <div class="card border-secondary mb-4 p-3">
                     <h6 class="mb-3 text-secondary">⚙️ إعدادات الحالة</h6>
@@ -85,11 +77,11 @@
                             <input asp-for="IsVIP" class="form-check-input" type="checkbox" id="IsVIPCheckbox" />
                             <label class="form-check-label" for="IsVIPCheckbox">⭐   تصنيف VIP ؟</label>
                         </div>
-                   
+
                     </div>
                 </div>
                 <!-- 🔹 Is Active -->
-         @*        <div class="row align-items-center mb-4">
+                @*        <div class="row align-items-center mb-4">
                     <div class="col-auto">
                         <label asp-for="IsActive" for="IsActiveCheckbox" class="form-label fs-5 fw-semibold">✅ مفعل؟</label>
                     </div>
@@ -97,7 +89,7 @@
                         <input asp-for="IsActive" class="form-check-input" type="checkbox" id="IsActiveCheckbox" checked />
                     </div>
                 </div> *@
-          
+
                 <hr />
 
                 <!-- 🔹 Action Buttons -->
@@ -123,18 +115,7 @@
         document.getElementById('IsParentCheckbox').addEventListener('change', toggleParentCategories);
         toggleParentCategories(); // Run on load
 
-                // live preview
-        document.querySelector('input[name="IconFile"]').addEventListener('change', function (e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = e => {
-                const img = document.getElementById('iconPreview');
-                img.src = e.target.result;
-                img.style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-        });
-  
+
+
     </script>
 }

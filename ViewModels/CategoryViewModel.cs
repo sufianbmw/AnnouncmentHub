@@ -17,7 +17,7 @@ namespace AnnouncmentHub.ViewModels
         public List<int> ParentCategoryIds { get; set; } = new List<int>(); // Changed from single int? ParentId to list
        
         [Display(Name = "ايقونة التصنيف")]
-        public string? IconUrl { get; set; }
+        public string? IconName { get; set; }
 
         [Display(Name = "رفع الأيقونة")]
         public IFormFile? IconFile { get; set; }  // 👈 new

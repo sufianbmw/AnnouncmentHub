@@ -11,19 +11,19 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Authorize(Roles = "Admin,NormalUser")]
-    public class CategoriesController : Controller
+    public class CategoriesController1 : Controller
     {
         private readonly ApplicationDbContext _context;
 
-        public CategoriesController(ApplicationDbContext context)
+        public CategoriesController1(ApplicationDbContext context)
         {
             _context = context;
         }
 
-     public IActionResult Index(string? categoryName = null, int? parentId = null, bool onlyParents = false, int page = 1)
+     public IActionResult Index1(string? categoryName = null, int? parentId = null, bool onlyParents = false, int page = 1)
         {
             // ✅ Load parent categories for the filter dropdown
-            ViewBag.ParentCategories = GetParentCategoriesBasic();
+            ViewBag.ParentCategories = GetParentCategoriesBasic1();
 
             const int pageSize = 40;
 
@@ -64,11 +64,11 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
 
 
         // GET: Categories/Create
-        public IActionResult Create()
+        public IActionResult Create1()
         {
             var model = new CategoryViewModel
             {
-                ParentCategories = GetParentCategoriesBasic()
+                ParentCategories = GetParentCategoriesBasic1()
             };
 
             return View(model);
@@ -77,7 +77,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
         // POST: Categories/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CategoryViewModel model)
+        public async Task<IActionResult> Create1(CategoryViewModel model)
         {
             // 🔹 Validate: subcategory must have a parent
             if (!model.IsParent && (model.ParentCategoryIds == null || !model.ParentCategoryIds.Any()))
@@ -88,7 +88,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
             if (!ModelState.IsValid)
             {
                 // Repopulate parent categories before returning view
-                model.ParentCategories = GetParentCategoriesBasic();
+                model.ParentCategories = GetParentCategoriesBasic1();
                 return View(model);
             }
 
@@ -144,7 +144,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private List<SelectListItem> GetParentCategoriesBasic()
+        private List<SelectListItem> GetParentCategoriesBasic1()
         {
             var parents = _context.Categories
                 .Where(c => c.IsParent && c.IsActive)
@@ -160,7 +160,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
         }
 
 
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit1(int? id)
         {
             if (id == null)
                 return NotFound();
@@ -175,7 +175,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
                     IsParent = c.IsParent,
                     IsActive = c.IsActive,
                     IsVIP = c.IsVIP,
-                    IconName = c.IconUrl,
+                    IconName=c.IconUrl,
                     ParentCategoryIds = c.ParentMappings.Select(pm => pm.ParentCategoryId).ToList(),
                     ParentCategories = _context.Categories
                         .Where(pc => pc.IsParent && pc.IsActive)
@@ -195,7 +195,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
         
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, CategoryViewModel model)
+        public async Task<IActionResult> Edit1(int id, CategoryViewModel model)
         {
             if (id != model.Id)
                 return NotFound();
@@ -314,7 +314,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
 
 
         // GET: Categories/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete1(int? id)
         {
             if (id == null)
             {
@@ -389,7 +389,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed1(int id)
         {
             var category = await _context.Categories
                 .Include(c => c.ParentMappings)
