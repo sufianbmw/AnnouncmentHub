@@ -103,6 +103,51 @@
 </div>
 
 @section Scripts {
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Render all data-lucide icons including the picker grid
+            lucide.createIcons();
+
+            const input   = document.getElementById('IconName');
+            const search  = document.getElementById('iconSearch');
+            const grid    = document.getElementById('iconGrid');
+            const prevIcon = document.getElementById('iconPreviewIcon');
+            const prevLbl  = document.getElementById('iconPreviewLabel');
+            const btns     = Array.from(grid.querySelectorAll('.icon-pick-btn'));
+
+            function selectIcon(name) {
+                input.value = name;
+                prevLbl.textContent = name;
+                prevIcon.setAttribute('data-lucide', name);
+                lucide.createIcons();
+                btns.forEach(b => {
+                    const on = b.dataset.icon === name;
+                    b.style.borderColor = on ? '#0d9488' : '#e0ddd4';
+                    b.style.background  = on ? '#e6f4f2' : '#f7f4ee';
+                    const ico = b.querySelector('i, svg');
+                    if (ico) ico.style.color = on ? '#0d9488' : '#555';
+                });
+            }
+
+            btns.forEach(btn => btn.addEventListener('click', () => selectIcon(btn.dataset.icon)));
+
+            search.addEventListener('input', function () {
+                const q = this.value.toLowerCase();
+                btns.forEach(b => b.style.display = b.dataset.icon.includes(q) ? 'flex' : 'none');
+            });
+
+            search.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const val = this.value.trim();
+                    if (val) selectIcon(val);
+                }
+            });
+        });
+    </script>
+
     <partial name="_ValidationScriptsPartial" />
 
     <script>

@@ -20,7 +20,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
             _context = context;
         }
 
-     public IActionResult Index(string? categoryName = null, int? parentId = null, bool onlyParents = false, int page = 1)
+        public IActionResult Index(string? categoryName = null, int? parentId = null, bool onlyParents = false, int page = 1)
         {
             // ✅ Load parent categories for the filter dropdown
             ViewBag.ParentCategories = GetParentCategoriesBasic();
@@ -92,11 +92,14 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
                 return View(model);
             }
 
-            // 🔹 Default icon path
+            // 🔹 Icon: prefer Lucide icon name, fallback to file upload
             string iconPath = "/uploads/icons/no-icon.png";
 
-            // 🔹 Handle file upload if present
-            if (model.IconFile != null && model.IconFile.Length > 0)
+            if (!string.IsNullOrWhiteSpace(model.IconName))
+            {
+                iconPath = model.IconName.Trim();
+            }
+            else if (model.IconFile != null && model.IconFile.Length > 0)
             {
                 var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "icons");
                 if (!Directory.Exists(uploadsFolder))
@@ -192,7 +195,7 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
 
             return View(category);
         }
-        
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, CategoryViewModel model)
@@ -223,8 +226,12 @@ namespace AnnouncmentHub.Areas.Admin.Controllers
                     category.IsActive = model.IsActive;
                     category.IsVIP = model.IsVIP;
 
-                    // ✅ Handle icon file upload
-                    if (model.IconFile != null && model.IconFile.Length > 0)
+                    // ✅ Handle icon: prefer Lucide name, fallback to file upload
+                    if (!string.IsNullOrWhiteSpace(model.IconName))
+                    {
+                        category.IconUrl = model.IconName.Trim();
+                    }
+                    else if (model.IconFile != null && model.IconFile.Length > 0)
                     {
                         var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "icons");
                         if (!Directory.Exists(uploadsFolder))
