@@ -107,18 +107,11 @@
                     <td class="text-center fw-bold">@((startIndex + i++).ToString())</td>
 
                     <td class="text-center">
-                        <div style="width:48px;height:48px;border-radius:12px;background:#e6f4f2;display:inline-flex;align-items:center;justify-content:center;">
-                            @if (!string.IsNullOrEmpty(cat.IconUrl) && cat.IconUrl.StartsWith("/"))
-                            {
-                                @* Old file-upload icon *@
-                                <img src="@cat.IconUrl" alt="icon" style="width:32px;height:32px;object-fit:contain;" />
-                            }
-                            else
-                            {
-                                @* Lucide icon name *@
-                                <i data-lucide="@(string.IsNullOrEmpty(cat.IconUrl) ? "tag" : cat.IconUrl)"
-                                   style="width:24px;height:24px;color:#0d9488;"></i>
-                            }
+                        <div style="display:inline-block; background-color:#cecece; border-radius:8px; padding:4px;">
+                            <img src="@(string.IsNullOrEmpty(cat.IconUrl) ? "/images/no-icon.png" : cat.IconUrl)"
+                                 alt="icon"
+                                 class="rounded"
+                                 style="width:60px;height:60px;object-fit:contain; background-color:#000000;" />
                         </div>
                     </td>
                     <td class="fw-semibold">@cat.CatName</td>
@@ -186,8 +179,3 @@
         })
     </div>
 </div>
-
-@section Scripts {
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-<script>document.addEventListener('DOMContentLoaded', () => lucide.createIcons());</script>
-}
